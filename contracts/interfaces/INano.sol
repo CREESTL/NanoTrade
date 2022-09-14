@@ -8,9 +8,9 @@ pragma solidity ^0.8.9;
 /// @dev An interface for a dividend-paying token contract.
 interface INano {
   /// @notice View the amount of dividend in wei that an address can withdraw.
-  /// @param _owner The address of a token holder.
-  /// @return The amount of dividend in wei that `_owner` can withdraw.
-  function dividendOf(address _owner) external view returns(uint256);
+  /// @param owner The address of a token holder.
+  /// @return The amount of dividend in wei that `owner` can withdraw.
+  function dividendOf(address owner) external view returns(uint256);
 
   /// @notice Distributes ether to token holders as dividends.
   /// @dev SHOULD distribute the paid ether to token holders as dividends.
