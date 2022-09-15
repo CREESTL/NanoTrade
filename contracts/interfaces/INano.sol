@@ -7,35 +7,40 @@ pragma solidity ^0.8.9;
  
 /// @dev An interface for a dividend-paying token contract.
 interface INano {
-  /// @notice View the amount of dividend in wei that an address can withdraw.
-  /// @param owner The address of a token holder.
-  /// @return The amount of dividend in wei that `owner` can withdraw.
-  function dividendOf(address owner) external view returns(uint256);
 
-  /// @notice Distributes ether to token holders as dividends.
-  /// @dev SHOULD distribute the paid ether to token holders as dividends.
-  ///  SHOULD NOT directly transfer ether to token holders in this function.
-  ///  MUST emit a `DividendsDistributed` event when the amount of distributed ether is greater than 0.
-  function distributeDividends() external payable;
 
-  /// @notice Withdraws the ether distributed to the sender.
-  /// @dev SHOULD transfer `dividendOf(msg.sender)` wei to `msg.sender`, and `dividendOf(msg.sender)` SHOULD be 0 after the transfer.
-  ///  MUST emit a `DividendWithdrawn` event if the amount of ether transferred is greater than 0.
-  function withdrawDividend() external;
+  /// @notice Distributes one token as dividends for holders of another token _equally _
+  // TODO what if its too large? 
+  /// @param receivers The list of addresses of all receivers of dividends
+  /// @param distToken The address of the token that is to be disctributed as dividends
+  ///        Zero address for native token (ether, wei)
+  /// @param amount The amount of distTokens to be distributed in total
+  function distributeDividendsEqual(address[] memory receivers, address distToken, uint256 amount) external;
 
-  /// @dev This event MUST emit when ether is distributed to token holders.
-  /// @param from The address which sends ether to this contract.
-  /// @param weiAmount The amount of distributed ether in wei.
+  /// @notice Distributes one token as dividends for holders of another token _according to each user's balance_
+  // TODO what if its too large? 
+  /// @param receivers The list of addresses of all receivers of dividends
+  /// @param origToken The address of the token that is held by receivers
+  /// @param distToken The address of the token that is to be disctributed as dividends
+  ///        Zero address for native token (ether, wei)
+  /// @param amount The amount of distTokens to be distributed in total
+  // TODO which way should the weight work? 
+  /// @param weight The amount of distTokens per single origToken on user's balance. Must be greater than or equal to 1!
+  function distributeDividendsWeighted(address[] memory receivers, address origToken, address distToken, uint256 amount, uint256 weight) external;
+  
+  /// @notice Calculates the maximum currently allowed weight.
+  ///         Use this before distributing the dividends
+  /// @param receivers The list of addresses of all receivers of dividends
+  /// @param origToken The address of the token that is held by receivers
+  /// @param amount The amount of distTokens to be distributed in total
+  function calcMaxWeight(address[] memory receivers, address origToken, uint256 amount) external view returns(uint256);
+
+  /// @dev Indicates that dividends were distributed
+  /// @param distToken The address of the token that is to be disctributed as dividends
+  /// @param amount The amount of distTokens to be distributed in total
   event DividendsDistributed(
-    address indexed from,
-    uint256 weiAmount
-  );
-
-  /// @dev This event MUST emit when an address withdraws their dividend.
-  /// @param to The address which withdraws ether from this contract.
-  /// @param weiAmount The amount of withdrawn ether in wei.
-  event DividendWithdrawn(
-    address indexed to,
-    uint256 weiAmount
+    address indexed distToken,
+    // TODO add at least one not indexed field?
+    uint256 indexed amount
   );
 }
