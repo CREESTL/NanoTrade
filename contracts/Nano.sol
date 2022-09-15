@@ -3,7 +3,7 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/INano.sol";
 
 // TODO Use OZ SafeMath instead?
@@ -15,7 +15,7 @@ import "./math/SafeMathInt.sol";
 /// @title Dividend-Paying Token
 /// @dev A mintable ERC20 token that allows anyone to pay and distribute ether
 /// to token holders as dividends and allows token holders to withdraw their dividends.
-contract Nano is INano {
+contract Nano is INano, Ownable{
 
   /// @notice Distributes one token as dividends for holders of another token _equally _
   // TODO what if its too large? 
@@ -23,7 +23,8 @@ contract Nano is INano {
   /// @param distToken The address of the token that is to be disctributed as dividends
   ///        Zero address for native token (ether, wei)
   /// @param amount The amount of distTokens to be distributed in total
-  function distributeDividendsEqual(address[] memory receivers, address distToken, uint256 amount) external {
+  function distributeDividendsEqual(address[] memory receivers, address distToken, uint256 amount) external onlyOwner {
+    require(receivers.length > 0, "Nano: no dividends receivers provided!");
     uint256 length = receivers.length;
     for (uint256 i = 0; i < length; i++) {
       if (distToken == address(0)){
@@ -50,7 +51,8 @@ contract Nano is INano {
   /// @param amount The amount of distTokens to be distributed in total
   // TODO which way should the weight work? 
   /// @param weight The amount of distTokens per single origToken on user's balance. Must be greater than or equal to 1!
-  function distributeDividendsWeighted(address[] memory receivers, address origToken, address distToken, uint256 amount, uint256 weight) external {
+  function distributeDividendsWeighted(address[] memory receivers, address origToken, address distToken, uint256 amount, uint256 weight) external onlyOwner {
+    require(receivers.length > 0, "Nano: no dividends receivers provided!");
     // This function reverts if weight is incorrect. Use it to check.
     calcMaxWeight(receivers, origToken, amount);
     for (uint256 i = 0; i < receivers.length; i++) {
