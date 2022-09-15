@@ -16,11 +16,6 @@ import "./math/SafeMathInt.sol";
 /// @dev A mintable ERC20 token that allows anyone to pay and distribute ether
 /// to token holders as dividends and allows token holders to withdraw their dividends.
 contract Nano is INano {
-  // TODO Do I need this? 
-  using SafeMath for uint256;
-
-  /// @dev Dividends withdrawn by users
-  mapping(address => uint256) internal withdrawnDividends;
 
   /// @notice Distributes one token as dividends for holders of another token _equally _
   // TODO what if its too large? 
