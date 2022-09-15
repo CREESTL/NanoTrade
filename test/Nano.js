@@ -5,7 +5,7 @@ const { expect } = require("chai");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 
 
-describe('Nano Dividend-Paying Token', () => {
+describe("Nano Dividend-Paying Token", () => {
 
   let nano;
   let token;
@@ -21,17 +21,41 @@ describe('Nano Dividend-Paying Token', () => {
     let dummyTx = await ethers.getContractFactory("Dummy");
     token = await dummyTx.deploy();
     await token.deployed();
-    token.giveTokens(ownerAcc, 1_000_000);
+    // Premint 1M tokens to the Nano contract
+    token.giveTokens(nano.address, 1_000_000);
 
 
   });
 
+  describe("ERC20 dividends", () => {
 
-  it('Should have correct name, symbol and decimals', async() => {
-    expect(await token.name()).to.equal("Integral");
-    expect(await token.symbol()).to.equal("SFXDX");
-    expect(await token.decimals()).to.equal(18);
+    it('Should distribute dividends to a single address', async() => {
+      expect(await nano.distributeDividendsEqual([ownerAcc.address], token.address, 10));
+    });
+
+    it('Should fail to distribute too high dividends to a single address', async() => {
+      await expect(nano.distributeDividendsEqual([ownerAcc.address], token.address, 10_000_000))
+      .to.be.revertedWith("ERC20: transfer amount exceeds balance");
+    });
+
+    it('Should fail to distribute dividends to no receivers', async() => {
+      await expect(nano.distributeDividendsEqual([], token.address, 10_000_000))
+      .to.be.revertedWith("Nano: no dividends receivers provided!");
+    });
+
+    it('Should fail to distribute dividends if caller is not an owner', async() => {
+      await expect(nano.connect(clientAcc1).distributeDividendsEqual([], token.address, 10_000_000))
+      .to.be.revertedWith("Ownable: caller is not the owner");
+    });
+
   });
+
+
+  describe("Native tokens dividends", () => {
+
+
+  });
+
 
   it('Should only mint tokens if caller is a bridge', async() => {
     let amount = ethers.utils.parseUnits("10", 18);
@@ -49,28 +73,4 @@ describe('Nano Dividend-Paying Token', () => {
 
   });
 
-  it('Should only burn tokens if caller is a bridge', async() => {
-    let amount = ethers.utils.parseUnits("10", 18);
-    // First mint some tokens to the client
-    await expect(token.connect(bridgeAcc).mint(clientAcc1.address, amount))
-    .to.emit(token, "Mint")
-    .withArgs(anyValue, amount);
-
-    // Call from a client should fail
-    await expect(token.connect(clientAcc2).burn(clientAcc1.address, amount))
-    .to.be.revertedWith("Token: caller is not a bridge!");
-
-    // Call from a bridge should secceed
-    expect(await token.balanceOf(clientAcc1.address)).to.equal(amount);
-    await expect(token.connect(bridgeAcc).burn(clientAcc1.address, amount))
-    .to.emit(token, "Burn")
-    .withArgs(anyValue, amount);
-    expect(await token.balanceOf(clientAcc1.address)).to.equal(0);
-    
-  });
-
-  it('Should return correct address of the bridge', async() => {
-    expect(await token.bridge()).to.equal(bridgeAcc.address);
-    
-  });  
 });
