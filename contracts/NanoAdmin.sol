@@ -18,16 +18,20 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     using Strings for uint256;
     
     /// @dev Mapping from ERC721 token to controlled ERC20 token addresses
-    mapping(uint256 => address) private controlledERC20s;
+    mapping(uint256 => address) private adminToControlled;
+    /// @dev Mapping of admin token owners and token IDs they hold
+    mapping(address => uint256) private holderToId;
+    /// @dev Reverse mapping for `holderToId`
+    mapping(uint256 => address) private IdToHolder;
     /// @dev Mapping of used ERC20 tokens addresses
-    mapping(address => bool) private usedERC20s;
+    mapping(address => bool) private usedControlled;
 
 
     /// @dev Checks if an ERC20 token with the given address exists
     ///      It might have been burnt by the owner
     // TODO not sure if that's the proper way to check it...
     modifier ERC20Exists(address ERC20Address) {
-        require(IProducedToken(ERC20Address).decimals() > 0, "NanoAdmin: ERC20 token with the provided address does not exist!");
+        require(IProducedToken(ERC20Address).decimals() > 0, "NanoAdmin: controlled token with the provided address does not exist!");
         _;   
     }
 
@@ -38,47 +42,62 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     /// @param to The address of the receiver of the token
     /// @param ERC20Address The address of the controlled ERC20 token
     function mintWithERC20Address(address to, address ERC20Address) public onlyOwner ERC20Exists(ERC20Address) {
-        require(!usedERC20s[ERC20Address], "NanoAdmin: only a single ERC721 is allowed for a single ERC20!");
+        require(!usedControlled[ERC20Address], "NanoAdmin: only a single admin token is allowed for a single controlled token!");
+        require(to != address(0), "NanoAdmin: admin token mint to zero address is not allowed!");
         tokenIds.increment();
         // First ID is 1
         uint256 tokenId = tokenIds.current();
-        setERC20Address(tokenId, ERC20Address);
+        // Mint the token
         _safeMint(to, tokenId);
-        usedERC20s[ERC20Address] = true;
-
+        // Set the controlled token
+        setControlledAddress(tokenId, ERC20Address);
+        // Mark that controlled token has been used once
+        usedControlled[ERC20Address] = true;
+        // Mark that token with the current ID belongs to the user
+        holderToId[to] = tokenId;
+        IdToHolder[tokenId] = to;
         emit AdminTokenCreated(tokenId, ERC20Address);
     }
 
 
+    /// @notice Checks it the provided address owns an admin token
+    /// @param user The user address to check
+    /// @return The ID of the owned token
+    function checkOwner(address user) public view returns(uint256) {
+        require(holderToId[user] != 0, "NanoAdmin: user does not have an admin token!");
+        return holderToId[user];
+    }
+
+    
     /// @notice Returns the address of the controlled ERC20 token 
     /// @param tokenId The ID of ERC721 token to check
     /// @return The address of the controlled ERC20 token
-    function getERC20AddressById(uint256 tokenId) public view onlyOwner returns (address) {
+    function getControlledAddressById(uint256 tokenId) public view returns (address) {
         _requireMinted(tokenId);
-        require(controlledERC20s[tokenId] != address(0), "NanoAdmin: no controlled ERC20 exists for this admin token!");
+        require(adminToControlled[tokenId] != address(0), "NanoAdmin: no controlled token exists for this admin token!");
         
-        return controlledERC20s[tokenId];
+        return adminToControlled[tokenId];
     }
 
-    /// @notice Sets the address of the controlled ERS20 token for already minted ERC721 token
-    /// @dev There is no reverse function like `deleteERC20Address` because there can not be any
-    ///      ERC721 tokens without controlled tokens
+
+    /// @notice Sets the address of the controlled ERC20 token for ERC721 token
     /// @param tokenId The ID of minted ERC721 token
     /// @param ERC20Address The address of the controlled ERC20 token
-    function setERC20Address(uint256 tokenId, address ERC20Address) public onlyOwner ERC20Exists(ERC20Address) {
-        // It is implied that the token has been minted with _safeMint
-        require(_exists(tokenId), "ERC721URIStorage: URI set of nonexistent token");
-        controlledERC20s[tokenId] = ERC20Address;
+    function setControlledAddress(uint256 tokenId, address ERC20Address) internal onlyOwner ERC20Exists(ERC20Address) {
+        require(_exists(tokenId), "NanoAdmin: admin token with the given ID does not exist!");
+        require(ERC20Address != address(0), "NanoAdmin: controlled token can not have a zero address!");
+        adminToControlled[tokenId] = ERC20Address;
+
     }
 
     /// @notice Burns the token with the provided ID
     /// @param tokenId The ID of the token to burn
     function burn(uint256 tokenId) public onlyOwner {
         super._burn(tokenId);
-
-        if (controlledERC20s[tokenId] != address(0)) {
-            delete controlledERC20s[tokenId];
-        }
+        // Clean 3 mappings at once
+        delete adminToControlled[tokenId];
+        delete holderToId[IdToHolder[tokenId]];
+        delete IdToHolder[tokenId];
 
         emit AdminTokenBurnt(tokenId);
     }
