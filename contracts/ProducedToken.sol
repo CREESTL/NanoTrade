@@ -117,11 +117,4 @@ contract ProducedToken is ERC20, Initializable, IProducedToken {
         emit Mint(to, amount);
     }
 
-    /// @notice Makes the token mintable or not mintable
-    /// @param mintable_ Mintable status: true of false
-    function setMintable(bool mintable_) public hasAdminToken {
-        _mintable = mintable_;
-        emit MintabilityChanged(mintable_);
-    }
-
 }

@@ -28,10 +28,6 @@ interface IProducedToken is IERC20 {
     /// @param amount The amount of tokens to mint
     function mint(address to, uint256 amount) external;
 
-    /// @notice Makes the token mintable or not mintable
-    /// @param mintable_ Mintable status: true of false
-    function setMintable(bool mintable_) external;
-
     /// @notice Is emitted on every mint of the token
     event Mint(address indexed account, uint256 amount);
     
