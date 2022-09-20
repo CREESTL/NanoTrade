@@ -31,18 +31,31 @@ contract NanoFactory is Ownable, INanoFactory {
     /// @param symbol The symbol of the token
     /// @param decimals Number of decimals of the token
     /// @param mintable Token may be either mintable or not. Can be changed later.
-    /// @dev Only the owner can create new tokens
+    /// @param initialSupply Initial supply of the token to be minted after initialization
+    /// @param maxTotalSupply Maximum amount of tokens to be minted
+    /// @param adminToken_ Address of the admin token for controlled token
     function createERC20Token(
         string memory name,
         string memory symbol,
         uint8 decimals,
-        bool mintable
+        bool mintable,
+        uint256 initialSupply,
+        uint256 maxTotalSupply,
+        address adminToken_
     ) external onlyOwner {
 
         // Copy the template functionality and create a new token (proxy pattern)
         address clonedToken = Clones.clone(producedToken);
-        ProducedToken(clonedToken).initialize(name, symbol, decimals, mintable, adminToken);
-
+        // Factory is the owner of the token and can initialize it
+        ProducedToken(clonedToken).initialize(
+            name, 
+            symbol, 
+            decimals, 
+            mintable, 
+            initialSupply, 
+            maxTotalSupply,
+            adminToken_
+        );
         // Mint admin token to the creator of this ERC20 token
         INanoAdmin(adminToken).mintWithERC20Address(msg.sender, clonedToken);
         
