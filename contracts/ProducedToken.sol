@@ -16,6 +16,10 @@ contract ProducedToken is ERC20, Initializable, IProducedToken {
     /// @dev The address of the admin tokens has to be provided in order
     ///      to verify user's ownership of that token
     address internal _adminToken;
+    /// @dev Both mintable and unmintable tokens have initial supply
+    uint256 internal _initialSupply;
+    /// @dev Should be equal to `_initialSupply` for unmintable tokens
+    uint256 internal _maxTotalSupply;
 
     /// @dev Checks if mintability is activated
     modifier WhenMintable() { 
@@ -48,17 +52,34 @@ contract ProducedToken is ERC20, Initializable, IProducedToken {
         string memory symbol_,
         uint8 decimals_,
         bool mintable_,
+        uint256 initialSupply_,
+        uint256 maxTotalSupply_,
         address adminToken_
     ) external initializer onlyOwner {
         require(bytes(name_).length > 0, "ProducedToken: initial token name can not be empty!");
         require(bytes(symbol_).length > 0, "ProducedToken: initial token symbol can not be empty!");
         require(decimals_ > 0, "ProducedToken: initial decimals can not be zero!");
         require(adminToken_ != address(0), "ProducedToken: admin token address can not be a zero address!");
+        require(initialSupply_ >= 0), "ProducedToken: inital token supply must be greater than 0!");
+        if (mintable_) {
+            // If token is unmintable, `maxTotalSupply` must be equal to `initialSupply`
+            require(maxTotalSupply_ == initialSupply_, "ProducedToken: max total supply must be equal to initial supply!")
+        } else {
+            // If token is mintable, `maxTotalSupply` must be equal to or greater than `initialSupply`
+            require(maxTotalSupply_ >= initialSupply_), "ProducedToken: max total supply can not be less than initial supply!");
+        }
         _tokenName = name_;
         _tokenSymbol = symbol_;
         _decimals = decimals_;
         _mintable = mintable_;
+        _initialSupply = initialSupply_;
+        _maxTotalSupply = maxTotalSupply_;
         _adminToken = adminToken_;
+
+        if (_initialSupply > 0) {
+            // Mint initial supply if it is not zero
+            mint(msg.sender, initialSupply);
+        }
     }
 
 
@@ -90,6 +111,8 @@ contract ProducedToken is ERC20, Initializable, IProducedToken {
     /// @param to The receiver of tokens
     /// @param amount The amount of tokens to mint
     function mint(address to, uint256 amount) external override hasAdminToken WhenMintable {
+        // TODO not sure if its not implemented by default!
+        require(totalSupply() + amount <= maxTotalSupply_, "ProducedToken: supply exceeds maximum supply!");
         _mint(to, amount);
         emit Mint(to, amount);
     }
