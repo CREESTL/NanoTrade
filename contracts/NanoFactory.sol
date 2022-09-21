@@ -14,15 +14,11 @@ import "./interfaces/INanoAdmin.sol";
 contract NanoFactory is Ownable, INanoFactory {
 
     /// @dev Address of token to clone
-    address private producedToken;
-    /// @dev Address of admin token to be minted to holders of cloned tokens
-    address private adminToken;
+    address private _producedToken;
 
     /// @dev Create a new token template to copy and upgrade it later
-    /// @param _adminToken The address of admin token
-    constructor(address _adminToken) {
-        producedToken = address(new ProducedToken());
-        adminToken = _adminToken;
+    constructor() {
+        _producedToken = address(new ProducedToken());
     }
 
 
@@ -45,7 +41,7 @@ contract NanoFactory is Ownable, INanoFactory {
     ) external onlyOwner {
 
         // Copy the template functionality and create a new token (proxy pattern)
-        address clonedToken = Clones.clone(producedToken);
+        address clonedToken = Clones.clone(_producedToken);
         // Factory is the owner of the token and can initialize it
         ProducedToken(clonedToken).initialize(
             name, 
@@ -57,7 +53,7 @@ contract NanoFactory is Ownable, INanoFactory {
             adminToken_
         );
         // Mint admin token to the creator of this ERC20 token
-        INanoAdmin(adminToken).mintWithERC20Address(msg.sender, clonedToken);
+        INanoAdmin(adminToken_).mintWithERC20Address(msg.sender, clonedToken);
         
     }
 
