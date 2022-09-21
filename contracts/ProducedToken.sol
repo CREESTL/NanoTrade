@@ -116,10 +116,9 @@ contract ProducedToken is ERC20, Initializable, IProducedToken, Ownable {
     /// @param to The receiver of tokens
     /// @param amount The amount of tokens to mint
     function mint(address to, uint256 amount) public override hasAdminToken WhenMintable {
-        // TODO not sure if its not implemented by default!
         require(totalSupply() + amount <= _maxTotalSupply, "ProducedToken: supply exceeds maximum supply!");
         _mint(to, amount);
-        emit Mint(to, amount);
+        emit ControlledTokenCreated(to, amount);
     }
 
 }

@@ -29,8 +29,9 @@ interface IProducedToken is IERC20 {
     function mint(address to, uint256 amount) external;
 
     /// @notice Is emitted on every mint of the token
-    event Mint(address indexed account, uint256 amount);
+    event ControlledTokenCreated(address indexed account, uint256 amount);
     
     /// @notice Is emitted when token mintability is changed
     event MintabilityChanged(bool indexed mintable);
+
 }
