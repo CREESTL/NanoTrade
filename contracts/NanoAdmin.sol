@@ -25,6 +25,8 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     mapping(uint256 => address) private IdToHolder;
     /// @dev Mapping of used ERC20 tokens addresses
     mapping(address => bool) private usedControlled;
+    /// @dev The address of the factory minting admin tokens
+    address private _factoryAddress;
 
 
     /// @dev Checks if an ERC20 token with the given address exists
@@ -35,13 +37,22 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
         _;   
     }
 
+    /// @dev Checks if caller is a factory address
+    modifier onlyFactory() {
+        require(msg.sender == _factoryAddress, "NanoAdmin: caller is not a factory!");
+        _;
+    }
+
     /// @dev Creates an "empty" NFT
-    constructor() ERC721("", "") {}
+    /// @param factoryAddress_ The address of the factory minting admin tokens
+    constructor(address factoryAddress_) ERC721("", "") {
+        _factoryAddress = factoryAddress_;
+    }
 
     /// @notice Mints a new ERC721 token with the address of the controlled ERC20 token
     /// @param to The address of the receiver of the token
     /// @param ERC20Address The address of the controlled ERC20 token
-    function mintWithERC20Address(address to, address ERC20Address) public onlyOwner ERC20Exists(ERC20Address) {
+    function mintWithERC20Address(address to, address ERC20Address) public onlyFactory ERC20Exists(ERC20Address) {
         require(!usedControlled[ERC20Address], "NanoAdmin: only a single admin token is allowed for a single controlled token!");
         require(to != address(0), "NanoAdmin: admin token mint to zero address is not allowed!");
         tokenIds.increment();
@@ -92,6 +103,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
 
     /// @notice Burns the token with the provided ID
     /// @param tokenId The ID of the token to burn
+    // TODO who should be allowed to burn? 
     function burn(uint256 tokenId) public onlyOwner {
         super._burn(tokenId);
         // Clean 3 mappings at once
