@@ -23,17 +23,15 @@ interface INano {
   /// @param origToken The address of the token that is held by receivers
   /// @param distToken The address of the token that is to be disctributed as dividends
   ///        Zero address for native token (ether, wei)
-  /// @param amount The amount of distTokens to be distributed in total
-  // TODO which way should the weight work? 
   /// @param weight The amount of distTokens per single origToken on user's balance. Must be greater than or equal to 1!
-  function distributeDividendsWeighted(address[] memory receivers, address origToken, address distToken, uint256 amount, uint256 weight) external;
+  function distributeDividendsWeighted(address[] memory receivers, address origToken, address distToken, uint256 weight) external;
   
-  /// @notice Calculates the maximum currently allowed weight.
-  ///         Use this before distributing the dividends
+  /// @notice Calculates the minimum currently allowed weight.
+  ///         Weight used in distributing dividends should be equal/greater than this
   /// @param receivers The list of addresses of all receivers of dividends
   /// @param origToken The address of the token that is held by receivers
-  /// @param amount The amount of distTokens to be distributed in total
-  function calcMaxWeight(address[] memory receivers, address origToken, uint256 amount) external view returns(uint256);
+  /// @param weight The amount of origTokens required to get a single distToken
+  function calcMinWeight(address[] memory receivers, address origToken, uint256 weight) external view returns(uint256);
 
   /// @dev Indicates that dividends were distributed
   /// @param distToken The address of the token that is to be disctributed as dividends
