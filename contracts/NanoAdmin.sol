@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./interfaces/IProducedToken.sol";
+import "./interfaces/INanoProducedToken.sol";
 import "./interfaces/INanoAdmin.sol";
 
 
@@ -33,7 +33,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     ///      It might have been burnt by the owner
     // TODO not sure if that's the proper way to check it...
     modifier ERC20Exists(address ERC20Address) {
-        require(IProducedToken(ERC20Address).decimals() > 0, "NanoAdmin: controlled token with the provided address does not exist!");
+        require(INanoProducedToken(ERC20Address).decimals() > 0, "NanoAdmin: controlled token with the provided address does not exist!");
         _;   
     }
 

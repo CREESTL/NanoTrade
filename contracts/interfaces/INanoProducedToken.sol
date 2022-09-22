@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
 /// @title An interface for a custom ERC20 contract used in the bridge
-interface IProducedToken is IERC20 {
+interface INanoProducedToken is IERC20 {
 
     /// @notice Returns the name of the token
     /// @return The name of the token

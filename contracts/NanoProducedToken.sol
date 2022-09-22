@@ -5,10 +5,10 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./interfaces/IProducedToken.sol";
+import "./interfaces/INanoProducedToken.sol";
 import "./interfaces/INanoAdmin.sol";
 
-contract ProducedToken is ERC20, Initializable, IProducedToken, Ownable {
+contract NanoProducedToken is ERC20, Initializable, INanoProducedToken, Ownable {
 
     string internal _tokenName;
     string internal _tokenSymbol;
@@ -24,7 +24,7 @@ contract ProducedToken is ERC20, Initializable, IProducedToken, Ownable {
 
     /// @dev Checks if mintability is activated
     modifier WhenMintable() { 
-        require (_mintable, "ProducedToken: the token is not mintable!"); 
+        require (_mintable, "NanoProducedToken: the token is not mintable!"); 
         _; 
     }
 
@@ -36,7 +36,7 @@ contract ProducedToken is ERC20, Initializable, IProducedToken, Ownable {
         // Get the address of the controlled token
         address contolledAddress = INanoAdmin(_adminToken).getControlledAddressById(tokenId);
         // Compare the previous address of the controlled token with the address of this contract
-        require(contolledAddress == address(this), "ProducedToken: caller does not have an admin token!");
+        require(contolledAddress == address(this), "NanoProducedToken: caller does not have an admin token!");
         _;
     }
 
@@ -61,17 +61,17 @@ contract ProducedToken is ERC20, Initializable, IProducedToken, Ownable {
         uint256 maxTotalSupply_,
         address adminToken_
     ) external initializer onlyOwner {
-        require(bytes(name_).length > 0, "ProducedToken: initial token name can not be empty!");
-        require(bytes(symbol_).length > 0, "ProducedToken: initial token symbol can not be empty!");
-        require(decimals_ > 0, "ProducedToken: initial decimals can not be zero!");
-        require(adminToken_ != address(0), "ProducedToken: admin token address can not be a zero address!");
-        require(initialSupply_ >= 0, "ProducedToken: inital token supply must be greater than 0!");
+        require(bytes(name_).length > 0, "NanoProducedToken: initial token name can not be empty!");
+        require(bytes(symbol_).length > 0, "NanoProducedToken: initial token symbol can not be empty!");
+        require(decimals_ > 0, "NanoProducedToken: initial decimals can not be zero!");
+        require(adminToken_ != address(0), "NanoProducedToken: admin token address can not be a zero address!");
+        require(initialSupply_ >= 0, "NanoProducedToken: inital token supply must be greater than 0!");
         if (mintable_) {
             // If token is unmintable, `maxTotalSupply` must be equal to `initialSupply`
-            require(maxTotalSupply_ == initialSupply_, "ProducedToken: max total supply must be equal to initial supply!");
+            require(maxTotalSupply_ == initialSupply_, "NanoProducedToken: max total supply must be equal to initial supply!");
         } else {
             // If token is mintable, `maxTotalSupply` must be equal to or greater than `initialSupply`
-            require(maxTotalSupply_ >= initialSupply_, "ProducedToken: max total supply can not be less than initial supply!");
+            require(maxTotalSupply_ >= initialSupply_, "NanoProducedToken: max total supply can not be less than initial supply!");
         }
         _tokenName = name_;
         _tokenSymbol = symbol_;
@@ -90,19 +90,19 @@ contract ProducedToken is ERC20, Initializable, IProducedToken, Ownable {
 
     /// @notice Returns the name of the token
     /// @return The name of the token
-    function name() public view override(ERC20, IProducedToken) returns(string memory) {
+    function name() public view override(ERC20, INanoProducedToken) returns(string memory) {
         return _tokenName;
     }
 
     /// @notice Returns the symbol of the token
     /// @return The symbol of the token
-    function symbol() public view override(ERC20, IProducedToken) returns(string memory) {
+    function symbol() public view override(ERC20, INanoProducedToken) returns(string memory) {
         return _tokenSymbol;
     }
 
     /// @notice Returns number of decimals of the token
     /// @return The number of decimals of the token
-    function decimals() public view override(ERC20, IProducedToken) returns(uint8) {
+    function decimals() public view override(ERC20, INanoProducedToken) returns(uint8) {
         return _decimals;
     }
 
@@ -116,7 +116,7 @@ contract ProducedToken is ERC20, Initializable, IProducedToken, Ownable {
     /// @param to The receiver of tokens
     /// @param amount The amount of tokens to mint
     function mint(address to, uint256 amount) public override hasAdminToken WhenMintable {
-        require(totalSupply() + amount <= _maxTotalSupply, "ProducedToken: supply exceeds maximum supply!");
+        require(totalSupply() + amount <= _maxTotalSupply, "NanoProducedToken: supply exceeds maximum supply!");
         _mint(to, amount);
         emit ControlledTokenCreated(to, amount);
     }

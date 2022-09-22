@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./ProducedToken.sol";
+import "./NanoProducedToken.sol";
 import "./interfaces/INanoFactory.sol";
 import "./interfaces/INanoAdmin.sol";
 
@@ -18,7 +18,7 @@ contract NanoFactory is Ownable, INanoFactory {
 
     /// @dev Create a new token template to copy and upgrade it later
     constructor() {
-        _producedToken = address(new ProducedToken());
+        _producedToken = address(new NanoProducedToken());
     }
 
 
@@ -43,7 +43,7 @@ contract NanoFactory is Ownable, INanoFactory {
         // Copy the template functionality and create a new token (proxy pattern)
         address clonedToken = Clones.clone(_producedToken);
         // Factory is the owner of the token and can initialize it
-        ProducedToken(clonedToken).initialize(
+        NanoProducedToken(clonedToken).initialize(
             name, 
             symbol, 
             decimals, 
