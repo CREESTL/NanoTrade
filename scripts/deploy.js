@@ -1,31 +1,138 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// You can also run a script with `npx hardhat run <script>`. If you do that, Hardhat
-// will compile your contracts, add the Hardhat Runtime Environment's members to the
-// global scope, and execute the script.
-const hre = require("hardhat");
+// SPDX-License-Identifier: MIT 
+
+const { ethers, network } = require("hardhat");
+const fs = require("fs");
+const path = require("path");
+const delay = require("delay");
+
+// JSON file to keep information about previous deployments
+const OUTPUT_DEPLOY = require("./deployOutput.json");
+
+let contractName;
 
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-  const unlockTime = currentTimestampInSeconds + ONE_YEAR_IN_SECS;
 
-  const lockedAmount = hre.ethers.utils.parseEther("1");
+  console.log(`[NOTICE!] Chain of deployment: ${network.name}`);
 
-  const Lock = await hre.ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
+  // Contract #1: Nano Factory
 
-  await lock.deployed();
+  // Deploy
+  contractName = "NanoFactory";
+  console.log(`[${contractName}]: Start of Deployment...`);
+  _contractProto = await ethers.getContractFactory(contractName);
+  contractDeployTx = await _contractProto.deploy();
+  factory = await contractDeployTx.deployed();
+  console.log(`[${contractName}]: Deployment Finished!`);
+  OUTPUT_DEPLOY[network.name][contractName].address = factory.address;
 
-  console.log(
-    `Lock with 1 ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`
+  // Verify
+  console.log(`[${contractName}]: Start of Verification...`);
+  
+  await delay(90000);
+
+  OUTPUT_DEPLOY[network.name][contractName].address = bridge.address;
+  if (network.name === "goerli") {
+    url = "https://polygonscan.com/address/" + factory.address + "#code";
+  } else if (network.name === "ethereum") {
+    url = "https://goerli.etherscan.io/address/" + factory.address + "#code";
+  }
+  OUTPUT_DEPLOY[network.name][contractName].verification = url;
+  
+  try { 
+    await hre.run("verify:verify", {
+      address: factory.address,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+  console.log(`[${contractName}]: Verification Finished!`);
+
+  // ====================================================
+
+  // Contract #2: Nano Admin
+
+  // Deploy
+  contractName = "NanoAdmin";
+  console.log(`[${contractName}]: Start of Deployment...`);
+  _contractProto = await ethers.getContractFactory(contractName);
+  contractDeployTx = await _contractProto.deploy(factory.address);
+  admin = await contractDeployTx.deployed();
+  console.log(`[${contractName}]: Deployment Finished!`);
+  OUTPUT_DEPLOY[network.name][contractName].address = admin.address;
+
+  // Verify
+  console.log(`[${contractName}]: Start of Verification...`);
+
+  await delay(90000);
+
+  OUTPUT_DEPLOY[network.name][contractName].address = bridge.address;
+  if (network.name === "goerli") {
+    url = "https://polygonscan.com/address/" + admin.address + "#code";
+  } else if (network.name === "ethereum") {
+    url = "https://goerli.etherscan.io/address/" + admin.address + "#code";
+  }
+  OUTPUT_DEPLOY[network.name][contractName].verification = url;
+  
+  try { 
+    await hre.run("verify:verify", {
+      address: admin.address,
+      constructorArguments: [
+        factory.address
+      ]
+    });
+  } catch (error) {
+    console.error(error);
+  }
+  console.log(`[${contractName}]: Verification Finished!`);
+
+  // ====================================================
+
+  // Contract #3: Nano
+
+  // Deploy
+  contractName = "Nano";
+  console.log(`[${contractName}]: Start of Deployment...`);
+  _contractProto = await ethers.getContractFactory(contractName);
+  contractDeployTx = await _contractProto.deploy();
+  nano = await contractDeployTx.deployed();
+  console.log(`[${contractName}]: Deployment Finished!`);
+  OUTPUT_DEPLOY[network.name][contractName].address = nano.address;
+
+  // Verify
+  console.log(`[${contractName}]: Start of Verification...`);
+
+  await delay(90000);
+
+  OUTPUT_DEPLOY[network.name][contractName].address = bridge.address;
+  if (network.name === "goerli") {
+    url = "https://polygonscan.com/address/" + nano.address + "#code";
+  } else if (network.name === "ethereum") {
+    url = "https://goerli.etherscan.io/address/" + nano.address + "#code";
+  }
+  OUTPUT_DEPLOY[network.name][contractName].verification = url;
+  
+  try { 
+    await hre.run("verify:verify", {
+      address: nano.address,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+  console.log(`[${contractName}]: Verification Finished!`);
+
+  // ====================================================
+
+  console.log(`See Results in "${__dirname + '/deployOutput.json'}" File`);
+  
+  fs.writeFileSync(
+    path.resolve(__dirname, "./deployOutput.json"),
+    JSON.stringify(OUTPUT_DEPLOY, null, "  ")
   );
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
