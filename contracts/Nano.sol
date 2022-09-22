@@ -12,6 +12,9 @@ import "./interfaces/INano.sol";
 /// to token holders as dividends and allows token holders to withdraw their dividends.
 contract Nano is INano, Ownable{
 
+  /// @dev The contract must be able to receive ether to pay dividends with it
+  receive() external payable {}
+
   /// @notice Distributes one token as dividends for holders of another token _equally _
   // TODO what if its too large? 
   /// @param receivers The list of addresses of all receivers of dividends
@@ -49,7 +52,7 @@ contract Nano is INano, Ownable{
     require(receivers.length > 0, "Nano: no dividends receivers provided!");
     require(origToken != address(0), "Nano: original token can not have a zero address!");
     // It is impossible to give distTokens for zero origTokens
-    require(weight >= 1, "Nano; weight is too low!");
+    require(weight >= 1, "Nano: weight is too low!");
     uint256 totalWeightedAmount = 0;
     // This function reverts if weight is incorrect.
     calcMinWeight(receivers, origToken, weight);
