@@ -27,6 +27,8 @@ contract Nano is INano, Ownable{
     for (uint256 i = 0; i < length; i++) {
       if (distToken == address(0)){
         // Native tokens (wei)
+        require(amount <= address(this).balance, "Nano: not enough native tokens to pay dividends!");
+        // TODO make sure it's not necessary to amount * 10 ** 18
         (bool success, ) = receivers[i].call{value: amount / length}("");
         require(success, "Nano: dividends transfer failed!");
       } else {
@@ -60,15 +62,16 @@ contract Nano is INano, Ownable{
       uint256 userBalance = IERC20(origToken).balanceOf(receivers[i]);
       uint256 weightedAmount = userBalance / weight;
       totalWeightedAmount += weightedAmount;
-      // If total assumed amount of tokens to be distributed as dividends is higher than current contract's balance, than it it impossible to
-      // distribute dividends.
-      require(totalWeightedAmount <= IERC20(distToken).balanceOf(address(this)), "Nano: not enough dividend tokens to distribute with the provided weight!");
       if (distToken == address(0)) {
         // Native tokens (wei)
-        (bool success, ) = receivers[i].call{value: weightedAmount}("");
+        require(totalWeightedAmount <= address(this).balance, "Nano: not enough dividend tokens to distribute with the provided weight!");
+        (bool success, ) = receivers[i].call{value: weightedAmount * (1 ether)}("");
         require(success, "Nano: dividends transfer failed!");
       } else {
         // Other ERC20 tokens
+        // If total assumed amount of tokens to be distributed as dividends is higher than current contract's balance, than it it impossible to
+        // distribute dividends.
+        require(totalWeightedAmount <= IERC20(distToken).balanceOf(address(this)), "Nano: not enough dividend tokens to distribute with the provided weight!");
         IERC20(distToken).transfer(receivers[i], weightedAmount);
       }
     }
