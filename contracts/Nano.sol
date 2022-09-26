@@ -27,7 +27,7 @@ contract Nano is INano, Ownable{
     for (uint256 i = 0; i < length; i++) {
       if (distToken == address(0)){
         // Native tokens (wei)
-        require(amount <= address(this).balance, "Nano: not enough native tokens to pay dividends!");
+        require(amount <= address(this).balance, "Nano: not enough dividend tokens to distribute!");
         // TODO make sure it's not necessary to amount * 10 ** 18
         (bool success, ) = receivers[i].call{value: amount / length}("");
         require(success, "Nano: dividends transfer failed!");
@@ -50,6 +50,7 @@ contract Nano is INano, Ownable{
   /// @param distToken The address of the token that is to be disctributed as dividends
   ///        Zero address for native token (ether, wei)
   /// @param weight The amount of origTokens required to get a single distToken
+  ///        NOTE: If dividends are payed in ether then `weight` is the amount of origTokens required to get a single ether (NOT a single wei!)
   function distributeDividendsWeighted(address[] memory receivers, address origToken, address distToken, uint256 weight) external onlyOwner {
     require(receivers.length > 0, "Nano: no dividends receivers provided!");
     require(origToken != address(0), "Nano: original token can not have a zero address!");
@@ -61,10 +62,11 @@ contract Nano is INano, Ownable{
     for (uint256 i = 0; i < receivers.length; i++) {
       uint256 userBalance = IERC20(origToken).balanceOf(receivers[i]);
       uint256 weightedAmount = userBalance / weight;
+      // This amount does not have decimals
       totalWeightedAmount += weightedAmount;
       if (distToken == address(0)) {
         // Native tokens (wei)
-        require(totalWeightedAmount <= address(this).balance, "Nano: not enough dividend tokens to distribute with the provided weight!");
+        require(totalWeightedAmount * (1 ether) <= address(this).balance, "Nano: not enough dividend tokens to distribute with the provided weight!");
         (bool success, ) = receivers[i].call{value: weightedAmount * (1 ether)}("");
         require(success, "Nano: dividends transfer failed!");
       } else {
