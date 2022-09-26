@@ -21,6 +21,11 @@ contract NanoFactory is Ownable, INanoFactory {
         _producedToken = address(new NanoProducedToken());
     }
 
+    /// @dev Returns the address of the token that is produced by the factory
+    /// @return The address of the token that is produced by the factory
+    function producedToken() external view onlyOwner returns(address) {
+        return _producedToken;
+    }
 
     /// @notice Creates a new ERC20 token and mints an admin token proving ownership
     /// @param name The name of the token
