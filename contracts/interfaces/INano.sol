@@ -10,21 +10,19 @@ interface INano {
 
 
   /// @notice Distributes one token as dividends for holders of another token _equally _
-  // TODO what if its too large? 
-  /// @param receivers The list of addresses of all receivers of dividends
-  /// @param distToken The address of the token that is to be disctributed as dividends
+  /// @param origToken The address of the token that is held by receivers
+  ///        Can not be a zero address!
+  /// @param distToken The address of the token that is to be distributed as dividends
   ///        Zero address for native token (ether, wei)
   /// @param amount The amount of distTokens to be distributed in total
-  function distributeDividendsEqual(address[] memory receivers, address distToken, uint256 amount) external;
+  function distributeDividendsEqual(address origToken, address distToken, uint256 amount) external;
 
   /// @notice Distributes one token as dividends for holders of another token _according to each user's balance_
-  // TODO what if its too large? 
-  /// @param receivers The list of addresses of all receivers of dividends
   /// @param origToken The address of the token that is held by receivers
-  /// @param distToken The address of the token that is to be disctributed as dividends
+  /// @param distToken The address of the token that is to be distributed as dividends
   ///        Zero address for native token (ether, wei)
   /// @param weight The amount of distTokens per single origToken on user's balance. Must be greater than or equal to 1!
-  function distributeDividendsWeighted(address[] memory receivers, address origToken, address distToken, uint256 weight) external;
+  function distributeDividendsWeighted(address origToken, address distToken, uint256 weight) external;
   
   /// @notice Checks if provided weight is valid for current receivers
   /// @param receivers The list of addresses of all receivers of dividends
@@ -39,7 +37,7 @@ interface INano {
   function calcMinWeight(address[] memory receivers, address origToken) external view returns(uint256);
 
   /// @dev Indicates that dividends were distributed
-  /// @param distToken The address of the token that is to be disctributed as dividends
+  /// @param distToken The address of the token that is to be distributed as dividends
   /// @param amount The amount of distTokens to be distributed in total
   event DividendsDistributed(
     address indexed distToken,

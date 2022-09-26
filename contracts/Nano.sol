@@ -5,6 +5,7 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/INano.sol";
+import "./interfaces/INanoProducedToken.sol";
 
 
 /// @title Dividend-Paying Token
@@ -16,12 +17,14 @@ contract Nano is INano, Ownable{
   receive() external payable {}
 
   /// @notice Distributes one token as dividends for holders of another token _equally _
-  // TODO what if its too large? 
-  /// @param receivers The list of addresses of all receivers of dividends
-  /// @param distToken The address of the token that is to be disctributed as dividends
+  /// @param origToken The address of the token that is held by receivers
+  ///        Can not be a zero address!
+  /// @param distToken The address of the token that is to be distributed as dividends
   ///        Zero address for native token (ether, wei)
   /// @param amount The amount of distTokens to be distributed in total
-  function distributeDividendsEqual(address[] memory receivers, address distToken, uint256 amount) external onlyOwner {
+  function distributeDividendsEqual(address origToken, address distToken, uint256 amount) external onlyOwner {
+    // Get all holders of the origToken
+    address[] memory receivers = INanoProducedToken(origToken).holders();
     require(receivers.length > 0, "Nano: no dividends receivers provided!");
     uint256 length = receivers.length;
     for (uint256 i = 0; i < length; i++) {
@@ -43,15 +46,15 @@ contract Nano is INano, Ownable{
   }
 
   /// @notice Distributes one token as dividends for holders of another token _according to each user's balance_
-  // TODO what if its too large? 
-  /// @param receivers The list of addresses of all receivers of dividends
   /// @param origToken The address of the token that is held by receivers
   ///        Can not be a zero address!
-  /// @param distToken The address of the token that is to be disctributed as dividends
+  /// @param distToken The address of the token that is to be distributed as dividends
   ///        Zero address for native token (ether, wei)
   /// @param weight The amount of origTokens required to get a single distToken
   ///        NOTE: If dividends are payed in ether then `weight` is the amount of origTokens required to get a single ether (NOT a single wei!)
-  function distributeDividendsWeighted(address[] memory receivers, address origToken, address distToken, uint256 weight) external onlyOwner {
+  function distributeDividendsWeighted(address origToken, address distToken, uint256 weight) external onlyOwner {
+    // Get all holders of the origToken
+    address[] memory receivers = INanoProducedToken(origToken).holders();
     require(receivers.length > 0, "Nano: no dividends receivers provided!");
     require(origToken != address(0), "Nano: original token can not have a zero address!");
     // It is impossible to give distTokens for zero origTokens

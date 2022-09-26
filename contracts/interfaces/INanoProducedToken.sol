@@ -25,7 +25,7 @@ interface INanoProducedToken is IERC20 {
 
     /// @notice Returns the array of addresses of all token holders
     /// @return The array of array of addresses of all token holders
-    function holders() public view hasAdminToken returns (address[] memory);
+    function holders() external view returns (address[] memory);
 
     /// @notice Creates tokens and assigns them to account, increasing the total supply.
     /// @param to The receiver of tokens

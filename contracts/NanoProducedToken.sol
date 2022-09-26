@@ -116,7 +116,8 @@ contract NanoProducedToken is ERC20, Initializable, INanoProducedToken, Ownable 
         return _mintable;
     }
 
-    /// @notice Returns the array of all token holders
+    /// @notice Returns the array of addresses of all token holders
+    /// @return The array of array of addresses of all token holders
     function holders() public view hasAdminToken returns (address[] memory) {
         return _holders;
     }
