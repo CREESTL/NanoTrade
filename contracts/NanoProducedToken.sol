@@ -3,12 +3,11 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/INanoProducedToken.sol";
 import "./interfaces/INanoAdmin.sol";
 
-contract NanoProducedToken is ERC20, Initializable, INanoProducedToken, Ownable {
+contract NanoProducedToken is ERC20, INanoProducedToken, Ownable {
 
     string internal _tokenName;
     string internal _tokenSymbol;
@@ -44,11 +43,9 @@ contract NanoProducedToken is ERC20, Initializable, INanoProducedToken, Ownable 
         _;
     }
 
-    /// @dev Creates an "empty" template token that will be cloned in the future
-    constructor() ERC20("", "") {}
 
-    /// @dev Upgrades an "empty" template. Initializes internal variables. 
-    /// @dev Only the owner (factory) can initialize the token
+    /// @dev Creates a new ERC20 token
+    /// @dev Only the owner (factory) can create the token
     /// @param name_ The name of the token
     /// @param symbol_ The symbol of the token
     /// @param decimals_ Number of decimals of the token
@@ -56,7 +53,7 @@ contract NanoProducedToken is ERC20, Initializable, INanoProducedToken, Ownable 
     /// @param initialSupply_ Initial supply of the token to be minted after initialization
     /// @param maxTotalSupply_ Maximum amount of tokens to be minted
     /// @param adminToken_ Address of the admin token for controlled token
-    function initialize(
+    constructor (
         string memory name_,
         string memory symbol_,
         uint8 decimals_,
@@ -64,7 +61,7 @@ contract NanoProducedToken is ERC20, Initializable, INanoProducedToken, Ownable 
         uint256 initialSupply_,
         uint256 maxTotalSupply_,
         address adminToken_
-    ) external initializer onlyOwner {
+    ) onlyOwner ERC20(name_, symbol_){
         require(bytes(name_).length > 0, "NanoProducedToken: initial token name can not be empty!");
         require(bytes(symbol_).length > 0, "NanoProducedToken: initial token symbol can not be empty!");
         require(decimals_ > 0, "NanoProducedToken: initial decimals can not be zero!");
