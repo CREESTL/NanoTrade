@@ -23,6 +23,10 @@ interface INanoProducedToken is IERC20 {
     /// @return True if the token is mintable. False - if it is not
     function mintable() external view returns(bool);
 
+    /// @notice Returns the array of addresses of all token holders
+    /// @return The array of array of addresses of all token holders
+    function holders() public view hasAdminToken returns (address[] memory);
+
     /// @notice Creates tokens and assigns them to account, increasing the total supply.
     /// @param to The receiver of tokens
     /// @param amount The amount of tokens to mint
