@@ -58,7 +58,7 @@ contract Nano is INano, Ownable{
     require(weight >= 1, "Nano: weight is too low!");
     uint256 totalWeightedAmount = 0;
     // This function reverts if weight is incorrect.
-    calcMinWeight(receivers, origToken, weight);
+    checkWeight(receivers, origToken, weight);
     for (uint256 i = 0; i < receivers.length; i++) {
       uint256 userBalance = IERC20(origToken).balanceOf(receivers[i]);
       uint256 weightedAmount = userBalance / weight;
@@ -82,27 +82,40 @@ contract Nano is INano, Ownable{
   
   }
 
+  /// @notice Checks if provided weight is valid for current receivers
+  /// @param receivers The list of addresses of all receivers of dividends
+  /// @param origToken The address of the token that is held by receivers
+  /// @param weight The amount of origTokens required to get a single distToken
+  function checkWeight(address[] memory receivers, address origToken, uint256 weight) public view {
+    // The lowest balance of origTokens among receivers
+    uint256 minBalance = type(uint256).max;
+    for (uint256 i = 0; i < receivers.length; i++) {
+      uint256 singleBalance = IERC20(origToken).balanceOf(receivers[i]);
+      if (singleBalance < minBalance) {
+        minBalance = singleBalance;
+      }
+    }
+    // If none of the receivers has at least `weight` tokens then it means that no dividends can be distributed
+    require(minBalance >= weight, "Nano: none of the receivers has enough tokens for the provided weight!");
+  }
+
+
   /// @notice Calculates the minimum currently allowed weight.
   ///         Weight used in distributing dividends should be equal/greater than this
   /// @param receivers The list of addresses of all receivers of dividends
   /// @param origToken The address of the token that is held by receivers
-  /// @param weight The amount of origTokens required to get a single distToken
-  function calcMinWeight(address[] memory receivers, address origToken, uint256 weight) public view returns(uint256) {
-    // The highest balance of origTokens among receivers
-    uint256 maxBalance = 0;
+  function calcMinWeight(address[] memory receivers, address origToken) public view returns(uint256) {
+    // The lowest balance of origTokens among receivers
+    uint256 minBalance = type(uint256).max;
     for (uint256 i = 0; i < receivers.length; i++) {
       uint256 singleBalance = IERC20(origToken).balanceOf(receivers[i]);
-      if (singleBalance > maxBalance) {
-        maxBalance = singleBalance;
+      if (singleBalance < minBalance) {
+        minBalance = singleBalance;
       }
     }
-    // If the minimum balance of origTokens among all receivers is less than weight - that means that
-    // none of the receivers will get any dividends
-    require(weight <= maxBalance, "Nano: none of the receivers has enough tokens for current weight!");
-    // Minimum weight is the highes balance
-    uint256 minWeight = maxBalance;
+    // Minimum weight is the lowest balance
+    uint256 minWeight = minBalance;
     return minWeight;
   }
-
 
 }
