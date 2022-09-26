@@ -94,7 +94,7 @@ describe("Nano Dividend-Paying Token", () => {
         expect(endBalance.sub(startBalance)).to.equal(100);
       });
 
-      it('Should distribute dividends to a multiple addresses', async() => {
+      it('Should distribute dividends to multiple addresses', async() => {
         await origToken.giveTokens(ownerAcc.address, 1000);
         await origToken.giveTokens(clientAcc1.address, 1000);
         await origToken.giveTokens(clientAcc2.address, 1000);
@@ -127,7 +127,7 @@ describe("Nano Dividend-Paying Token", () => {
         .to.be.revertedWith("Nano: not enough dividend tokens to distribute with the provided weight!");
       });
 
-      it('Should fail to distribute too high dividends to a multiple addresses', async() => {
+      it('Should fail to distribute too high dividends to multiple addresses', async() => {
         await origToken.giveTokens(ownerAcc.address, 10_000_000);
         await origToken.giveTokens(clientAcc1.address, 10_000_000);
         await origToken.giveTokens(clientAcc2.address, 10_000_000);
@@ -207,7 +207,7 @@ describe("Nano Dividend-Paying Token", () => {
       it('Should fail to distribute too high dividends', async() => {
         await ownerAcc.sendTransaction({to: nano.address, value: parseEther("5")});
         await expect(nano.distributeDividendsEqual([ownerAcc.address], zeroAddress, parseEther("10")))
-        .to.be.revertedWith("Nano: not enough native tokens to pay dividends!");
+        .to.be.revertedWith("Nano: not enough dividend tokens to distribute!");
       });
 
       it('Should fail to distribute dividends to no receivers', async() => {
@@ -231,7 +231,7 @@ describe("Nano Dividend-Paying Token", () => {
         // Provide some ether to the nano contract to be able to pay dividends
         await ownerAcc.sendTransaction({to: nano.address, value: parseEther("8")});
         // Provide one account with origTokens
-        await await origToken.giveTokens(ownerAcc.address, 1000);
+        await origToken.giveTokens(ownerAcc.address, 1000);
         let startBalance = await ethers.provider.getBalance(ownerAcc.address);
         // 1000 / 200 = 5 (minimum balance of distTokens of nano contract required)
         // But is has 8 so it will pass
@@ -243,77 +243,84 @@ describe("Nano Dividend-Paying Token", () => {
         expect(endBalance.sub(startBalance)).to.be.lt(parseEther("5"));
       });
 
-      // TODO finished here
 
-      it('Should distribute dividends to a multiple addresses', async() => {
-        await origToken.giveTokens(ownerAcc.address, 1000);
-        await origToken.giveTokens(clientAcc1.address, 1000);
-        await origToken.giveTokens(clientAcc2.address, 1000);
-        let startBalance1 = await distToken.balanceOf(ownerAcc.address);
-        let startBalance2 = await distToken.balanceOf(clientAcc1.address);
-        let startBalance3 = await distToken.balanceOf(clientAcc2.address);
-        // 1000 / 10 = 100 (minimum balance of distTokens of nano contract required)
-        // But is has 1 000 000 so it will pass
+      it('Should distribute dividends to multiple addresses', async() => {
+        // Provide some ether to the nano contract to be able to pay dividends
+        await ownerAcc.sendTransaction({to: nano.address, value: parseEther("6")});
+        await origToken.giveTokens(ownerAcc.address, 10);
+        await origToken.giveTokens(clientAcc1.address, 10);
+        await origToken.giveTokens(clientAcc2.address, 10);
+        let startBalance1 = await ethers.provider.getBalance(ownerAcc.address);
+        let startBalance2 = await ethers.provider.getBalance(clientAcc1.address);
+        let startBalance3 = await ethers.provider.getBalance(clientAcc2.address);
+        // 10 / 10 = 1 (x3) (minimum balance of distTokens of nano contract required)
+        // But is has 6 so it will pass
         await expect(nano.distributeDividendsWeighted(
           [ownerAcc.address, clientAcc1.address, clientAcc2.address],
           origToken.address,
-          distToken.address,
+          zeroAddress,
           10))
         .to.emit(nano, "DividendsDistributed")
         .withArgs(anyValue, anyValue);
-        let endBalance1 = await distToken.balanceOf(ownerAcc.address);
-        let endBalance2 = await distToken.balanceOf(clientAcc1.address);
-        let endBalance3 = await distToken.balanceOf(clientAcc2.address);
-        expect(endBalance1.sub(startBalance1)).to.equal(100);
-        expect(endBalance2.sub(startBalance2)).to.equal(100);
-        expect(endBalance3.sub(startBalance3)).to.equal(100);
+        let endBalance1 = await ethers.provider.getBalance(ownerAcc.address);
+        let endBalance2 = await ethers.provider.getBalance(clientAcc1.address);
+        let endBalance3 = await ethers.provider.getBalance(clientAcc2.address);
+        expect(endBalance1.sub(startBalance1)).to.be.lt(parseEther("2"));
+        expect(endBalance2.sub(startBalance2)).to.be.lt(parseEther("2"));
+        expect(endBalance3.sub(startBalance3)).to.be.lt(parseEther("2"));
       });
 
 
       it('Should fail to distribute too high dividends to a single address', async() => {
-        await origToken.giveTokens(ownerAcc.address, 10_000_000);
-        // 10_000_000 / 1 = 10_000_000 (minimum balance of distTokens of nano contract required)
-        // But is has 1 000 000 so it will fail
-        await expect(nano.distributeDividendsWeighted([ownerAcc.address], origToken.address, distToken.address, 1))
+        await ownerAcc.sendTransaction({to: nano.address, value: parseEther("8")});
+        await origToken.giveTokens(ownerAcc.address, 1000);
+        // 1000 / 1 = 1000 (minimum balance of distTokens of nano contract required)
+        // But is has 8 so it will fail
+        await expect(nano.distributeDividendsWeighted([ownerAcc.address], origToken.address, zeroAddress, 1))
         .to.be.revertedWith("Nano: not enough dividend tokens to distribute with the provided weight!");
       });
 
-      it('Should fail to distribute too high dividends to a multiple addresses', async() => {
-        await origToken.giveTokens(ownerAcc.address, 10_000_000);
-        await origToken.giveTokens(clientAcc1.address, 10_000_000);
-        await origToken.giveTokens(clientAcc2.address, 10_000_000);
-        // 30_000_000 / 10 = 3_000_000 (minimum balance of distTokens of nano contract required)
-        // But is has 1 000 000 so it will fail
+      it('Should fail to distribute too high dividends to multiple addresses', async() => {
+        await ownerAcc.sendTransaction({to: nano.address, value: parseEther("8")});
+        await origToken.giveTokens(ownerAcc.address, 100);
+        await origToken.giveTokens(clientAcc1.address, 100);
+        await origToken.giveTokens(clientAcc2.address, 100);
+        // 100 / 10 = 10 (x3) (minimum balance of distTokens of nano contract required)
+        // But is has 8so it will fail
         await expect(nano.distributeDividendsWeighted(
           [ownerAcc.address, clientAcc1.address, clientAcc2.address],
           origToken.address,
-          distToken.address,
+          zeroAddress,
           10))
         .to
         .be.revertedWith("Nano: not enough dividend tokens to distribute with the provided weight!");
       });
 
       it('Should fail to distribute dividends to no receivers', async() => {
+        await ownerAcc.sendTransaction({to: nano.address, value: parseEther("8")});
         await origToken.giveTokens(ownerAcc.address, 1000);
-        await expect(nano.distributeDividendsWeighted([], origToken.address, distToken.address, 10))
+        await expect(nano.distributeDividendsWeighted([], origToken.address, zeroAddress, 10))
         .to.be.revertedWith("Nano: no dividends receivers provided!");
       });
 
       it('Should fail to distribute dividends for native tokens holders', async() => {
+        await ownerAcc.sendTransaction({to: nano.address, value: parseEther("8")});
         await origToken.giveTokens(ownerAcc.address, 1000);
-        await expect(nano.distributeDividendsWeighted([ownerAcc.address], zeroAddress, distToken.address, 10))
+        await expect(nano.distributeDividendsWeighted([ownerAcc.address], zeroAddress, zeroAddress, 10))
         .to.be.revertedWith("Nano: original token can not have a zero address!");
       });
 
       it('Should fail to distribute dividends with invalid weight', async() => {
+        await ownerAcc.sendTransaction({to: nano.address, value: parseEther("8")});
         await origToken.giveTokens(ownerAcc.address, 1000)
-        await expect(nano.distributeDividendsWeighted([ownerAcc.address], origToken.address, distToken.address, 0))
+        await expect(nano.distributeDividendsWeighted([ownerAcc.address], origToken.address, zeroAddress, 0))
         .to.be.revertedWith("Nano: weight is too low!");
       });
 
       it('Should fail to distribute dividends if caller is not an owner', async() => {
+        await ownerAcc.sendTransaction({to: nano.address, value: parseEther("8")});
         await origToken.giveTokens(ownerAcc.address, 1000)
-        await expect(nano.connect(clientAcc1).distributeDividendsWeighted([ownerAcc.address], origToken.address, distToken.address, 10))
+        await expect(nano.connect(clientAcc1).distributeDividendsWeighted([ownerAcc.address], origToken.address, zeroAddress, 10))
         .to.be.revertedWith("Ownable: caller is not the owner");
       });
 
@@ -322,7 +329,7 @@ describe("Nano Dividend-Paying Token", () => {
   });
 
   describe("Extras", () => {
-    // TODO test calcMinWeightHere
+    
 
   });
 
