@@ -21,6 +21,10 @@ contract NanoProducedToken is ERC20, Initializable, INanoProducedToken, Ownable 
     uint256 internal _initialSupply;
     /// @dev Should be equal to `_initialSupply` for unmintable tokens
     uint256 internal _maxTotalSupply;
+    /// @dev A list of addresses of tokens holders
+    address[] internal _holders;
+    /// @dev A mapping of holder's address and his position in `_holders` list
+    mapping(address => uint256) _holdersIndexes;
 
     /// @dev Checks if mintability is activated
     modifier WhenMintable() { 
@@ -112,13 +116,35 @@ contract NanoProducedToken is ERC20, Initializable, INanoProducedToken, Ownable 
         return _mintable;
     }
 
+    /// @notice Returns the array of all token holders
+    function holders() public view hasAdminToken returns (address[] memory) {
+        return _holders;
+    }
+
     /// @notice Creates tokens and assigns them to account, increasing the total supply.
     /// @param to The receiver of tokens
     /// @param amount The amount of tokens to mint
+    /// @dev Can only be called by the owner of the admin NFT
     function mint(address to, uint256 amount) public override hasAdminToken WhenMintable {
         require(totalSupply() + amount <= _maxTotalSupply, "NanoProducedToken: supply exceeds maximum supply!");
+        // Push another address to the end of the array
+        _holders.push(to);
+        // Remember this address'es position
+        _holdersIndexes[to] = _holders.length - 1;
         _mint(to, amount);
         emit ControlledTokenCreated(to, amount);
+    }
+
+    /// @notice Burns tokens, reducing the total supply.
+    /// @param from The address to burn tokens from
+    /// @param amount The amount of tokens to burn
+    /// @dev Can only be called by the owner of the admin NFT
+    function burn(address from, uint256 amount) public override hasAdminToken {
+        require(_holders[_holdersIndexes[from]] != address(0), "NanoProducedToken: tokens have already been burnt!");
+        // Get the addresses position and delete it from the array
+        delete _holders[_holdersIndexes[from]];
+        _burn(from, amount);
+        emit ControlledTokenBurnt(from, amount);
     }
 
 }

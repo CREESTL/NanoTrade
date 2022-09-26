@@ -28,8 +28,17 @@ interface INanoProducedToken is IERC20 {
     /// @param amount The amount of tokens to mint
     function mint(address to, uint256 amount) external;
 
+    /// @notice Burns tokens, reducing the total supply.
+    /// @param from The address to burn tokens from
+    /// @param amount The amount of tokens to burn
+    /// @dev Can only be called by the owner of the admin NFT
+    function burn(address from, uint256 amount) external;
+
     /// @notice Is emitted on every mint of the token
     event ControlledTokenCreated(address indexed account, uint256 amount);
+
+    /// @notice Is emitted on every burn of the token
+    event ControlledTokenBurnt(address indexed account, uint256 amount);
     
     /// @notice Is emitted when token mintability is changed
     event MintabilityChanged(bool indexed mintable);
