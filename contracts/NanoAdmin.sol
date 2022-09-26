@@ -46,6 +46,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     /// @param ERC20Address The address of the controlled ERC20 token
     function mintWithERC20Address(address to, address ERC20Address) public onlyFactory {
         require(!usedControlled[ERC20Address], "NanoAdmin: only a single admin token is allowed for a single controlled token!");
+        require(ERC20Address != address(0), "NanoAdmin: controlled token can not have a zero address!");
         require(to != address(0), "NanoAdmin: admin token mint to zero address is not allowed!");
         tokenIds.increment();
         // First ID is 1
