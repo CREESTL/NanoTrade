@@ -29,14 +29,6 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     address private _factoryAddress;
 
 
-    /// @dev Checks if an ERC20 token with the given address exists
-    ///      It might have been burnt by the owner
-    // TODO not sure if that's the proper way to check it...
-    modifier ERC20Exists(address ERC20Address) {
-        require(INanoProducedToken(ERC20Address).decimals() > 0, "NanoAdmin: controlled token with the provided address does not exist!");
-        _;   
-    }
-
     /// @dev Checks if caller is a factory address
     modifier onlyFactory() {
         require(msg.sender == _factoryAddress, "NanoAdmin: caller is not a factory!");
@@ -52,7 +44,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     /// @notice Mints a new ERC721 token with the address of the controlled ERC20 token
     /// @param to The address of the receiver of the token
     /// @param ERC20Address The address of the controlled ERC20 token
-    function mintWithERC20Address(address to, address ERC20Address) public onlyFactory ERC20Exists(ERC20Address) {
+    function mintWithERC20Address(address to, address ERC20Address) public onlyFactory {
         require(!usedControlled[ERC20Address], "NanoAdmin: only a single admin token is allowed for a single controlled token!");
         require(to != address(0), "NanoAdmin: admin token mint to zero address is not allowed!");
         tokenIds.increment();
@@ -94,7 +86,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     /// @notice Sets the address of the controlled ERC20 token for ERC721 token
     /// @param tokenId The ID of minted ERC721 token
     /// @param ERC20Address The address of the controlled ERC20 token
-    function setControlledAddress(uint256 tokenId, address ERC20Address) internal onlyOwner ERC20Exists(ERC20Address) {
+    function setControlledAddress(uint256 tokenId, address ERC20Address) internal onlyOwner {
         require(_exists(tokenId), "NanoAdmin: admin token with the given ID does not exist!");
         require(ERC20Address != address(0), "NanoAdmin: controlled token can not have a zero address!");
         adminToControlled[tokenId] = ERC20Address;
