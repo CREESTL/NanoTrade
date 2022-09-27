@@ -3,11 +3,11 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "./interfaces/INanoProducedToken.sol";
 import "./interfaces/INanoAdmin.sol";
 
-contract NanoProducedToken is ERC20, INanoProducedToken, Ownable {
+contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
 
     string internal _tokenName;
     string internal _tokenSymbol;
@@ -23,7 +23,9 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Ownable {
     /// @dev A list of addresses of tokens holders
     address[] internal _holders;
     /// @dev A mapping of holder's address and his position in `_holders` list
-    mapping(address => uint256) _holdersIndexes;
+    mapping(address => uint256) internal _holdersIndexes;
+    /// @dev The address of the factory minting controlled tokens
+    address private _factoryAddress;
 
     /// @dev Checks if mintability is activated
     modifier WhenMintable() { 
@@ -31,6 +33,11 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Ownable {
         _; 
     }
 
+    /// @dev Checks if caller is a factory address
+    modifier onlyFactory() {
+        require(msg.sender == _factoryAddress, "NanoProducedToken: caller is not a factory!");
+        _;
+    }
 
     /// @dev Checks if caller is an admin token holder
     modifier hasAdminToken() {
@@ -44,8 +51,18 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Ownable {
     }
 
 
-    /// @dev Creates a new ERC20 token
-    /// @dev Only the owner (factory) can create the token
+    //
+
+    /// @dev Creates an "empty" template token that will be cloned in the future
+    /// @param factoryAddress_ The address of the factory minting controlled tokens
+    constructor(address factoryAddress_) ERC20("", "") {
+        require(factoryAddress_ != address(0), "NanoProducedToken: factory address can not be zero address!");
+        _factoryAddress = factoryAddress_;
+    }
+
+
+    /// @dev Upgrades an "empty" template. Initializes internal variables. 
+    /// @dev Only the owner (factory) can initialize the token
     /// @param name_ The name of the token
     /// @param symbol_ The symbol of the token
     /// @param decimals_ Number of decimals of the token
@@ -53,7 +70,8 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Ownable {
     /// @param initialSupply_ Initial supply of the token to be minted after initialization
     /// @param maxTotalSupply_ Maximum amount of tokens to be minted
     /// @param adminToken_ Address of the admin token for controlled token
-    constructor (
+    /// @dev Only the factory can initialize controlled tokens
+    function initialize (
         string memory name_,
         string memory symbol_,
         uint8 decimals_,
@@ -61,7 +79,7 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Ownable {
         uint256 initialSupply_,
         uint256 maxTotalSupply_,
         address adminToken_
-    ) onlyOwner ERC20(name_, symbol_){
+    ) external initializer onlyFactory {
         require(bytes(name_).length > 0, "NanoProducedToken: initial token name can not be empty!");
         require(bytes(symbol_).length > 0, "NanoProducedToken: initial token symbol can not be empty!");
         require(decimals_ > 0, "NanoProducedToken: initial decimals can not be zero!");
@@ -82,10 +100,6 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Ownable {
         _maxTotalSupply = maxTotalSupply_;
         _adminToken = adminToken_;
 
-        if (_initialSupply > 0) {
-            // Mint initial supply if it is not zero
-            mint(msg.sender, _initialSupply);
-        }
     }
 
 
@@ -114,7 +128,7 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Ownable {
     }
 
     /// @notice Returns the array of addresses of all token holders
-    /// @return The array of array of addresses of all token holders
+    /// @return The array of addresses of all token holders
     function holders() public view hasAdminToken returns (address[] memory) {
         return _holders;
     }
@@ -127,7 +141,7 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Ownable {
         require(totalSupply() + amount <= _maxTotalSupply, "NanoProducedToken: supply exceeds maximum supply!");
         // Push another address to the end of the array
         _holders.push(to);
-        // Remember this address'es position
+        // Remember this address position
         _holdersIndexes[to] = _holders.length - 1;
         _mint(to, amount);
         emit ControlledTokenCreated(to, amount);
