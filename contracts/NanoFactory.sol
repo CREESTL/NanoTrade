@@ -17,13 +17,21 @@ contract NanoFactory is Ownable, INanoFactory, IERC721Receiver {
     /// @dev Address of token to clone
     address private _producedToken;
 
+    /// @dev Create a new token template to copy and upgrade it later
+    constructor() {
+        _producedToken = address(new NanoProducedToken(address(this)));
+    }
+
     /// @dev Returns the address of the token that is produced by the factory
     /// @return The address of the token that is produced by the factory
     function producedToken() external view onlyOwner returns(address) {
         return _producedToken;
     }
 
-    function onERC721Received() public view {}
+    /// @dev Allows this factory contract to receive admin tokens to manage controlled tokens
+    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) public returns (bytes4) {
+        return IERC721Receiver.onERC721Received.selector;
+    }
 
     /// @notice Creates a new ERC20 token and mints an admin token proving ownership
     /// @param name The name of the token
@@ -33,6 +41,7 @@ contract NanoFactory is Ownable, INanoFactory, IERC721Receiver {
     /// @param initialSupply Initial supply of the token to be minted after initialization
     /// @param maxTotalSupply Maximum amount of tokens to be minted
     /// @param adminToken_ Address of the admin token for controlled token
+    /// @dev Anyone can call this method. No restrictions.
     function createERC20Token(
         string memory name,
         string memory symbol,
@@ -41,15 +50,13 @@ contract NanoFactory is Ownable, INanoFactory, IERC721Receiver {
         uint256 initialSupply,
         uint256 maxTotalSupply,
         address adminToken_
-    ) external onlyOwner {
+    ) external {
 
-        // Give a random address as the second parameter because it does not really metter
-        // After receiving this admin token the factory will be able to call `mint` function
-        // of the ERC20 token (It is called inside the constructor of ERC20 token)
-        INanoAdmin(adminToken_).mintWithERC20Address(address(this), address(this));
+        // Copy the template functionality and create a new token (proxy pattern)
+        address clonedToken = Clones.clone(_producedToken);
 
-        // Factory is the owner of the token and can initialize it
-        address newToken = address (new NanoProducedToken(
+        // Initialize a new token
+        NanoProducedToken(clonedToken).initialize(
             name, 
             symbol, 
             decimals, 
@@ -57,10 +64,17 @@ contract NanoFactory is Ownable, INanoFactory, IERC721Receiver {
             initialSupply, 
             maxTotalSupply,
             adminToken_
-        ));
-        
+        );
+
+        // Premint tokens
+        if (initialSupply > 0) {
+            // Mint initial supply if it is not zero
+            NanoProducedToken(clonedToken).mint(msg.sender, initialSupply);
+        }
+
+
         // Mint admin token to the creator of this ERC20 token
-        INanoAdmin(adminToken_).mintWithERC20Address(msg.sender, newToken);
+        INanoAdmin(adminToken_).mintWithERC20Address(msg.sender, clonedToken);
         
     }
 
