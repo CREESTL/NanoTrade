@@ -38,7 +38,6 @@ contract NanoFactory is Ownable, INanoFactory, IERC721Receiver {
     /// @param symbol The symbol of the token
     /// @param decimals Number of decimals of the token
     /// @param mintable Token may be either mintable or not. Can be changed later.
-    /// @param initialSupply Initial supply of the token to be minted after initialization
     /// @param maxTotalSupply Maximum amount of tokens to be minted
     /// @param adminToken_ Address of the admin token for controlled token
     /// @dev Anyone can call this method. No restrictions.
@@ -47,7 +46,6 @@ contract NanoFactory is Ownable, INanoFactory, IERC721Receiver {
         string memory symbol,
         uint8 decimals,
         bool mintable,
-        uint256 initialSupply,
         uint256 maxTotalSupply,
         address adminToken_
     ) external {
@@ -61,18 +59,10 @@ contract NanoFactory is Ownable, INanoFactory, IERC721Receiver {
             symbol, 
             decimals, 
             mintable, 
-            initialSupply, 
             maxTotalSupply,
             adminToken_
         );
-
-        // Premint tokens
-        if (initialSupply > 0) {
-            // Mint initial supply if it is not zero
-            NanoProducedToken(clonedToken).mint(msg.sender, initialSupply);
-        }
-
-
+        
         // Mint admin token to the creator of this ERC20 token
         INanoAdmin(adminToken_).mintWithERC20Address(msg.sender, clonedToken);
         

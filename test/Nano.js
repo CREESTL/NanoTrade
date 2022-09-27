@@ -35,12 +35,11 @@ describe("Nano Dividend-Paying Token", () => {
         18,
         true,
         1_000_000,
-        1_000_000,
         // Provide the address of the previously deployed ERC721
         adminToken.address 
       );
-    // Get the address of a freshly created ERC20
-    let origToken = factory.producedToken();
+    // // Get the address of a freshly created ERC20
+    // let origToken = factory.producedToken();
 
     // // Deploy dividend-distribution contract
     // let nanoTx = await ethers.getContractFactory("Nano");

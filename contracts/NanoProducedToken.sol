@@ -16,8 +16,6 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
     /// @dev The address of the admin tokens has to be provided in order
     ///      to verify user's ownership of that token
     address internal _adminToken;
-    /// @dev Both mintable and unmintable tokens have initial supply
-    uint256 internal _initialSupply;
     /// @dev Should be equal to `_initialSupply` for unmintable tokens
     uint256 internal _maxTotalSupply;
     /// @dev A list of addresses of tokens holders
@@ -67,7 +65,6 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
     /// @param symbol_ The symbol of the token
     /// @param decimals_ Number of decimals of the token
     /// @param mintable_ Token may be either mintable or not. Can be changed later.
-    /// @param initialSupply_ Initial supply of the token to be minted after initialization
     /// @param maxTotalSupply_ Maximum amount of tokens to be minted
     /// @param adminToken_ Address of the admin token for controlled token
     /// @dev Only the factory can initialize controlled tokens
@@ -76,7 +73,6 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
         string memory symbol_,
         uint8 decimals_,
         bool mintable_,
-        uint256 initialSupply_,
         uint256 maxTotalSupply_,
         address adminToken_
     ) external initializer onlyFactory {
@@ -84,19 +80,15 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
         require(bytes(symbol_).length > 0, "NanoProducedToken: initial token symbol can not be empty!");
         require(decimals_ > 0, "NanoProducedToken: initial decimals can not be zero!");
         require(adminToken_ != address(0), "NanoProducedToken: admin token address can not be a zero address!");
-        require(initialSupply_ >= 0, "NanoProducedToken: inital token supply must be greater than 0!");
         if (mintable_) {
-            // If token is unmintable, `maxTotalSupply` must be equal to `initialSupply`
-            require(maxTotalSupply_ == initialSupply_, "NanoProducedToken: max total supply must be equal to initial supply!");
+            require(maxTotalSupply_ != 0, "NanoProducedToken: max total supply can not be zero!");
         } else {
-            // If token is mintable, `maxTotalSupply` must be equal to or greater than `initialSupply`
-            require(maxTotalSupply_ >= initialSupply_, "NanoProducedToken: max total supply can not be less than initial supply!");
+            require(maxTotalSupply_ == 0, "NanoProducedToken: max total supply must be zero for unmintable tokens!");
         }
         _tokenName = name_;
         _tokenSymbol = symbol_;
         _decimals = decimals_;
         _mintable = mintable_;
-        _initialSupply = initialSupply_;
         _maxTotalSupply = maxTotalSupply_;
         _adminToken = adminToken_;
 
