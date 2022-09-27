@@ -31,12 +31,6 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
         _; 
     }
 
-    /// @dev Checks if caller is a factory address
-    modifier onlyFactory() {
-        require(msg.sender == _factoryAddress, "NanoProducedToken: caller is not a factory!");
-        _;
-    }
-
     /// @dev Checks if caller is an admin token holder
     modifier hasAdminToken() {
         // Get the ID of the admin token the caller has. If any.
@@ -48,18 +42,7 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
         _;
     }
 
-
-    //
-
-    /// @dev Creates an "empty" template token that will be cloned in the future
-    /// @param factoryAddress_ The address of the factory minting controlled tokens
-    constructor(address factoryAddress_) ERC20("", "") {
-        require(factoryAddress_ != address(0), "NanoProducedToken: factory address can not be zero address!");
-        _factoryAddress = factoryAddress_;
-    }
-
-
-    /// @dev Upgrades an "empty" template. Initializes internal variables. 
+    /// @dev Creates a new controlled ERC20 token. 
     /// @dev Only the owner (factory) can initialize the token
     /// @param name_ The name of the token
     /// @param symbol_ The symbol of the token
@@ -68,14 +51,14 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
     /// @param maxTotalSupply_ Maximum amount of tokens to be minted
     /// @param adminToken_ Address of the admin token for controlled token
     /// @dev Only the factory can initialize controlled tokens
-    function initialize (
+    constructor (
         string memory name_,
         string memory symbol_,
         uint8 decimals_,
         bool mintable_,
         uint256 maxTotalSupply_,
         address adminToken_
-    ) external initializer onlyFactory {
+    ) ERC20(name_, symbol_) {
         require(bytes(name_).length > 0, "NanoProducedToken: initial token name can not be empty!");
         require(bytes(symbol_).length > 0, "NanoProducedToken: initial token symbol can not be empty!");
         require(decimals_ > 0, "NanoProducedToken: initial decimals can not be zero!");
