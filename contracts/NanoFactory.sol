@@ -12,9 +12,18 @@ import "./interfaces/INanoAdmin.sol";
 /// @title A factory of custom ERC20 tokens
 contract NanoFactory is INanoFactory, IERC721Receiver {
 
+    address private _producedToken;
+
     /// @dev Allows this factory contract to receive admin tokens to manage controlled tokens
     function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) public returns (bytes4) {
         return IERC721Receiver.onERC721Received.selector;
+    }
+
+
+    /// @notice Returns the address of the produced ERC20 token
+    /// @return The address of the produced ERC20 token
+    function producedToken() public view returns(address) {
+        return _producedToken;
     }
 
     /// @notice Creates a new ERC20 token and mints an admin token proving ownership
@@ -41,7 +50,9 @@ contract NanoFactory is INanoFactory, IERC721Receiver {
             mintable,
             maxTotalSupply,
             adminToken_
-        );            
+        ); 
+
+        _producedToken = address(newToken);           
 
         // Mint admin token to the creator of this ERC20 token
         INanoAdmin(adminToken_).mintWithERC20Address(msg.sender, address(newToken));
