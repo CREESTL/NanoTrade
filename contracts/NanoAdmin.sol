@@ -38,6 +38,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     /// @dev Creates an "empty" NFT
     /// @param factoryAddress_ The address of the factory minting admin tokens
     constructor(address factoryAddress_) ERC721("", "") {
+        require(factoryAddress_ != address(0), "NanoAdmin: factory address can not be zero address!");
         _factoryAddress = factoryAddress_;
     }
 
@@ -87,7 +88,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     /// @notice Sets the address of the controlled ERC20 token for ERC721 token
     /// @param tokenId The ID of minted ERC721 token
     /// @param ERC20Address The address of the controlled ERC20 token
-    function setControlledAddress(uint256 tokenId, address ERC20Address) internal onlyOwner {
+    function setControlledAddress(uint256 tokenId, address ERC20Address) internal onlyFactory {
         require(_exists(tokenId), "NanoAdmin: admin token with the given ID does not exist!");
         require(ERC20Address != address(0), "NanoAdmin: controlled token can not have a zero address!");
         adminToControlled[tokenId] = ERC20Address;
@@ -97,7 +98,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     /// @notice Burns the token with the provided ID
     /// @param tokenId The ID of the token to burn
     // TODO who should be allowed to burn? 
-    function burn(uint256 tokenId) public onlyOwner {
+    function burn(uint256 tokenId) public {
         super._burn(tokenId);
         // Clean 3 mappings at once
         delete adminToControlled[tokenId];
