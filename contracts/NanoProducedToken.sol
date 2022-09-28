@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "./interfaces/INanoProducedToken.sol";
 import "./interfaces/INanoAdmin.sol";
 
+
 contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
 
     string internal _tokenName;
@@ -24,6 +25,7 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
     mapping(address => uint256) internal _holdersIndexes;
     /// @dev The address of the factory minting controlled tokens
     address private _factoryAddress;
+
 
     /// @dev Checks if mintability is activated
     modifier WhenMintable() { 
@@ -114,10 +116,14 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
     /// @dev Can only be called by the owner of the admin NFT
     function mint(address to, uint256 amount) public override hasAdminToken WhenMintable {
         require(totalSupply() + amount <= _maxTotalSupply, "NanoProducedToken: supply exceeds maximum supply!");
-        // Push another address to the end of the array
-        _holders.push(to);
-        // Remember this address position
-        _holdersIndexes[to] = _holders.length - 1;
+        // Add address to holders only it it's not there already
+        if (_holders[_holdersIndexes[to]] == address(0)) {
+            // Push another address to the end of the array
+            _holders.push(to);
+            // Remember this address position
+            _holdersIndexes[to] = _holders.length - 1;  
+        }
+
         _mint(to, amount);
         emit ControlledTokenCreated(to, amount);
     }
@@ -127,11 +133,17 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
     /// @param amount The amount of tokens to burn
     /// @dev Can only be called by the owner of the admin NFT
     function burn(address from, uint256 amount) public override hasAdminToken {
+        require(amount > 0, "NanoProducedToken: the amount of tokens to burn must be greater than zero!");
         require(_holders[_holdersIndexes[from]] != address(0), "NanoProducedToken: tokens have already been burnt!");
-        // Get the addresses position and delete it from the array
-        delete _holders[_holdersIndexes[from]];
         _burn(from, amount);
+        // If the whole supply of tokens has been burnt - remove the address from holders
+        if(totalSupply == 0) {
+            // Get the addresses position and delete it from the array
+            delete _holders[_holdersIndexes[from]];  
+        }
         emit ControlledTokenBurnt(from, amount);
     }
+
+    // TODO if trasfers occur - holders change
 
 }
