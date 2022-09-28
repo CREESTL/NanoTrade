@@ -38,11 +38,9 @@ contract Nano is INano, Ownable{
         // Other ERC20 tokens
         IERC20(distToken).transfer(receivers[i], amount / length);
       }
+    }
 
     emit DividendsDistributed(distToken, amount);
-
-    
-    }
   }
 
   /// @notice Distributes one token as dividends for holders of another token _according to each user's balance_
@@ -61,7 +59,7 @@ contract Nano is INano, Ownable{
     require(weight >= 1, "Nano: weight is too low!");
     uint256 totalWeightedAmount = 0;
     // This function reverts if weight is incorrect.
-    checkWeight(receivers, origToken, weight);
+    checkWeight(origToken, weight);
     for (uint256 i = 0; i < receivers.length; i++) {
       uint256 userBalance = IERC20(origToken).balanceOf(receivers[i]);
       uint256 weightedAmount = userBalance / weight;
@@ -86,10 +84,11 @@ contract Nano is INano, Ownable{
   }
 
   /// @notice Checks if provided weight is valid for current receivers
-  /// @param receivers The list of addresses of all receivers of dividends
   /// @param origToken The address of the token that is held by receivers
+  ///        Can not be a zero address!
   /// @param weight The amount of origTokens required to get a single distToken
-  function checkWeight(address[] memory receivers, address origToken, uint256 weight) public view {
+  function checkWeight(address origToken, uint256 weight) public view {
+    address[] memory receivers = INanoProducedToken(origToken).holders();
     // The lowest balance of origTokens among receivers
     uint256 minBalance = type(uint256).max;
     for (uint256 i = 0; i < receivers.length; i++) {
@@ -105,9 +104,9 @@ contract Nano is INano, Ownable{
 
   /// @notice Calculates the minimum currently allowed weight.
   ///         Weight used in distributing dividends should be equal/greater than this
-  /// @param receivers The list of addresses of all receivers of dividends
   /// @param origToken The address of the token that is held by receivers
-  function calcMinWeight(address[] memory receivers, address origToken) public view returns(uint256) {
+  function calcMinWeight(address origToken) public view returns(uint256) {
+    address[] memory receivers = INanoProducedToken(origToken).holders();
     // The lowest balance of origTokens among receivers
     uint256 minBalance = type(uint256).max;
     for (uint256 i = 0; i < receivers.length; i++) {
