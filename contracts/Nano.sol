@@ -22,7 +22,7 @@ contract Nano is INano, Ownable{
   /// @param distToken The address of the token that is to be distributed as dividends
   ///        Zero address for native token (ether, wei)
   /// @param amount The amount of distTokens to be distributed in total
-  function distributeDividendsEqual(address origToken, address distToken, uint256 amount) external onlyOwner {
+  function distributeDividendsEqual(address origToken, address distToken, uint256 amount) external {
     require(origToken != address(0), "Nano: original token can not have a zero address!");
     // Get all holders of the origToken
     // TODO check if this address exists
@@ -52,7 +52,7 @@ contract Nano is INano, Ownable{
   ///        Zero address for native token (ether, wei)
   /// @param weight The amount of origTokens required to get a single distToken
   ///        NOTE: If dividends are payed in ether then `weight` is the amount of origTokens required to get a single ether (NOT a single wei!)
-  function distributeDividendsWeighted(address origToken, address distToken, uint256 weight) external onlyOwner {
+  function distributeDividendsWeighted(address origToken, address distToken, uint256 weight) external {
     // TODO check if this address exists
     require(origToken != address(0), "Nano: original token can not have a zero address!");
     require(weight >= 1, "Nano: weight is too low!");
