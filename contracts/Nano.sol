@@ -22,6 +22,7 @@ contract Nano is INano, Ownable{
   /// @param distToken The address of the token that is to be distributed as dividends
   ///        Zero address for native token (ether, wei)
   /// @param amount The amount of distTokens to be distributed in total
+  ///        NOTE: If dividends are to payed in ether then `amount` is the amount of wei (NOT ether!)
   function distributeDividendsEqual(address origToken, address distToken, uint256 amount) external {
     require(origToken != address(0), "Nano: original token can not have a zero address!");
     // Get all holders of the origToken
@@ -33,7 +34,6 @@ contract Nano is INano, Ownable{
       if (distToken == address(0)){
         // Native tokens (wei)
         require(amount <= address(this).balance, "Nano: not enough dividend tokens to distribute!");
-        // TODO make sure it's not necessary to amount * 10 ** 18
         (bool success, ) = receivers[i].call{value: amount / length}("");
         require(success, "Nano: dividends transfer failed!");
       } else {
