@@ -45,9 +45,9 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     /// @param to The address of the receiver of the token
     /// @param ERC20Address The address of the controlled ERC20 token
     function mintWithERC20Address(address to, address ERC20Address) public onlyFactory {
-        require(!usedControlled[ERC20Address], "NanoAdmin: only a single admin token is allowed for a single controlled token!");
-        require(ERC20Address != address(0), "NanoAdmin: controlled token can not have a zero address!");
         require(to != address(0), "NanoAdmin: admin token mint to zero address is not allowed!");
+        require(ERC20Address != address(0), "NanoAdmin: controlled token can not have a zero address!");
+        require(!usedControlled[ERC20Address], "NanoAdmin: only a single admin token is allowed for a single controlled token!");
         tokenIds.increment();
         // First ID is 1
         uint256 tokenId = tokenIds.current();
@@ -69,6 +69,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     /// @param user The user address to check
     /// @return The ID of the owned token
     function checkOwner(address user) public view returns(uint256) {
+        require(user != address(0), "NanoAdmin: zero address is an invalid user!");
         require(holderToId[user] != 0, "NanoAdmin: user does not have an admin token!");
         return holderToId[user];
     }
@@ -90,7 +91,6 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     /// @param ERC20Address The address of the controlled ERC20 token
     function setControlledAddress(uint256 tokenId, address ERC20Address) internal onlyFactory {
         _requireMinted(tokenId);
-        require(_exists(tokenId), "NanoAdmin: admin token with the given ID does not exist!");
         require(ERC20Address != address(0), "NanoAdmin: controlled token can not have a zero address!");
         adminToControlled[tokenId] = ERC20Address;
 
@@ -98,9 +98,9 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
 
     /// @notice Burns the token with the provided ID
     /// @param tokenId The ID of the token to burn
-    // TODO who should be allowed to burn? 
     function burn(uint256 tokenId) public {
         _requireMinted(tokenId);
+        require(ownerOf(tokenId) == msg.sender, "NanoAdmin: only owner of the token is allowed to burn it!");
         super._burn(tokenId);
         // Clean 3 mappings at once
         delete adminToControlled[tokenId];
