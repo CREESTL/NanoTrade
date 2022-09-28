@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/INanoProducedToken.sol";
 import "./interfaces/INanoAdmin.sol";
 
-
 /// @title A custom ERC721 contract allowing managing over ERC20 tokens
 /// @dev This contract clones ERC721URIStorage's contract but instead of URIs it stores ERC20 addresses
 contract NanoAdmin is INanoAdmin, ERC721, Ownable {
@@ -59,6 +58,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
         // Mark that controlled token has been used once
         usedControlled[ERC20Address] = true;
         // Mark that token with the current ID belongs to the user
+        // TODO one ERC721 holder can control SEVERAL ERC20 tokens! here its just one now
         holderToId[to] = tokenId;
         IdToHolder[tokenId] = to;
         emit AdminTokenCreated(tokenId, ERC20Address);
@@ -89,6 +89,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     /// @param tokenId The ID of minted ERC721 token
     /// @param ERC20Address The address of the controlled ERC20 token
     function setControlledAddress(uint256 tokenId, address ERC20Address) internal onlyFactory {
+        _requireMinted(tokenId);
         require(_exists(tokenId), "NanoAdmin: admin token with the given ID does not exist!");
         require(ERC20Address != address(0), "NanoAdmin: controlled token can not have a zero address!");
         adminToControlled[tokenId] = ERC20Address;
@@ -99,6 +100,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     /// @param tokenId The ID of the token to burn
     // TODO who should be allowed to burn? 
     function burn(uint256 tokenId) public {
+        _requireMinted(tokenId);
         super._burn(tokenId);
         // Clean 3 mappings at once
         delete adminToControlled[tokenId];
