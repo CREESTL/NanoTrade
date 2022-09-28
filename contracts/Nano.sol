@@ -25,7 +25,7 @@ contract Nano is INano, Ownable{
   function distributeDividendsEqual(address origToken, address distToken, uint256 amount) external onlyOwner {
     // Get all holders of the origToken
     address[] memory receivers = INanoProducedToken(origToken).holders();
-    require(receivers.length > 0, "Nano: no dividends receivers provided!");
+    require(receivers.length > 0, "Nano: no dividends receivers were found!");
     uint256 length = receivers.length;
     for (uint256 i = 0; i < length; i++) {
       if (distToken == address(0)){
@@ -53,7 +53,7 @@ contract Nano is INano, Ownable{
   function distributeDividendsWeighted(address origToken, address distToken, uint256 weight) external onlyOwner {
     // Get all holders of the origToken
     address[] memory receivers = INanoProducedToken(origToken).holders();
-    require(receivers.length > 0, "Nano: no dividends receivers provided!");
+    require(receivers.length > 0, "Nano: no dividends receivers were found!");
     require(origToken != address(0), "Nano: original token can not have a zero address!");
     // It is impossible to give distTokens for zero origTokens
     require(weight >= 1, "Nano: weight is too low!");
