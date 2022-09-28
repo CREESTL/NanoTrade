@@ -88,6 +88,7 @@ contract Nano is INano, Ownable{
   ///        Can not be a zero address!
   /// @param weight The amount of origTokens required to get a single distToken
   function checkWeight(address origToken, uint256 weight) public view {
+    require(origToken != address(0), "Nano: original token can not have a zero address!");
     address[] memory receivers = INanoProducedToken(origToken).holders();
     // The lowest balance of origTokens among receivers
     uint256 minBalance = type(uint256).max;
@@ -106,6 +107,7 @@ contract Nano is INano, Ownable{
   ///         Weight used in distributing dividends should be equal/greater than this
   /// @param origToken The address of the token that is held by receivers
   function calcMinWeight(address origToken) public view returns(uint256) {
+    require(origToken != address(0), "Nano: original token can not have a zero address!");
     address[] memory receivers = INanoProducedToken(origToken).holders();
     // The lowest balance of origTokens among receivers
     uint256 minBalance = type(uint256).max;
