@@ -37,12 +37,7 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
 
     /// @dev Checks if caller is an admin token holder
     modifier hasAdminToken() {
-        // Get the ID of the admin token the caller has. If any.
-        uint256 tokenId = INanoAdmin(_adminToken).checkOwner(msg.sender);
-        // Get the address of the controlled token
-        address contolledAddress = INanoAdmin(_adminToken).getControlledAddressById(tokenId);
-        // Compare the previous address of the controlled token with the address of this contract
-        require(contolledAddress == address(this), "NanoProducedToken: caller does not have an admin token!");
+        INanoAdmin(_adminToken).verifyAdminToken(msg.sender, address(this));
         _;
     }
 
