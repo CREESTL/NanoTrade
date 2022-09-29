@@ -132,24 +132,23 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
         emit ControlledTokenCreated(to, amount);
     }
 
-    /// @notice Burns tokens, reducing the total supply.
-    /// @param from The address to burn tokens from
+    /// @notice Burns user's tokens
     /// @param amount The amount of tokens to burn
-    /// @dev Can only be called by the owner of the admin NFT
-    function burn(address from, uint256 amount) public override hasAdminToken {
+    function burn(uint256 amount) public override {
+        address caller = msg.sender;
         require(amount > 0, "NanoProducedToken: the amount of tokens to burn must be greater than zero!");
-        require(_holders[_holdersIndexes[from]] != address(0), "NanoProducedToken: tokens have already been burnt!");
-        _burn(from, amount);
+        require(balanceOf(caller) != 0, "NanoProducedToken: caller does not have any tokens to burn!");
+        _burn(caller, amount);
         // If the whole supply of tokens has been burnt - remove the address from holders
         if(totalSupply() == 0) {
             // Get the addresses position and delete it from the array
-            delete _holders[_holdersIndexes[from]];  
+            delete _holders[_holdersIndexes[caller]];  
             // Delete its index as well
-            delete _holdersIndexes[from];
+            delete _holdersIndexes[caller];
             // Mark this holder as unused
-            delete _usedHolders[from];
+            delete _usedHolders[caller];
         }
-        emit ControlledTokenBurnt(from, amount);
+        emit ControlledTokenBurnt(caller, amount);
     }
 
 
