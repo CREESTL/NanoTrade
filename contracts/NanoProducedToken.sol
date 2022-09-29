@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "./interfaces/INanoProducedToken.sol";
 import "./interfaces/INanoAdmin.sol";
+import "hardhat/console.sol";
 
 
 contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
@@ -113,16 +114,23 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
     /// @dev Can only be called by the owner of the admin NFT
     function mint(address to, uint256 amount) public override hasAdminToken WhenMintable {
         require(totalSupply() + amount <= _maxTotalSupply, "NanoProducedToken: supply exceeds maximum supply!");
-        // Add address to holders only it it's not there already
-        if (_holders[_holdersIndexes[to]] == address(0)) {
-            // Push another address to the end of the array
+        // If there are any holders then add address to holders only if it's not there already
+        if (_holders.length > 0) {
+            if (_holdersIndexes[to] == 0 && _holders[0] != to) {
+                // Push another address to the end of the array
+                _holders.push(to);
+                // Remember this address position
+                _holdersIndexes[to] = _holders.length - 1;  
+                // Mark holder's address as used
+                _usedHolders[to] = true;
+            }
+        // If there are no holders then add the first one
+        } else {
             _holders.push(to);
-            // Remember this address position
             _holdersIndexes[to] = _holders.length - 1;  
-            // Mark holder's address as used
             _usedHolders[to] = true;
         }
-
+       
         super._mint(to, amount);
         emit ControlledTokenCreated(to, amount);
     }
