@@ -128,7 +128,7 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
             _usedHolders[to] = true;
         }
 
-        _mint(to, amount);
+        super._mint(to, amount);
         emit ControlledTokenCreated(to, amount);
     }
 
@@ -138,7 +138,7 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
         address caller = msg.sender;
         require(amount > 0, "NanoProducedToken: the amount of tokens to burn must be greater than zero!");
         require(balanceOf(caller) != 0, "NanoProducedToken: caller does not have any tokens to burn!");
-        _burn(caller, amount);
+        super._burn(caller, amount);
         // If the whole supply of tokens has been burnt - remove the address from holders
         if(totalSupply() == 0) {
             // Get the addresses position and delete it from the array
@@ -183,7 +183,7 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
         }
 
         // Do a low-level transfer
-        _transfer(from, to, amount);
+        super._transfer(from, to, amount);
 
         emit ControlledTokenTransferred(from, to, amount);
 
