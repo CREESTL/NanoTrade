@@ -23,6 +23,8 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
     address[] internal _holders;
     /// @dev A mapping of holder's address and his position in `_holders` list
     mapping(address => uint256) internal _holdersIndexes;
+    /// @dev A mapping of holders addresses that have received tokens
+    mapping(address => bool) internal _usedHolders;
     /// @dev The address of the factory minting controlled tokens
     address private _factoryAddress;
 
@@ -122,6 +124,8 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
             _holders.push(to);
             // Remember this address position
             _holdersIndexes[to] = _holders.length - 1;  
+            // Mark holder's address as used
+            _usedHolders[to] = true;
         }
 
         _mint(to, amount);
@@ -137,13 +141,53 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
         require(_holders[_holdersIndexes[from]] != address(0), "NanoProducedToken: tokens have already been burnt!");
         _burn(from, amount);
         // If the whole supply of tokens has been burnt - remove the address from holders
-        if(totalSupply == 0) {
+        if(totalSupply() == 0) {
             // Get the addresses position and delete it from the array
             delete _holders[_holdersIndexes[from]];  
+            // Delete its index as well
+            delete _holdersIndexes[from];
+            // Mark this holder as unused
+            delete _usedHolders[from];
         }
         emit ControlledTokenBurnt(from, amount);
     }
 
-    // TODO if trasfers occur - holders change
+
+    /// @notice Moves tokens from one account to another account
+    /// @param from The address to transfer tokens from
+    /// @param to The address to transfer tokens to
+    /// @param amount The amount of tokens to be moved
+    /// @dev It is called by high-level functions. That is why it is necessary to override it
+    /// @dev Transfers are permitted for everyone - not just admin token holders
+    function _transfer(address from, address to, uint256 amount) internal override {
+        require(from != address(0), "NanoProducedToken: sender can not be a zero address!");
+        require(to != address(0), "NanoProducedToken: receiver can not be a zero address!");
+        // If the receiver is not yet a holder, he becomes a holder
+        if (_usedHolders[to] != true) {
+            // Push another address to the end of the array
+            _holders.push(to);
+            // Remember this address position
+            _holdersIndexes[to] = _holders.length - 1;  
+            // Mark holder's address as used
+            _usedHolders[to] = true;
+        }
+        // If all tokens of the holder get transfered - he is no longer a holder
+        // Negative numbers are allowed here but they will cause a revert inside dafault `_transfer` below
+        uint256 fromBalance = balanceOf(from);
+        if (fromBalance - amount <= 0) {
+            // Get the addresses position and delete it from the array
+            delete _holders[_holdersIndexes[from]];  
+            // Delete its index as well
+            delete _holdersIndexes[from];
+            // Mark this holder as unused
+            delete _usedHolders[from];
+        }
+
+        // Do a low-level transfer
+        _transfer(from, to, amount);
+
+        emit ControlledTokenTransferred(from, to, amount);
+
+    }
 
 }

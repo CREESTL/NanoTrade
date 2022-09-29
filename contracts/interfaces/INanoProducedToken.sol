@@ -43,6 +43,9 @@ interface INanoProducedToken is IERC20 {
 
     /// @notice Is emitted on every burn of the token
     event ControlledTokenBurnt(address indexed account, uint256 amount);
+
+    /// @notice Is emitted on every transfer of the token
+    event ControlledTokenTransferred(address indexed from, address indexed to, uint256 amount);
     
     /// @notice Is emitted when token mintability is changed
     event MintabilityChanged(bool indexed mintable);
