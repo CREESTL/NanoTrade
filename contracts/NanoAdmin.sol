@@ -32,7 +32,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     ///      If there is any ID - it means that the address has at least one admin token
     mapping(address => uint256) private _holderToId;
     /// @dev Reverse mapping for `_holderToId`
-    mapping(uint256 => address) private _IdToHolder
+    mapping(uint256 => address) private _IdToHolder;
     /// @dev Mapping of used ERC20 tokens addresses
     mapping(address => bool) private _usedControlled;
     /// @dev The address of the factory minting admin tokens
@@ -53,7 +53,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     }
 
     /// @notice Checks it the provided address owns some admin token
-    function checkOwner(address user) public view returns(uint256) {
+    function checkOwner(address user) public view {
         require(user != address(0), "NanoAdmin: zero address is an invalid user!");
         require(_holderToId[user] != 0, "NanoAdmin: user does not have an admin token!");
     }
@@ -61,12 +61,12 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     /// @notice Checks if the provided user owns an admin token controlling the provided ERC20 token
     /// @param user The address of the user that potentially controls ERC20 token
     /// @param ERC20Address The address of the potentially controlled ERC20 token 
-    function verifyAdminToken(address user, address ERC20Address) public view returns(bool) {
+    function verifyAdminToken(address user, address ERC20Address) public view {
         require(user != address(0), "NanoAdmin: user can not have a zero address!");
         require(ERC20Address != address(0), "NanoAdmin: token can not have a zero address!");
         // Get the ID of admin token for the provided ERC20 token address
         // No need to check if id is 0 here
-        uint256 id = _controlledToAdmin(ERC20Address);
+        uint256 id = _controlledToAdmin[ERC20Address];
         // Get the actual holder of the token with that ID and compare it to the provided user address
         require(_IdToHolder[id] == user, "NanoAdmin: caller does not have an admin token!");
     }
@@ -105,7 +105,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
         // NOTE The lowest token ID is 1
         uint256 tokenId = _tokenIds.current();
         // Mint the token
-        _safeMint(to, tokenId);
+        super._safeMint(to, tokenId);
         // Connect admin token ID to controlled ERC20 address
         setControlledAddress(tokenId, ERC20Address);
         // Mark that controlled token has been used once
@@ -123,16 +123,41 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     function burn(uint256 tokenId) public {
         _requireMinted(tokenId);
         require(ownerOf(tokenId) == msg.sender, "NanoAdmin: only owner of the token is allowed to burn it!");
-        super._burn(tokenId);
         // Clean 4 mappings at once
         delete _controlledToAdmin[_adminToControlled[tokenId]];
         delete _adminToControlled[tokenId];
         delete _holderToId[_IdToHolder[tokenId]];
         delete _IdToHolder[tokenId];
 
+        super._burn(tokenId);
+
         emit AdminTokenBurnt(tokenId);
     }
 
 
-    
+    /// @notice Transfers admin token with the provided ID from one address to another address
+    /// @param from The address to transfer token from
+    /// @param to The address to transfer token to
+    /// @param tokenId The ID of the token to be transfered
+    function _transfer(address from, address to, uint256 tokenId) internal override {
+        _requireMinted(tokenId);
+        require(from != address(0), "NanoAdmin: sender can not be a zero address!");
+        require(to != address(0), "NanoAdmin: receiver can not be a zero address!");
+        // Get the address of the *last* admin token minted to the sender
+        uint256 holderTokenId = _holderToId[from];
+        // If it is 0 then it means that no admin tokens have ever been minted to the holder
+        require(holderTokenId != 0, "NanoAdmin: sender does not have any admin tokens!");
+        // The token moves to the other address
+        _IdToHolder[tokenId] = to;
+        // Current holder loses the token
+        delete _holderToId[from];
+
+        super._transfer(from, to, tokenId);
+
+        emit AdminTokenTransfered(from, to, tokenId);
+    }
+
+
+
+
 }

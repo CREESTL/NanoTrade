@@ -11,10 +11,13 @@ interface INanoAdmin {
     /// @param ERC20Address The address of the controlled ERC20 token
     function mintWithERC20Address(address to, address ERC20Address) external;
 
-    /// @notice Checks it the provided address owns an admin token
-    /// @param user The user address to check
-    /// @return The ID of the owned token
-    function checkOwner(address user) external view returns(uint256);
+    /// @notice Checks it the provided address owns some admin token
+    function checkOwner(address user) external view;
+
+    /// @notice Checks if the provided user owns an admin token controlling the provided ERC20 token
+    /// @param user The address of the user that potentially controls ERC20 token
+    /// @param ERC20Address The address of the potentially controlled ERC20 token 
+    function verifyAdminToken(address user, address ERC20Address) external view;
 
     /// @notice Returns the address of the controlled ERC20 token 
     /// @param tokenId The ID of ERC721 token to check
@@ -35,4 +38,12 @@ interface INanoAdmin {
     event AdminTokenBurnt(
         uint256 indexed tokenId
     );
+
+    /// @dev Event gets emitetd each time an ERC721 token gets transfered
+    event AdminTokenTransfered(
+        address indexed from, 
+        address indexed to, 
+        uint tokenId
+    );
+
 }
