@@ -116,14 +116,8 @@ describe("Nano Dividend-Paying Token", () => {
       it('Should fail to distribute dividends to no receivers', async() => {
         await origToken.mint(ownerAcc.address, 100_000);
         // TODO now it just gets reverted with no reason, might be fixed in the future
-        await expect(nano.distributeDividendsEqual(randomAddress, distToken.address, 10_000_000))
+        await expect(nano.distributeDividendsEqual(randomAddress, distToken.address, 1000))
         .to.be.reverted;
-      });
-
-      it('Should fail to distribute dividends if caller is not an owner', async() => {
-        await origToken.mint(ownerAcc.address, 100_000);
-        await expect(nano.connect(clientAcc1).distributeDividendsEqual(origToken.address, distToken.address, 10_000_000))
-        .to.be.revertedWith("Ownable: caller is not the owner");
       });
 
     });
@@ -214,12 +208,6 @@ describe("Nano Dividend-Paying Token", () => {
         .to.be.revertedWith("Nano: none of the receivers has enough tokens for the provided weight!");
       });
 
-      it('Should fail to distribute dividends if caller is not an owner', async() => {
-        await origToken.mint(ownerAcc.address, 1000)
-        await expect(nano.connect(clientAcc1).distributeDividendsWeighted(origToken.address, distToken.address, 10))
-        .to.be.revertedWith("Ownable: caller is not the owner");
-      });
-
     });
 
   });
@@ -276,13 +264,6 @@ describe("Nano Dividend-Paying Token", () => {
         // TODO now it just gets reverted with no reason, might be fixed in the future
         await expect(nano.distributeDividendsEqual(randomAddress, zeroAddress, parseEther("1")))
         .to.be.reverted;
-      });
-
-      it('Should fail to distribute dividends if caller is not an owner', async() => {
-        await origToken.mint(ownerAcc.address, 1000);
-        await ownerAcc.sendTransaction({to: nano.address, value: parseEther("5")});
-        await expect(nano.connect(clientAcc1).distributeDividendsEqual(zeroAddress, zeroAddress, parseEther("1")))
-        .to.be.revertedWith("Ownable: caller is not the owner");
       });
 
     });
@@ -383,13 +364,6 @@ describe("Nano Dividend-Paying Token", () => {
         await origToken.mint(ownerAcc.address, 10)
         await expect(nano.distributeDividendsWeighted(origToken.address, zeroAddress, 1000))
         .to.be.revertedWith("Nano: none of the receivers has enough tokens for the provided weight!");
-      });
-
-      it('Should fail to distribute dividends if caller is not an owner', async() => {
-        await ownerAcc.sendTransaction({to: nano.address, value: parseEther("8")});
-        await origToken.mint(ownerAcc.address, 1000)
-        await expect(nano.connect(clientAcc1).distributeDividendsWeighted(origToken.address, zeroAddress, 10))
-        .to.be.revertedWith("Ownable: caller is not the owner");
       });
 
     });
