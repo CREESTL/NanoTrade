@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "./interfaces/INanoProducedToken.sol";
 import "./interfaces/INanoAdmin.sol";
-import "hardhat/console.sol";
 
 
 contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
@@ -131,7 +130,7 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
             _usedHolders[to] = true;
         }
        
-        super._mint(to, amount);
+        _mint(to, amount);
         emit ControlledTokenCreated(to, amount);
     }
 
@@ -141,7 +140,7 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
         address caller = msg.sender;
         require(amount > 0, "NanoProducedToken: the amount of tokens to burn must be greater than zero!");
         require(balanceOf(caller) != 0, "NanoProducedToken: caller does not have any tokens to burn!");
-        super._burn(caller, amount);
+        _burn(caller, amount);
         // If the whole supply of tokens has been burnt - remove the address from holders
         if(totalSupply() == 0) {
             // Get the addresses position and delete it from the array
@@ -174,9 +173,8 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
             _usedHolders[to] = true;
         }
         // If all tokens of the holder get transfered - he is no longer a holder
-        // Negative numbers are allowed here but they will cause a revert inside dafault `_transfer` below
         uint256 fromBalance = balanceOf(from);
-        if (fromBalance - amount <= 0) {
+        if (amount > fromBalance) {
             // Get the addresses position and delete it from the array
             delete _holders[_holdersIndexes[from]];  
             // Delete its index as well
@@ -184,7 +182,6 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
             // Mark this holder as unused
             delete _usedHolders[from];
         }
-
         // Do a low-level transfer
         super._transfer(from, to, amount);
 
