@@ -38,7 +38,8 @@ contract Nano is INano, Ownable{
         require(success, "Nano: dividends transfer failed!");
       } else {
         // Other ERC20 tokens
-        IERC20(distToken).transfer(receivers[i], amount / length);
+        bool res = INanoProducedToken(distToken).transfer(receivers[i], amount / length);
+        require(res, "Nano: dividends distribution failed!");
       }
     }
 
@@ -64,7 +65,7 @@ contract Nano is INano, Ownable{
     // This function reverts if weight is incorrect.
     checkWeight(origToken, weight);
     for (uint256 i = 0; i < receivers.length; i++) {
-      uint256 userBalance = IERC20(origToken).balanceOf(receivers[i]);
+      uint256 userBalance = INanoProducedToken(origToken).balanceOf(receivers[i]);
       uint256 weightedAmount = userBalance / weight;
       // This amount does not have decimals
       totalWeightedAmount += weightedAmount;
@@ -77,8 +78,9 @@ contract Nano is INano, Ownable{
         // Other ERC20 tokens
         // If total assumed amount of tokens to be distributed as dividends is higher than current contract's balance, than it it impossible to
         // distribute dividends.
-        require(totalWeightedAmount <= IERC20(distToken).balanceOf(address(this)), "Nano: not enough dividend tokens to distribute with the provided weight!");
-        IERC20(distToken).transfer(receivers[i], weightedAmount);
+        require(totalWeightedAmount <= INanoProducedToken(distToken).balanceOf(address(this)), "Nano: not enough dividend tokens to distribute with the provided weight!");
+        bool res = INanoProducedToken(distToken).transfer(receivers[i], weightedAmount);
+        require(res, "Nano: dividends distribution failed!");
       }
     }
     
@@ -96,7 +98,7 @@ contract Nano is INano, Ownable{
     // The lowest balance of origTokens among receivers
     uint256 minBalance = type(uint256).max;
     for (uint256 i = 0; i < receivers.length; i++) {
-      uint256 singleBalance = IERC20(origToken).balanceOf(receivers[i]);
+      uint256 singleBalance = INanoProducedToken(origToken).balanceOf(receivers[i]);
       if (singleBalance < minBalance) {
         minBalance = singleBalance;
       }
@@ -115,7 +117,7 @@ contract Nano is INano, Ownable{
     // The lowest balance of origTokens among receivers
     uint256 minBalance = type(uint256).max;
     for (uint256 i = 0; i < receivers.length; i++) {
-      uint256 singleBalance = IERC20(origToken).balanceOf(receivers[i]);
+      uint256 singleBalance = INanoProducedToken(origToken).balanceOf(receivers[i]);
       if (singleBalance < minBalance) {
         minBalance = singleBalance;
       }
