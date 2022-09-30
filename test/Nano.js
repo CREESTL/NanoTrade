@@ -50,9 +50,7 @@ describe("Nano Dividend-Paying Token", () => {
     await nano.deployed();
 
     // Deploy another ERC20 in order to have a distToken
-    // TODO this is a temporary fix because now one user (owner) can only have one NFT
-    // TODO remove connection to client if holderToIds in admin tokens will have multiple values for one key
-    await factory.connect(clientAcc1).createERC20Token(
+    await factory.createERC20Token(
         "Slummy",
         "SMM",
         18,
@@ -65,9 +63,7 @@ describe("Nano Dividend-Paying Token", () => {
     distToken = await ethers.getContractAt("NanoProducedToken", distTokenAddress);
 
     // Premint 1M distTokens so that Nano contract has funds to pay the dividends
-    // TODO this is a temporary fix because now one user (owner) can only have one NFT
-    // TODO remove connection to client if holderToIds in admin tokens will have multiple values for one key
-    await distToken.connect(clientAcc1).mint(nano.address, 1_000_000);
+    await distToken.mint(nano.address, 1_000_000);
 
   });
 
@@ -116,6 +112,7 @@ describe("Nano Dividend-Paying Token", () => {
       it('Should fail to distribute dividends to no receivers', async() => {
         await origToken.mint(ownerAcc.address, 100_000);
         // TODO now it just gets reverted with no reason, might be fixed in the future
+        // None of the accounts holds tokens with `randomAddress`. So there is no receivers.
         await expect(nano.distributeDividendsEqual(randomAddress, distToken.address, 1000))
         .to.be.reverted;
       });
