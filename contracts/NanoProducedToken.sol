@@ -112,6 +112,7 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
     /// @param amount The amount of tokens to mint
     /// @dev Can only be called by the owner of the admin NFT
     function mint(address to, uint256 amount) public override hasAdminToken WhenMintable {
+        require(to != address(0), "NanoProducedToken: can not mint to zero address!");
         require(totalSupply() + amount <= _maxTotalSupply, "NanoProducedToken: supply exceeds maximum supply!");
         // If there are any holders then add address to holders only if it's not there already
         if (_holders.length > 0) {
