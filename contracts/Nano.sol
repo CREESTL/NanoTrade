@@ -25,8 +25,9 @@ contract Nano is INano, Ownable{
   ///        NOTE: If dividends are to payed in ether then `amount` is the amount of wei (NOT ether!)
   function distributeDividendsEqual(address origToken, address distToken, uint256 amount) external {
     require(origToken != address(0), "Nano: original token can not have a zero address!");
+    // Check that the provided origTonek address has `holders()` function
+    require(INanoProducedToken(origToken).detectHolders(origToken), "Nano: provided origToken does not support required functions!");
     // Get all holders of the origToken
-    // TODO check if this address exists
     address[] memory receivers = INanoProducedToken(origToken).holders();
     require(receivers.length > 0, "Nano: no dividends receivers were found!");
     uint256 length = receivers.length;
@@ -54,8 +55,9 @@ contract Nano is INano, Ownable{
   /// @param weight The amount of origTokens required to get a single distToken
   ///        NOTE: If dividends are payed in ether then `weight` is the amount of origTokens required to get a single ether (NOT a single wei!)
   function distributeDividendsWeighted(address origToken, address distToken, uint256 weight) external {
-    // TODO check if this address exists
     require(origToken != address(0), "Nano: original token can not have a zero address!");
+     // Check that the provided origTonek address has `holders()` function
+    require(INanoProducedToken(origToken).detectHolders(origToken), "Nano: provided origToken does not support required functions!");
     require(weight >= 1, "Nano: weight is too low!");
     // Get all holders of the origToken
     address[] memory receivers = INanoProducedToken(origToken).holders();

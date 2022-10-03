@@ -22,6 +22,11 @@ interface INanoProducedToken is IERC20 {
     /// @notice Indicates whether the token is mintable or not
     /// @return True if the token is mintable. False - if it is not
     function mintable() external view returns(bool);
+    
+    /// @dev Detects if contract with a given address has `holders()` function
+    /// @param _destination The address of the contract to check
+    /// @return True if contract has `holders()` function. False - if does not
+    function detectHolders(address _destination) external returns(bool);
 
     /// @notice Returns the array of addresses of all token holders
     /// @return The array of array of addresses of all token holders
