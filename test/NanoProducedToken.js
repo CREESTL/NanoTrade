@@ -178,28 +178,156 @@ describe("Nano Produced Token", () => {
       .to.be.revertedWith("NanoProducedToken: caller does not have any tokens to burn!");
     });
 
-  });
-
-
-  describe("Transfer", () => {
-
-    it('Should burn some tokens from address and leave address in holders', async() => {
-      let amount = 1000;
-      await token.mint(clientAcc1.address, amount);
-      let startBalance = await token.balanceOf(clientAcc1.address);
-      let startHolders = await token.holders();
-      await expect(token.connect(clientAcc1).burn(amount / 2))
-      .to.emit(token, "ControlledTokenBurnt").withArgs(anyValue, amount / 2);
-      let endHolders = await token.holders();
-      let endBalance = await token.balanceOf(clientAcc1.address);
-      // There is only one holder. Should be the same in both arrays.
-      expect(endHolders[0]).to.equal(startHolders[0]);
-      expect(startBalance - endBalance).to.equal(amount / 2);
+    it('Should fail to burn zero amount of tokens', async() => {
+      let amount = 0;
+      await expect(token.connect(clientAcc1).burn(amount))
+      .to.be.revertedWith("NanoProducedToken: the amount of tokens to burn must be greater than zero!");
     });
 
   });
 
 
+  describe("Transfer", () => {
 
-  describe("Extras", () => {});
+    it('Should transfer some tokens from one address to the other', async() => {
+      let amount = 1000;
+      await token.mint(clientAcc1.address, amount);
+      let startBalanceAcc1 = await token.balanceOf(clientAcc1.address);
+      let startBalanceAcc2 = await token.balanceOf(clientAcc2.address);
+      // Only the first account should have tokens so far
+      expect(startBalanceAcc1).to.equal(amount);
+      expect(startBalanceAcc2).to.equal(0);
+      let startHolders = await token.holders();
+      // And only one account should be a holder
+      expect(startHolders.length).to.equal(1);
+      expect(startHolders[0]).to.equal(clientAcc1.address);
+      await expect(token.connect(clientAcc1).transfer(clientAcc2.address, amount / 2))
+      .to.emit(token, "ControlledTokenTransferred").withArgs(anyValue, anyValue, amount / 2);
+      let endHolders = await token.holders();
+      // Now both accounts should become holders and have half of tokens each
+      expect(endHolders.length).to.equal(2);
+      expect(endHolders[0]).to.equal(clientAcc1.address);
+      expect(endHolders[1]).to.equal(clientAcc2.address);
+      let endBalanceAcc1 = await token.balanceOf(clientAcc1.address);
+      let endBalanceAcc2 = await token.balanceOf(clientAcc2.address);
+      expect(endBalanceAcc1).to.equal(amount / 2);
+      expect(endBalanceAcc2).to.equal(amount / 2);
+    });
+
+
+    it('Should not increase the number of holders when transfering to the same account', async() => {
+      let amount = 1000;
+      await token.mint(clientAcc1.address, amount);
+      let startHolders = await token.holders();
+      expect(startHolders.length).to.equal(1);
+      // Only one holder should be added after these 3 transfers
+      await expect(token.connect(clientAcc1).transfer(clientAcc2.address, amount / 4));
+      await expect(token.connect(clientAcc1).transfer(clientAcc2.address, amount / 4));
+      await expect(token.connect(clientAcc1).transfer(clientAcc2.address, amount / 4));
+      let endHolders = await token.holders();
+      expect(endHolders.length - startHolders.length).to.equal(1);
+    });
+
+    it('Should delete account from holders if all of its tokens get transfered', async() => {
+      let amount = 1000;
+      await token.mint(clientAcc1.address, amount);
+      let startHolders = await token.holders();
+      expect(startHolders[0]).to.equal(clientAcc1.address);
+      await expect(token.connect(clientAcc1).transfer(clientAcc2.address, amount));
+      let endHolders = await token.holders();
+      expect(endHolders[0]).to.equal(zeroAddress);
+    });
+
+    it('Should fail to transfer tokens if receiver has zero address', async() => {
+      let amount = 1000;
+      await token.mint(clientAcc1.address, amount);
+      await expect(token.connect(clientAcc1).transfer(zeroAddress, amount))
+      .to.be.revertedWith("NanoProducedToken: receiver can not be a zero address!");
+    });
+
+    it('Should fail to transfer tokens if sender has no tokens', async() => {
+      let amount = 1000;
+      await expect(token.connect(clientAcc1).transfer(clientAcc2.address, amount))
+      .to.be.revertedWith("NanoProducedToken: sender does not have any tokens to transfer!");
+    });
+
+  });
+
+  describe("Constructor", () => {
+
+    it('Should fail to initialize with wrong name', async() => {
+      await expect(factory.createERC20Token(
+        "",
+        "DMM",
+        18,
+        true,
+        1_000_000,
+        adminToken.address 
+      ))
+      .to.be.revertedWith("NanoProducedToken: initial token name can not be empty!");
+    });
+
+    it('Should fail to initialize with wrong symbol', async() => {
+      await expect(factory.createERC20Token(
+        "Dummy",
+        "",
+        18,
+        true,
+        1_000_000,
+        adminToken.address 
+      ))
+      .to.be.revertedWith("NanoProducedToken: initial token symbol can not be empty!");
+    });
+
+    it('Should fail to initialize with wrong decimals', async() => {
+      await expect(factory.createERC20Token(
+        "Dummy",
+        "DMM",
+        0,
+        true,
+        1_000_000,
+        adminToken.address 
+      ))
+      .to.be.revertedWith("NanoProducedToken: initial decimals can not be zero!");
+    });
+
+    it('Should fail to initialize with wrong admin token address', async() => {
+      await expect(factory.createERC20Token(
+        "Dummy",
+        "DMM",
+        18,
+        true,
+        1_000_000,
+        zeroAddress
+      ))
+      .to.be.revertedWith("NanoProducedToken: admin token address can not be a zero address!");
+    });
+
+    it('Should fail to initialize with wrong max total supply', async() => {
+      await expect(factory.createERC20Token(
+        "Dummy",
+        "DMM",
+        18,
+        true,
+        0,
+        adminToken.address
+      ))
+      .to.be.revertedWith("NanoProducedToken: max total supply can not be zero!");
+    });
+
+
+    it('Should fail to initialize with any max total supply if non-mintable', async() => {
+      await expect(factory.createERC20Token(
+        "Dummy",
+        "DMM",
+        18,
+        false,
+        1_000_000,
+        adminToken.address
+      ))
+      .to.be.revertedWith("NanoProducedToken: max total supply must be zero for unmintable tokens!");
+    });
+
+
+  });
 });
