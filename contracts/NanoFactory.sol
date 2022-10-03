@@ -2,7 +2,6 @@
 
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "./NanoProducedToken.sol";
 import "./interfaces/INanoFactory.sol";
 import "./interfaces/INanoAdmin.sol";
@@ -10,15 +9,9 @@ import "./interfaces/INanoAdmin.sol";
 
 
 /// @title A factory of custom ERC20 tokens
-contract NanoFactory is INanoFactory, IERC721Receiver {
+contract NanoFactory is INanoFactory {
 
     address private _lastProducedToken;
-
-    /// @dev Allows this factory contract to receive admin tokens to manage controlled tokens
-    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) public returns (bytes4) {
-        return IERC721Receiver.onERC721Received.selector;
-    }
-
 
     /// @notice Returns the address of the produced ERC20 token
     /// @return The address of the produced ERC20 token
