@@ -65,6 +65,11 @@ describe("Nano Dividend-Paying Token", () => {
     // Premint 1M distTokens so that Nano contract has funds to pay the dividends
     await distToken.mint(nano.address, 1_000_000);
 
+    // Deploy another "empty" contract to use its address
+    let rummyTx = await ethers.getContractFactory("Rummy");
+    rummy = await rummyTx.deploy();
+    await rummy.deployed(); 
+
   });
 
   describe("ERC20 dividends", () => {
@@ -111,10 +116,9 @@ describe("Nano Dividend-Paying Token", () => {
 
       it('Should fail to distribute dividends to no receivers', async() => {
         await origToken.mint(ownerAcc.address, 100_000);
-        // TODO now it just gets reverted with no reason, might be fixed in the future
         // None of the accounts holds tokens with `randomAddress`. So there is no receivers.
-        await expect(nano.distributeDividendsEqual(randomAddress, distToken.address, 1000))
-        .to.be.reverted;
+        await expect(nano.distributeDividendsEqual(rummy.address, distToken.address, 1000))
+        .to.be.revertedWith("Nano: provided original token does not support required functions!");
       });
 
       it('Should fail to distribute dividends if original token has zero address', async() => {
@@ -188,9 +192,8 @@ describe("Nano Dividend-Paying Token", () => {
 
       it('Should fail to distribute dividends to no receivers', async() => {
         await origToken.mint(ownerAcc.address, 1000);
-        // TODO now it just gets reverted with no reason, might be fixed in the future
-        await expect(nano.distributeDividendsWeighted(randomAddress, distToken.address, 10))
-        .to.be.reverted;
+        await expect(nano.distributeDividendsWeighted(rummy.address, distToken.address, 10))
+        .to.be.revertedWith("Nano: provided original token does not support required functions!");
       });
 
       it('Should fail to distribute dividends for native tokens holders', async() => {
@@ -264,9 +267,8 @@ describe("Nano Dividend-Paying Token", () => {
       it('Should fail to distribute dividends to no receivers', async() => {
         await origToken.mint(ownerAcc.address, 1000);
         await ownerAcc.sendTransaction({to: nano.address, value: parseEther("5")});
-        // TODO now it just gets reverted with no reason, might be fixed in the future
-        await expect(nano.distributeDividendsEqual(randomAddress, zeroAddress, parseEther("1")))
-        .to.be.reverted;
+        await expect(nano.distributeDividendsEqual(rummy.address, zeroAddress, parseEther("1")))
+        .to.be.revertedWith("Nano: provided original token does not support required functions!");
       });
 
     });
@@ -343,9 +345,8 @@ describe("Nano Dividend-Paying Token", () => {
       it('Should fail to distribute dividends to no receivers', async() => {
         await ownerAcc.sendTransaction({to: nano.address, value: parseEther("8")});
         await origToken.mint(ownerAcc.address, 1000);
-        // TODO now it just gets reverted with no reason, might be fixed in the future
-        await expect(nano.distributeDividendsWeighted(randomAddress, zeroAddress, 10))
-        .to.be.reverted;
+        await expect(nano.distributeDividendsWeighted(rummy.address, zeroAddress, 10))
+        .to.be.revertedWith("Nano: provided original token does not support required functions!");
       });
 
       it('Should fail to distribute dividends for native tokens holders', async() => {

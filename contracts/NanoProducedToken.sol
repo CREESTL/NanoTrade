@@ -28,10 +28,6 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
     /// @dev The address of the factory minting controlled tokens
     address private _factoryAddress;
 
-    /// @dev Function selector for `holders` function. Used to detect if this function
-    ///      is present in the contract
-    bytes4 private constant FUNC_SELECTOR = bytes4(keccak256("holders()"));
-
     /// @dev Checks if mintability is activated
     modifier WhenMintable() { 
         require (_mintable, "NanoProducedToken: the token is not mintable!"); 
@@ -104,28 +100,6 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
         return _mintable;
     }
 
-
-    /// @dev Detects if contract with a given address has `holders()` function
-    /// @param _destination The address of the contract to check
-    /// @return True if contract has `holders()` function. False - if does not
-    function detectHolders(address _destination) public returns(bool) {
-        bool success;
-        bytes memory data = abi.encodeWithSelector(FUNC_SELECTOR);
-
-        assembly {
-            success := call(
-                500000,        // gas remaining
-                _destination,   // address to call
-                0,              // no ether
-                add(data, 32),  // input buffer (starts after the first 32 bytes in the `data` array)
-                mload(data),    // input length (loaded from the first 32 bytes in the `data` array)
-                0,              // output buffer
-                0               // output length
-            )
-        }
-
-        return success;
-    }
 
     /// @notice Returns the array of addresses of all token holders
     /// @return The array of addresses of all token holders

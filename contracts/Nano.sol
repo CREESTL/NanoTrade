@@ -19,14 +19,17 @@ contract Nano is INano, Ownable{
   /// @notice Distributes one token as dividends for holders of another token _equally _
   /// @param origToken The address of the token that is held by receivers
   ///        Can not be a zero address!
+  ///        MUST be an address of a contract - not an address of EOA!
   /// @param distToken The address of the token that is to be distributed as dividends
   ///        Zero address for native token (ether, wei)
   /// @param amount The amount of distTokens to be distributed in total
   ///        NOTE: If dividends are to payed in ether then `amount` is the amount of wei (NOT ether!)
   function distributeDividendsEqual(address origToken, address distToken, uint256 amount) external {
     require(origToken != address(0), "Nano: original token can not have a zero address!");
-    // Check that the provided origTonek address has `holders()` function
-    require(INanoProducedToken(origToken).detectHolders(origToken), "Nano: provided origToken does not support required functions!");
+    // Check if the contract with the provided address has `holders()` function
+    // NOTE: If `origToken` is not a contract address(e.g. EOA) this call will revert without a reason
+    (bool yes, ) = origToken.call(abi.encodeWithSignature("holders()"));
+    require(yes, "Nano: provided original token does not support required functions!");
     // Get all holders of the origToken
     address[] memory receivers = INanoProducedToken(origToken).holders();
     require(receivers.length > 0, "Nano: no dividends receivers were found!");
@@ -56,8 +59,10 @@ contract Nano is INano, Ownable{
   ///        NOTE: If dividends are payed in ether then `weight` is the amount of origTokens required to get a single ether (NOT a single wei!)
   function distributeDividendsWeighted(address origToken, address distToken, uint256 weight) external {
     require(origToken != address(0), "Nano: original token can not have a zero address!");
-     // Check that the provided origTonek address has `holders()` function
-    require(INanoProducedToken(origToken).detectHolders(origToken), "Nano: provided origToken does not support required functions!");
+    // Check if the contract with the provided address has `holders()` function
+    // NOTE: If `origToken` is not a contract address(e.g. EOA) this call will revert without a reason
+    (bool yes, ) = origToken.call(abi.encodeWithSignature("holders()"));
+    require(yes, "Nano: provided original token does not support required functions!");
     require(weight >= 1, "Nano: weight is too low!");
     // Get all holders of the origToken
     address[] memory receivers = INanoProducedToken(origToken).holders();
