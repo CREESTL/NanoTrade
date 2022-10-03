@@ -166,6 +166,7 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
     function _transfer(address from, address to, uint256 amount) internal override {
         require(from != address(0), "NanoProducedToken: sender can not be a zero address!");
         require(to != address(0), "NanoProducedToken: receiver can not be a zero address!");
+        require(_usedHolders[from] == true, "NanoProducedToken: sender does not have any tokens to transfer!");
         // If the receiver is not yet a holder, he becomes a holder
         if (_usedHolders[to] != true) {
             // Push another address to the end of the array
@@ -177,7 +178,7 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
         }
         // If all tokens of the holder get transfered - he is no longer a holder
         uint256 fromBalance = balanceOf(from);
-        if (amount > fromBalance) {
+        if (amount >= fromBalance) {
             // NOTE: `delete` does not change the length of any array. It replaces a "deleted" item
             //        with a default value
             // Get the addresses position and delete it from the array
