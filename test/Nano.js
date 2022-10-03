@@ -117,6 +117,12 @@ describe("Nano Dividend-Paying Token", () => {
         .to.be.reverted;
       });
 
+      it('Should fail to distribute dividends if original token has zero address', async() => {
+        await origToken.mint(ownerAcc.address, 100_000);
+        await expect(nano.distributeDividendsEqual(zeroAddress, distToken.address, 1000))
+        .to.be.revertedWith("Nano: original token can not have a zero address!");
+      });
+
     });
 
     describe("Weighted dividends", () => {
@@ -351,14 +357,14 @@ describe("Nano Dividend-Paying Token", () => {
 
       it('Should fail to distribute dividends with too low weight', async() => {
         await ownerAcc.sendTransaction({to: nano.address, value: parseEther("8")});
-        await origToken.mint(ownerAcc.address, 1000)
+        await origToken.mint(ownerAcc.address, 1000);
         await expect(nano.distributeDividendsWeighted(origToken.address, zeroAddress, 0))
         .to.be.revertedWith("Nano: weight is too low!");
       });
 
       it('Should fail to distribute dividends with too high weight', async() => {
         await ownerAcc.sendTransaction({to: nano.address, value: parseEther("8")});
-        await origToken.mint(ownerAcc.address, 10)
+        await origToken.mint(ownerAcc.address, 10);
         await expect(nano.distributeDividendsWeighted(origToken.address, zeroAddress, 1000))
         .to.be.revertedWith("Nano: none of the receivers has enough tokens for the provided weight!");
       });
@@ -368,22 +374,57 @@ describe("Nano Dividend-Paying Token", () => {
   });
 
   describe("Extras", () => {
-    it('Should calculate minimum weight correctly for a single receiver', async() => {
-      await ownerAcc.sendTransaction({to: nano.address, value: parseEther("8")});
-      await origToken.mint(ownerAcc.address, 1000)
-      let minWeight = await nano.calcMinWeight(origToken.address);
-      expect(minWeight).to.equal(1000);
-    });
-    it('Should calculate minimum weight correctly for multiple receivers', async() => {
-      await ownerAcc.sendTransaction({to: nano.address, value: parseEther("8")});
-      await origToken.mint(ownerAcc.address, 1000)
-      await origToken.mint(clientAcc1.address, 800)
-      // This should be the minimum weight
-      await origToken.mint(clientAcc2.address, 1)
-      let minWeight = await nano.calcMinWeight(origToken.address);
-      expect(minWeight).to.equal(1);
-    });
 
+    describe("Calculate Minimum Weight", () => {
+
+      it('Should calculate minimum weight correctly for a single receiver', async() => {
+        await ownerAcc.sendTransaction({to: nano.address, value: parseEther("8")});
+        await origToken.mint(ownerAcc.address, 1000);
+        let minWeight = await nano.calcMinWeight(origToken.address);
+        expect(minWeight).to.equal(1000);
+      });
+
+      it('Should calculate minimum weight correctly for multiple receivers', async() => {
+        await ownerAcc.sendTransaction({to: nano.address, value: parseEther("8")});
+        await origToken.mint(ownerAcc.address, 1000);
+        await origToken.mint(clientAcc1.address, 800);
+        // This should be the minimum weight
+        await origToken.mint(clientAcc2.address, 1);
+        let minWeight = await nano.calcMinWeight(origToken.address);
+        expect(minWeight).to.equal(1);
+      });
+
+      it('Should fail to calculate minimum weight if original token has zero address', async() => {
+        await expect(nano.calcMinWeight(zeroAddress))
+        .to.be.revertedWith("Nano: original token can not have a zero address!");
+      });
+
+    });
+    
+    describe("Check Weight", () => {
+
+      it('Should reject too high weight', async() => {
+        await ownerAcc.sendTransaction({to: nano.address, value: parseEther("8")});
+        await origToken.mint(ownerAcc.address, 1000);
+        await origToken.mint(clientAcc1.address, 1000);
+        await origToken.mint(clientAcc2.address, 1000);
+        await expect(nano.checkWeight(origToken.address, 10_000))
+        .to.be.revertedWith("Nano: none of the receivers has enough tokens for the provided weight!");
+      });
+
+      it('Should accept normal weight', async() => {
+        await ownerAcc.sendTransaction({to: nano.address, value: parseEther("8")});
+        await origToken.mint(ownerAcc.address, 1000);
+        await origToken.mint(clientAcc1.address, 1000);
+        await origToken.mint(clientAcc2.address, 1000);
+        await expect(nano.checkWeight(origToken.address, 1000));
+      });
+
+      it('Should fail to check weight if original token has zero address', async() => {
+        await expect(nano.checkWeight(zeroAddress, 1000))
+        .to.be.revertedWith("Nano: original token can not have a zero address!");
+      });
+
+    });
   });
-
 });
