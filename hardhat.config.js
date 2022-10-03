@@ -30,9 +30,8 @@ module.exports = {
       url: "http://127.0.0.1:8545",
     },
     // Ethereum Goerli testnet
-    // TODO Use Alchemy here
     goerli: {
-      url: `https://goerli.prylabs.net`,
+      url: `https://goerli.infura.io/v3/${INFURA_API_KEY}`,
       accounts: [ACC_PRIVATE_KEY]
     },
     // Ethereum mainnet

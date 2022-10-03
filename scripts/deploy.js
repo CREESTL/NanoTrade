@@ -30,10 +30,10 @@ async function main() {
   
   await delay(90000);
 
-  OUTPUT_DEPLOY[network.name][contractName].address = bridge.address;
-  if (network.name === "goerli") {
-    url = "https://polygonscan.com/address/" + factory.address + "#code";
-  } else if (network.name === "ethereum") {
+  OUTPUT_DEPLOY[network.name][contractName].address = factory.address;
+  if (network.name === "ethereum") {
+    url = "https://etherscan.io/address/" + factory.address + "#code";
+  } else if (network.name === "goerli") {
     url = "https://goerli.etherscan.io/address/" + factory.address + "#code";
   }
   OUTPUT_DEPLOY[network.name][contractName].verification = url;
@@ -65,10 +65,10 @@ async function main() {
 
   await delay(90000);
 
-  OUTPUT_DEPLOY[network.name][contractName].address = bridge.address;
-  if (network.name === "goerli") {
-    url = "https://polygonscan.com/address/" + admin.address + "#code";
-  } else if (network.name === "ethereum") {
+  OUTPUT_DEPLOY[network.name][contractName].address = admin.address;
+  if (network.name === "ethereum") {
+    url = "https://etherscan.io/address/" + admin.address + "#code";
+  } else if (network.name === "goerli") {
     url = "https://goerli.etherscan.io/address/" + admin.address + "#code";
   }
   OUTPUT_DEPLOY[network.name][contractName].verification = url;
@@ -103,10 +103,10 @@ async function main() {
 
   await delay(90000);
 
-  OUTPUT_DEPLOY[network.name][contractName].address = bridge.address;
-  if (network.name === "goerli") {
-    url = "https://polygonscan.com/address/" + nano.address + "#code";
-  } else if (network.name === "ethereum") {
+  OUTPUT_DEPLOY[network.name][contractName].address = nano.address;
+  if (network.name === "ethereum") {
+    url = "https://etherscan.io/address/" + nano.address + "#code";
+  } else if (network.name === "goerli") {
     url = "https://goerli.etherscan.io/address/" + nano.address + "#code";
   }
   OUTPUT_DEPLOY[network.name][contractName].verification = url;
