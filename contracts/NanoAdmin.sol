@@ -123,6 +123,8 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     function burn(uint256 tokenId) public {
         _requireMinted(tokenId);
         require(ownerOf(tokenId) == msg.sender, "NanoAdmin: only owner of the token is allowed to burn it!");
+        // NOTE: `delete` does not change the length of any array. It replaces a "deleted" item
+        //        with a default value
         // Clean 4 mappings at once
         delete _controlledToAdmin[_adminToControlled[tokenId]];
         delete _adminToControlled[tokenId];

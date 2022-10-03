@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "./interfaces/INanoProducedToken.sol";
 import "./interfaces/INanoAdmin.sol";
 
-
 contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
 
     string internal _tokenName;
@@ -144,7 +143,10 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
         _burn(caller, amount);
         // If the whole supply of tokens has been burnt - remove the address from holders
         if(totalSupply() == 0) {
+            // NOTE: `delete` does not change the length of any array. It replaces a "deleted" item
+            //        with a default value
             // Get the addresses position and delete it from the array
+            // Actually the holder address gets replaced by the zero address
             delete _holders[_holdersIndexes[caller]];  
             // Delete its index as well
             delete _holdersIndexes[caller];
@@ -176,6 +178,8 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
         // If all tokens of the holder get transfered - he is no longer a holder
         uint256 fromBalance = balanceOf(from);
         if (amount > fromBalance) {
+            // NOTE: `delete` does not change the length of any array. It replaces a "deleted" item
+            //        with a default value
             // Get the addresses position and delete it from the array
             delete _holders[_holdersIndexes[from]];  
             // Delete its index as well
