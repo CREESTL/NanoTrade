@@ -13,7 +13,6 @@ describe("Nano Dividend-Paying Token", () => {
   let factory;
   let zeroAddress = ethers.constants.AddressZero;
   let parseEther = ethers.utils.parseEther;
-  let randomAddress = "0xffee087852cb4898e6c3532e776e68bc68b1143b";
 
   // Deploy all contracts before each test suite
   beforeEach( async () => {
@@ -116,7 +115,6 @@ describe("Nano Dividend-Paying Token", () => {
 
       it('Should fail to distribute dividends to no receivers', async() => {
         await origToken.mint(ownerAcc.address, 100_000);
-        // None of the accounts holds tokens with `randomAddress`. So there is no receivers.
         await expect(nano.distributeDividendsEqual(rummy.address, distToken.address, 1000))
         .to.be.revertedWith("Nano: provided original token does not support required functions!");
       });
