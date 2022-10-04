@@ -19,7 +19,7 @@ describe("Nano Admin Token", () => {
     [ownerAcc, clientAcc1, clientAcc2] = await ethers.getSigners();
 
     // Deploy a factory contract
-    let factoryTx = await ethers.getContractFactory("NanoFactory");
+    let factoryTx = await ethers.getContractFactory("PayableFactory");
     factory = await factoryTx.deploy();
     await factory.deployed();
 
