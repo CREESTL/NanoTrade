@@ -13,6 +13,8 @@ contract NanoFactory is INanoFactory {
 
     address private _lastProducedToken;
 
+    receive() external payable {}
+
     /// @notice Returns the address of the produced ERC20 token
     /// @return The address of the produced ERC20 token
     function lastProducedToken() public view returns(address) {
