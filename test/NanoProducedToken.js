@@ -107,7 +107,7 @@ describe("Nano Produced Token", () => {
     it('Should fail to mint if caller is not an admin', async() => {
       let amount = 1000;
       await expect(token.connect(clientAcc1).mint(clientAcc2.address, amount))
-      .to.be.revertedWith("NanoAdmin: caller does not have an admin token!");
+      .to.be.revertedWith("NanoAdmin: user does not have an admin token!");
     });
 
     it('Should fail to mint if mint is disabled', async() => {
