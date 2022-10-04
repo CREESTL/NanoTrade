@@ -81,7 +81,8 @@ contract Nano is INano, Ownable, ReentrancyGuard{
       if (distToken == address(0)) {
         // Native tokens (wei)
         require(totalWeightedAmount * (1 ether) <= address(this).balance, "Nano: not enough dividend tokens to distribute with the provided weight!");
-        (bool success, ) = receivers[i].call{value: weightedAmount * (1 ether)}("");
+        // Value is the same as `weightedAmount * (1 ether)`
+        (bool success, ) = receivers[i].call{value: userBalance * (1 ether) / weight}("");
         require(success, "Nano: dividends transfer failed!");
       } else {
         // Other ERC20 tokens
