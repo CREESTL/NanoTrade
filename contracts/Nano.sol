@@ -4,14 +4,16 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./interfaces/INano.sol";
 import "./interfaces/INanoProducedToken.sol";
+
 
 
 /// @title Dividend-Paying Token
 /// @dev A mintable ERC20 token that allows anyone to pay and distribute ether
 /// to token holders as dividends and allows token holders to withdraw their dividends.
-contract Nano is INano, Ownable{
+contract Nano is INano, Ownable, ReentrancyGuard{
 
   /// @dev The contract must be able to receive ether to pay dividends with it
   receive() external payable {}
@@ -24,7 +26,7 @@ contract Nano is INano, Ownable{
   ///        Zero address for native token (ether, wei)
   /// @param amount The amount of distTokens to be distributed in total
   ///        NOTE: If dividends are to payed in ether then `amount` is the amount of wei (NOT ether!)
-  function distributeDividendsEqual(address origToken, address distToken, uint256 amount) external {
+  function distributeDividendsEqual(address origToken, address distToken, uint256 amount) external nonReentrant() {
     require(origToken != address(0), "Nano: original token can not have a zero address!");
     // Check if the contract with the provided address has `holders()` function
     // NOTE: If `origToken` is not a contract address(e.g. EOA) this call will revert without a reason
@@ -57,7 +59,7 @@ contract Nano is INano, Ownable{
   ///        Zero address for native token (ether, wei)
   /// @param weight The amount of origTokens required to get a single distToken
   ///        NOTE: If dividends are payed in ether then `weight` is the amount of origTokens required to get a single ether (NOT a single wei!)
-  function distributeDividendsWeighted(address origToken, address distToken, uint256 weight) external {
+  function distributeDividendsWeighted(address origToken, address distToken, uint256 weight) external nonReentrant() {
     require(origToken != address(0), "Nano: original token can not have a zero address!");
     // Check if the contract with the provided address has `holders()` function
     // NOTE: If `origToken` is not a contract address(e.g. EOA) this call will revert without a reason
