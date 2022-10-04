@@ -32,7 +32,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     ///      If there is any ID - it means that the address has at least one admin token
     mapping(address => uint256) private _holderToId;
     /// @dev Reverse mapping for `_holderToId`
-    mapping(uint256 => address) private _IdToHolder;
+    mapping(uint256 => address) private _idToHolder;
     /// @dev Mapping of used ERC20 tokens addresses
     mapping(address => bool) private _usedControlled;
     /// @dev The address of the factory minting admin tokens
@@ -68,15 +68,15 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
         // No need to check if id is 0 here
         uint256 id = _controlledToAdmin[ERC20Address];
         // Get the actual holder of the token with that ID and compare it to the provided user address
-        require(_IdToHolder[id] == user, "NanoAdmin: caller does not have an admin token!");
+        require(_idToHolder[id] == user, "NanoAdmin: user does not have an admin token!");
     }
 
     /// @notice Returns the address of the controlled ERC20 token 
     /// @param tokenId The ID of ERC721 token to check
     /// @return The address of the controlled ERC20 token
     function getControlledAddressById(uint256 tokenId) public view returns (address) {
-        _requireMinted(tokenId);
         require(_adminToControlled[tokenId] != address(0), "NanoAdmin: no controlled token exists for this admin token!");
+        _requireMinted(tokenId);
         
         return _adminToControlled[tokenId];
     }
@@ -86,8 +86,8 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     /// @param tokenId The ID of minted ERC721 token
     /// @param ERC20Address The address of the controlled ERC20 token
     function setControlledAddress(uint256 tokenId, address ERC20Address) internal onlyFactory {
-        _requireMinted(tokenId);
         require(ERC20Address != address(0), "NanoAdmin: controlled token can not have a zero address!");
+        _requireMinted(tokenId);
         _adminToControlled[tokenId] = ERC20Address;
         _controlledToAdmin[ERC20Address] = tokenId;
 
@@ -112,7 +112,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
         _usedControlled[ERC20Address] = true;
         // Mark that token with the current ID belongs to the user
         _holderToId[to] = tokenId;
-        _IdToHolder[tokenId] = to;
+        _idToHolder[tokenId] = to;
 
         emit AdminTokenCreated(tokenId, ERC20Address);
     }
@@ -121,15 +121,15 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     /// @notice Burns the token with the provided ID
     /// @param tokenId The ID of the token to burn
     function burn(uint256 tokenId) public {
-        _requireMinted(tokenId);
         require(ownerOf(tokenId) == msg.sender, "NanoAdmin: only owner of the token is allowed to burn it!");
+        _requireMinted(tokenId);
         // NOTE: `delete` does not change the length of any array. It replaces a "deleted" item
         //        with a default value
         // Clean 4 mappings at once
         delete _controlledToAdmin[_adminToControlled[tokenId]];
         delete _adminToControlled[tokenId];
-        delete _holderToId[_IdToHolder[tokenId]];
-        delete _IdToHolder[tokenId];
+        delete _holderToId[_idToHolder[tokenId]];
+        delete _idToHolder[tokenId];
 
         super._burn(tokenId);
 
@@ -142,15 +142,14 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     /// @param to The address to transfer token to
     /// @param tokenId The ID of the token to be transfered
     function _transfer(address from, address to, uint256 tokenId) internal override {
-        _requireMinted(tokenId);
         require(from != address(0), "NanoAdmin: sender can not be a zero address!");
         require(to != address(0), "NanoAdmin: receiver can not be a zero address!");
-        // Get the address of the *last* admin token minted to the sender
-        uint256 holderTokenId = _holderToId[from];
-        // If it is 0 then it means that no admin tokens have ever been minted to the holder
-        require(holderTokenId != 0, "NanoAdmin: sender does not have any admin tokens!");
+        _requireMinted(tokenId);
+        // No need to check if sender has any admin tokens here because it is checked 
+        // in higher-level ERC721 functions such as `transferFrom` and `_safeTransfer`
         // The token moves to the other address
-        _IdToHolder[tokenId] = to;
+        _idToHolder[tokenId] = to;
+        _holderToId[to] = tokenId;
         // Current holder loses the token
         delete _holderToId[from];
 
