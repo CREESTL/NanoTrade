@@ -121,7 +121,7 @@ contract Nano is INano, Ownable, ReentrancyGuard{
   /// @notice Calculates the minimum currently allowed weight.
   ///         Weight used in distributing dividends should be equal/greater than this
   /// @param origToken The address of the token that is held by receivers
-  function calcMinWeight(address origToken) public view returns(uint256) {
+  function calcMinWeight(address origToken) external view returns(uint256) {
     require(origToken != address(0), "Nano: original token can not have a zero address!");
     address[] memory receivers = INanoProducedToken(origToken).holders();
     // The lowest balance of origTokens among receivers

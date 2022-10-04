@@ -15,7 +15,7 @@ contract NanoFactory is INanoFactory {
 
     /// @notice Returns the address of the produced ERC20 token
     /// @return The address of the produced ERC20 token
-    function lastProducedToken() public view returns(address) {
+    function lastProducedToken() external view returns(address) {
         return _lastProducedToken;
     }
 
@@ -45,11 +45,14 @@ contract NanoFactory is INanoFactory {
             adminToken_
         ); 
 
+        emit CreateERC20Token(name, symbol, decimals, mintable);
+        
         // The address of the produced token gets changed each time
         _lastProducedToken = address(newToken);           
 
         // Mint admin token to the creator of this ERC20 token
         INanoAdmin(adminToken_).mintWithERC20Address(msg.sender, address(newToken));
+
         
     }
 

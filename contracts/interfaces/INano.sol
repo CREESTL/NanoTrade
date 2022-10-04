@@ -40,7 +40,6 @@ interface INano {
   /// @param amount The amount of distTokens to be distributed in total
   event DividendsDistributed(
     address indexed distToken,
-    // TODO add at least one not indexed field?
     uint256 indexed amount
   );
 }

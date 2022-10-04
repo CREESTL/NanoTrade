@@ -24,8 +24,6 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
     mapping(address => uint256) internal _holdersIndexes;
     /// @dev A mapping of holders addresses that have received tokens
     mapping(address => bool) internal _usedHolders;
-    /// @dev The address of the factory minting controlled tokens
-    address private _factoryAddress;
 
     /// @dev Checks if mintability is activated
     modifier WhenMintable() { 
@@ -95,14 +93,14 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
 
     /// @notice Indicates whether the token is mintable or not
     /// @return True if the token is mintable. False - if it is not
-    function mintable() public view override returns(bool) {
+    function mintable() external view override returns(bool) {
         return _mintable;
     }
 
 
     /// @notice Returns the array of addresses of all token holders
     /// @return The array of addresses of all token holders
-    function holders() public view returns (address[] memory) {
+    function holders() external view returns (address[] memory) {
         return _holders;
     }
 
@@ -110,9 +108,10 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
     /// @param to The receiver of tokens
     /// @param amount The amount of tokens to mint
     /// @dev Can only be called by the owner of the admin NFT
-    function mint(address to, uint256 amount) public override hasAdminToken WhenMintable {
+    function mint(address to, uint256 amount) external override hasAdminToken WhenMintable {
         require(to != address(0), "NanoProducedToken: can not mint to zero address!");
         require(totalSupply() + amount <= _maxTotalSupply, "NanoProducedToken: supply exceeds maximum supply!");
+        emit ControlledTokenCreated(to, amount);
         // If there are any holders then add address to holders only if it's not there already
         if (_holders.length > 0) {
             if (_holdersIndexes[to] == 0 && _holders[0] != to) {
@@ -131,15 +130,15 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
         }
        
         _mint(to, amount);
-        emit ControlledTokenCreated(to, amount);
     }
 
     /// @notice Burns user's tokens
     /// @param amount The amount of tokens to burn
-    function burn(uint256 amount) public override {
+    function burn(uint256 amount) external override {
         address caller = msg.sender;
         require(amount > 0, "NanoProducedToken: the amount of tokens to burn must be greater than zero!");
         require(balanceOf(caller) != 0, "NanoProducedToken: caller does not have any tokens to burn!");
+        emit ControlledTokenBurnt(caller, amount);
         _burn(caller, amount);
         // If the whole supply of tokens has been burnt - remove the address from holders
         if(totalSupply() == 0) {
@@ -153,7 +152,6 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
             // Mark this holder as unused
             delete _usedHolders[caller];
         }
-        emit ControlledTokenBurnt(caller, amount);
     }
 
 
@@ -166,9 +164,10 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
     function _transfer(address from, address to, uint256 amount) internal override {
         require(from != address(0), "NanoProducedToken: sender can not be a zero address!");
         require(to != address(0), "NanoProducedToken: receiver can not be a zero address!");
-        require(_usedHolders[from] == true, "NanoProducedToken: sender does not have any tokens to transfer!");
+        require(_usedHolders[from], "NanoProducedToken: sender does not have any tokens to transfer!");
+        emit ControlledTokenTransferred(from, to, amount);
         // If the receiver is not yet a holder, he becomes a holder
-        if (_usedHolders[to] != true) {
+        if (!_usedHolders[to]) {
             // Push another address to the end of the array
             _holders.push(to);
             // Remember this address position
@@ -191,7 +190,6 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
         // Do a low-level transfer
         super._transfer(from, to, amount);
 
-        emit ControlledTokenTransferred(from, to, amount);
 
     }
 

@@ -53,7 +53,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     }
 
     /// @notice Checks it the provided address owns some admin token
-    function checkOwner(address user) public view {
+    function checkOwner(address user) external view {
         require(user != address(0), "NanoAdmin: zero address is an invalid user!");
         require(_holderToId[user] != 0, "NanoAdmin: user does not have an admin token!");
     }
@@ -61,7 +61,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     /// @notice Checks if the provided user owns an admin token controlling the provided ERC20 token
     /// @param user The address of the user that potentially controls ERC20 token
     /// @param ERC20Address The address of the potentially controlled ERC20 token 
-    function verifyAdminToken(address user, address ERC20Address) public view {
+    function verifyAdminToken(address user, address ERC20Address) external view {
         require(user != address(0), "NanoAdmin: user can not have a zero address!");
         require(ERC20Address != address(0), "NanoAdmin: token can not have a zero address!");
         // Get the ID of admin token for the provided ERC20 token address
@@ -74,7 +74,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     /// @notice Returns the address of the controlled ERC20 token 
     /// @param tokenId The ID of ERC721 token to check
     /// @return The address of the controlled ERC20 token
-    function getControlledAddressById(uint256 tokenId) public view returns (address) {
+    function getControlledAddressById(uint256 tokenId) external view returns (address) {
         require(_adminToControlled[tokenId] != address(0), "NanoAdmin: no controlled token exists for this admin token!");
         _requireMinted(tokenId);
         
@@ -97,15 +97,13 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     /// @notice Mints a new ERC721 token with the address of the controlled ERC20 token
     /// @param to The address of the receiver of the token
     /// @param ERC20Address The address of the controlled ERC20 token
-    function mintWithERC20Address(address to, address ERC20Address) public onlyFactory {
+    function mintWithERC20Address(address to, address ERC20Address) external onlyFactory {
         require(to != address(0), "NanoAdmin: admin token mint to zero address is not allowed!");
         require(ERC20Address != address(0), "NanoAdmin: controlled token can not have a zero address!");
         require(!_usedControlled[ERC20Address], "NanoAdmin: only a single admin token is allowed for a single controlled token!");
         _tokenIds.increment();
         // NOTE The lowest token ID is 1
         uint256 tokenId = _tokenIds.current();
-        // Mint the token
-        super._safeMint(to, tokenId);
         // Connect admin token ID to controlled ERC20 address
         setControlledAddress(tokenId, ERC20Address);
         // Mark that controlled token has been used once
@@ -115,12 +113,15 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
         _idToHolder[tokenId] = to;
 
         emit AdminTokenCreated(tokenId, ERC20Address);
+        
+        // Mint the token
+        super._safeMint(to, tokenId);
     }
 
 
     /// @notice Burns the token with the provided ID
     /// @param tokenId The ID of the token to burn
-    function burn(uint256 tokenId) public {
+    function burn(uint256 tokenId) external {
         require(ownerOf(tokenId) == msg.sender, "NanoAdmin: only owner of the token is allowed to burn it!");
         _requireMinted(tokenId);
         // NOTE: `delete` does not change the length of any array. It replaces a "deleted" item
