@@ -1,9 +1,7 @@
-// SPDX-License-Identifier: MIT 
-
 const { ethers, network } = require("hardhat");
 
 /**
- * Creates a single random wallet to be used for testnet 
+ * Creates a single random wallet and shows its address and private key 
  * NOTE Address and private key of the wallet will be displayed in the terminal. Copy them and save somewhere else!
  */
 

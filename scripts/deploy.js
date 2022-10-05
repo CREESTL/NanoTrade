@@ -1,5 +1,3 @@
-// SPDX-License-Identifier: MIT 
-
 const { ethers, network } = require("hardhat");
 const fs = require("fs");
 const path = require("path");
