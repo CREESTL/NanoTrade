@@ -59,7 +59,7 @@ describe("Nano Admin Token", () => {
     await ownerAcc.sendTransaction({to: factory.address, value: parseEther("1")});
   });
 
-  describe("Constrctor", () => {
+  describe("Constructor", () => {
 
     it('Should fail to initialize with zero factory address', async() => {
       let tx = await ethers.getContractFactory("NanoAdmin");
@@ -111,8 +111,8 @@ describe("Nano Admin Token", () => {
       await expect(adminToken.getControlledAddressById(777))
       .to.be.revertedWith("NanoAdmin: no controlled token exists for this admin token!");
     });
-  });
 
+  });
 
   describe("Mint", () => {
 
@@ -170,8 +170,7 @@ describe("Nano Admin Token", () => {
       .to.be.revertedWith("NanoAdmin: no controlled token exists for this admin token!");
     });
 
-
-    it('Should fail to burn unexisting admin token', async() => {
+    it('Should fail to burn non-existent admin token', async() => {
       await adminToken.connect(factorySigner).mintWithERC20Address(clientAcc1.address, rummy.address);
       await expect(adminToken.connect(clientAcc1).burn(777))
       .to.be.revertedWith("ERC721: invalid token ID");
@@ -208,8 +207,7 @@ describe("Nano Admin Token", () => {
       expect(await adminToken.getControlledAddressById(2)).to.equal(rummy.address);
     });
 
-
-    it('Should fail to transfer unexisting admin token', async() => {
+    it('Should fail to transfer non-existent admin token', async() => {
       await adminToken.connect(factorySigner).mintWithERC20Address(clientAcc1.address, rummy.address);
       await expect(adminToken.connect(clientAcc1).transferFrom(clientAcc1.address, clientAcc2.address, 777))
       .to.be.revertedWith("ERC721: invalid token ID");
@@ -234,5 +232,4 @@ describe("Nano Admin Token", () => {
     });
 
   });
-
 });

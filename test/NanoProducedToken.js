@@ -58,7 +58,7 @@ describe("Nano Produced Token", () => {
       expect(await token.decimals()).to.equal(18);
     });
 
-    it('Should have correct mintable status', async() => {
+    it('Should have a correct mintable status', async() => {
       expect(await token.mintable()).to.equal(true);
     });
 
@@ -214,7 +214,6 @@ describe("Nano Produced Token", () => {
       expect(endBalanceAcc2).to.equal(amount / 2);
     });
 
-
     it('Should not increase the number of holders when transfering to the same account', async() => {
       let amount = 1000;
       await token.mint(clientAcc1.address, amount);
@@ -315,7 +314,6 @@ describe("Nano Produced Token", () => {
       .to.be.revertedWith("NanoProducedToken: max total supply can not be zero!");
     });
 
-
     it('Should fail to initialize with any max total supply if non-mintable', async() => {
       await expect(factory.createERC20Token(
         "Dummy",
@@ -327,7 +325,6 @@ describe("Nano Produced Token", () => {
       ))
       .to.be.revertedWith("NanoProducedToken: max total supply must be zero for unmintable tokens!");
     });
-
 
   });
 });

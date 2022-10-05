@@ -30,6 +30,7 @@ describe("Nano Factory", () => {
   });
 
   describe("Create tokens", () => {
+    
     it('Should create a new ERC20 token and connect it to ERC721 token', async() => {
       expect(await adminToken.balanceOf(ownerAcc.address)).to.equal(0);
       expect(await factory.lastProducedToken()).to.equal(zeroAddress);
