@@ -5,7 +5,7 @@ The Benture is an investing marketplace, connecting entrepreneurs with investors
 #### Table on contents
 [Build & Deploy](#build_and_deploy)  
 [Wallets](#wallets)  
-[Usage Logic](#logic)  
+[Smart-Contract Logic](#logic)  
 
 <a name="build_and_deploy"/>
 
@@ -89,7 +89,7 @@ Wallet's address and private key should be pasted into the `.env` file (see [Pre
  
 <a name="logic"/>
 
-### Usage Logic
+### Smart-Contract Logic
 __Roles__:
 - entrepreneur: creates and controls ERC20 tokens, pays dividends
 - user (investor): buys ERC20 tokens, receives dividends
