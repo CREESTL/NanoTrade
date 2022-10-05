@@ -13,14 +13,14 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
     string internal _tokenSymbol;
     uint8 internal _decimals;
     bool internal _mintable;
-    /// @dev The address of the admin tokens has to be provided in order
+    /// @dev The address of the admin token has to be provided in order
     ///      to verify user's ownership of that token
     address internal _adminToken;
-    /// @dev Should be equal to `_initialSupply` for unmintable tokens
+    /// @dev The maximum number of tokens to be minted
     uint256 internal _maxTotalSupply;
     /// @dev A list of addresses of tokens holders
     address[] internal _holders;
-    /// @dev A mapping of holder's address and his position in `_holders` list
+    /// @dev A mapping of holder's address and his position in `_holders` array
     mapping(address => uint256) internal _holdersIndexes;
     /// @dev A mapping of holders addresses that have received tokens
     mapping(address => bool) internal _usedHolders;
@@ -38,7 +38,6 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
     }
 
     /// @dev Creates a new controlled ERC20 token. 
-    /// @dev Only the owner (factory) can initialize the token
     /// @param name_ The name of the token
     /// @param symbol_ The symbol of the token
     /// @param decimals_ Number of decimals of the token
@@ -108,6 +107,7 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
     /// @param to The receiver of tokens
     /// @param amount The amount of tokens to mint
     /// @dev Can only be called by the owner of the admin NFT
+    /// @dev Can only be called when token is mintable
     function mint(address to, uint256 amount) external override hasAdminToken WhenMintable {
         require(to != address(0), "NanoProducedToken: can not mint to zero address!");
         require(totalSupply() + amount <= _maxTotalSupply, "NanoProducedToken: supply exceeds maximum supply!");
@@ -145,7 +145,6 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
             // NOTE: `delete` does not change the length of any array. It replaces a "deleted" item
             //        with a default value
             // Get the addresses position and delete it from the array
-            // Actually the holder address gets replaced by the zero address
             delete _holders[_holdersIndexes[caller]];  
             // Delete its index as well
             delete _holdersIndexes[caller];
@@ -156,9 +155,9 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
 
 
     /// @notice Moves tokens from one account to another account
-    /// @param from The address to transfer tokens from
-    /// @param to The address to transfer tokens to
-    /// @param amount The amount of tokens to be moved
+    /// @param from The address to transfer from
+    /// @param to The address to transfer to
+    /// @param amount The amount of tokens to be transfered
     /// @dev It is called by high-level functions. That is why it is necessary to override it
     /// @dev Transfers are permitted for everyone - not just admin token holders
     function _transfer(address from, address to, uint256 amount) internal override {
@@ -170,7 +169,7 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
         if (!_usedHolders[to]) {
             // Push another address to the end of the array
             _holders.push(to);
-            // Remember this address position
+            // Remember the position of this address
             _holdersIndexes[to] = _holders.length - 1;  
             // Mark holder's address as used
             _usedHolders[to] = true;
@@ -187,10 +186,6 @@ contract NanoProducedToken is ERC20, INanoProducedToken, Initializable {
             // Mark this holder as unused
             delete _usedHolders[from];
         }
-        // Do a low-level transfer
         super._transfer(from, to, amount);
-
-
     }
-
 }

@@ -22,7 +22,7 @@ describe("Nano Factory", () => {
     factory = await factoryTx.deploy();
     await factory.deployed();
 
-    // Deploy and admin token (ERC721)
+    // Deploy an admin token (ERC721)
     let adminTx = await ethers.getContractFactory("NanoAdmin");
     adminToken = await adminTx.deploy(factory.address);
     await adminToken.deployed(); 

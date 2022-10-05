@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.0;
+
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./NanoProducedToken.sol";
 import "./interfaces/INanoFactory.sol";
 import "./interfaces/INanoAdmin.sol";
 
 
-
 /// @title A factory of custom ERC20 tokens
 contract NanoFactory is INanoFactory {
 
+    /// @dev The address of the last token that was produced by the factory
     address private _lastProducedToken;
 
     /// @notice Returns the address of the produced ERC20 token

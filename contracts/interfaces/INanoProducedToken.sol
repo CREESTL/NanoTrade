@@ -24,28 +24,27 @@ interface INanoProducedToken is IERC20 {
     function mintable() external view returns(bool);
 
     /// @notice Returns the array of addresses of all token holders
-    /// @return The array of array of addresses of all token holders
+    /// @return The array of addresses of all token holders
     function holders() external view returns (address[] memory);
 
     /// @notice Creates tokens and assigns them to account, increasing the total supply.
     /// @param to The receiver of tokens
     /// @param amount The amount of tokens to mint
+    /// @dev Can only be called by the owner of the admin NFT
+    /// @dev Can only be called when token is mintable
     function mint(address to, uint256 amount) external;
 
     /// @notice Burns user's tokens
     /// @param amount The amount of tokens to burn
     function burn(uint256 amount) external;
 
-    /// @notice Is emitted on every mint of the token
+    /// @notice Indicates that a new ERC20 was created
     event ControlledTokenCreated(address indexed account, uint256 amount);
 
-    /// @notice Is emitted on every burn of the token
+    /// @notice Indicates that a new ERC20 was burnt
     event ControlledTokenBurnt(address indexed account, uint256 amount);
-
-    /// @notice Is emitted on every transfer of the token
-    event ControlledTokenTransferred(address indexed from, address indexed to, uint256 amount);
     
-    /// @notice Is emitted when token mintability is changed
-    event MintabilityChanged(bool indexed mintable);
+    /// @notice Indicates that a new ERC20 was transfered
+    event ControlledTokenTransferred(address indexed from, address indexed to, uint256 amount);
 
 }

@@ -6,6 +6,10 @@ pragma solidity ^0.8.0;
 /// @title An interface of a factory of custom ERC20 tokens
 interface INanoFactory {
 
+    /// @notice Returns the address of the produced ERC20 token
+    /// @return The address of the produced ERC20 token
+    function lastProducedToken() external view returns(address);
+
     /// @notice Creates a new ERC20 token and mints an admin token proving ownership
     /// @param name The name of the token
     /// @param symbol The symbol of the token
@@ -13,6 +17,7 @@ interface INanoFactory {
     /// @param mintable Token may be either mintable or not. Can be changed later.
     /// @param maxTotalSupply Maximum amount of tokens to be minted
     /// @param adminToken_ Address of the admin token for controlled token
+    /// @dev Anyone can call this method. No restrictions.
     function createERC20Token(
         string memory name,
         string memory symbol,
@@ -23,7 +28,7 @@ interface INanoFactory {
     ) external;
 
     
-    /// @dev Event gets emmited each time a new ERC20 token is created
+    /// @dev Indicates that a new ERC20 token was created
     event CreateERC20Token(
         string indexed name,
         string indexed symbol,

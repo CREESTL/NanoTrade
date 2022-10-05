@@ -8,15 +8,14 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/INanoProducedToken.sol";
 import "./interfaces/INanoAdmin.sol";
 
-/// @title A custom ERC721 contract allowing managing over ERC20 tokens
-/// @dev This contract clones ERC721URIStorage's contract but instead of URIs it stores ERC20 addresses
+/// @title A custom ERC721 contract that allows to mint controlled ERC20 tokens
 contract NanoAdmin is INanoAdmin, ERC721, Ownable {
 
     using Counters for Counters.Counter;
     Counters.Counter internal _tokenIds;
     using Strings for uint256;
     
-    /// @dev Mapping from ERC721 token ID to controlled ERC20 token addresses
+    /// @dev Mapping from ERC721 token IDs to controlled ERC20 token addresses
     mapping(uint256 => address) private _adminToControlled;
     /// @dev Reverse mapping for `_adminToControlled`
     mapping(address => uint256) private _controlledToAdmin;
@@ -26,7 +25,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     ///      - Admin token with ID = 1 gets minted to holder with address A
     ///      - _holderToId[A] = 1
     ///      - Admin token with ID = 2 gets minted to holder with address A
-    ///      - _holderToId[A] = 2 and so on
+    ///      - _holderToId[A] = 2, and so on
     ///      This way the key always has some corresponding value except for the case
     ///      when *no admin tokens* were minted.
     ///      If there is any ID - it means that the address has at least one admin token
@@ -52,7 +51,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
         _factoryAddress = factoryAddress_;
     }
 
-    /// @notice Checks it the provided address owns some admin token
+    /// @notice Checks it the provided address owns any admin token
     function checkOwner(address user) external view {
         require(user != address(0), "NanoAdmin: zero address is an invalid user!");
         require(_holderToId[user] != 0, "NanoAdmin: user does not have an admin token!");
@@ -64,8 +63,8 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
     function verifyAdminToken(address user, address ERC20Address) external view {
         require(user != address(0), "NanoAdmin: user can not have a zero address!");
         require(ERC20Address != address(0), "NanoAdmin: token can not have a zero address!");
-        // Get the ID of admin token for the provided ERC20 token address
-        // No need to check if id is 0 here
+        // Get the ID of the admin token for the provided ERC20 token address
+        // No need to check if ID is 0 here
         uint256 id = _controlledToAdmin[ERC20Address];
         // Get the actual holder of the token with that ID and compare it to the provided user address
         require(_idToHolder[id] == user, "NanoAdmin: user does not have an admin token!");
@@ -83,7 +82,7 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
 
 
     /// @notice Creates a relatioship between controlled ERC20 token address and an admin ERC721 token ID
-    /// @param tokenId The ID of minted ERC721 token
+    /// @param tokenId The ID of the admin ERC721 token
     /// @param ERC20Address The address of the controlled ERC20 token
     function setControlledAddress(uint256 tokenId, address ERC20Address) internal onlyFactory {
         require(ERC20Address != address(0), "NanoAdmin: controlled token can not have a zero address!");
@@ -139,8 +138,8 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
 
 
     /// @notice Transfers admin token with the provided ID from one address to another address
-    /// @param from The address to transfer token from
-    /// @param to The address to transfer token to
+    /// @param from The address to transfer from
+    /// @param to The address to transfer to
     /// @param tokenId The ID of the token to be transfered
     function _transfer(address from, address to, uint256 tokenId) internal override {
         require(from != address(0), "NanoAdmin: sender can not be a zero address!");

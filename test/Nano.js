@@ -23,7 +23,7 @@ describe("Nano Dividend-Paying Token", () => {
     factory = await factoryTx.deploy();
     await factory.deployed();
 
-    // Deploy and admin token (ERC721)
+    // Deploy an admin token (ERC721)
     let adminTx = await ethers.getContractFactory("NanoAdmin");
     adminToken = await adminTx.deploy(factory.address);
     await adminToken.deployed(); 
@@ -39,7 +39,7 @@ describe("Nano Dividend-Paying Token", () => {
         adminToken.address 
       );
 
-
+    // Get the address of the last ERC20 token produced in the factory
     origTokenAddress = await factory.lastProducedToken();
     origToken = await ethers.getContractAt("NanoProducedToken", origTokenAddress);
 

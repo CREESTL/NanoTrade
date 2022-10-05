@@ -6,17 +6,13 @@ pragma solidity ^0.8.0;
 /// @title An interface of a factory of custom ERC20 tokens
 interface INanoAdmin {
 
-    /// @notice Mints a new ERC721 token with the address of the controlled ERC20 token
-    /// @param to The address of the receiver of the token
-    /// @param ERC20Address The address of the controlled ERC20 token
-    function mintWithERC20Address(address to, address ERC20Address) external;
 
-    /// @notice Checks it the provided address owns some admin token
+    /// @notice Checks it the provided address owns any admin token
     function checkOwner(address user) external view;
 
     /// @notice Checks if the provided user owns an admin token controlling the provided ERC20 token
     /// @param user The address of the user that potentially controls ERC20 token
-    /// @param ERC20Address The address of the potentially controlled ERC20 token 
+    /// @param ERC20Address The address of the potentially controlled ERC20 token
     function verifyAdminToken(address user, address ERC20Address) external view;
 
     /// @notice Returns the address of the controlled ERC20 token 
@@ -24,22 +20,27 @@ interface INanoAdmin {
     /// @return The address of the controlled ERC20 token
     function getControlledAddressById(uint256 tokenId) external view returns (address);
 
+    /// @notice Mints a new ERC721 token with the address of the controlled ERC20 token
+    /// @param to The address of the receiver of the token
+    /// @param ERC20Address The address of the controlled ERC20 token
+    function mintWithERC20Address(address to, address ERC20Address) external;
+
     /// @notice Burns the token with the provided ID
     /// @param tokenId The ID of the token to burn
     function burn(uint256 tokenId) external;
     
-    /// @dev Event gets emmited each time a new ERC721 token gets minted
+    /// @dev Indicates that a new ERC721 token got minted
     event AdminTokenCreated(
         uint256 indexed tokenId,
         address indexed ERC20Address
     );
     
-    /// @dev Event gets emmited each time an ERC721 token gets burnt
+    /// @dev Indicates that an ERC721 token got burnt
     event AdminTokenBurnt(
         uint256 indexed tokenId
     );
 
-    /// @dev Event gets emitetd each time an ERC721 token gets transfered
+    /// @dev Indicates that an ERC721 token got transfered
     event AdminTokenTransfered(
         address indexed from, 
         address indexed to, 

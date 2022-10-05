@@ -11,8 +11,6 @@ import "./interfaces/INanoProducedToken.sol";
 
 
 /// @title Dividend-Paying Token
-/// @dev A mintable ERC20 token that allows anyone to pay and distribute ether
-/// to token holders as dividends and allows token holders to withdraw their dividends.
 contract Nano is INano, Ownable, ReentrancyGuard{
 
   /// @dev The contract must be able to receive ether to pay dividends with it
@@ -36,6 +34,7 @@ contract Nano is INano, Ownable, ReentrancyGuard{
     address[] memory receivers = INanoProducedToken(origToken).holders();
     require(receivers.length > 0, "Nano: no dividends receivers were found!");
     uint256 length = receivers.length;
+    // Distribute dividends to each of the holders
     for (uint256 i = 0; i < length; i++) {
       if (distToken == address(0)){
         // Native tokens (wei)
@@ -60,6 +59,7 @@ contract Nano is INano, Ownable, ReentrancyGuard{
   /// @param weight The amount of origTokens required to get a single distToken
   ///        NOTE: If dividends are payed in ether then `weight` is the amount of origTokens required to get a single ether (NOT a single wei!)
   function distributeDividendsWeighted(address origToken, address distToken, uint256 weight) external nonReentrant() {
+    // It is impossible to give distTokens for zero origTokens
     require(origToken != address(0), "Nano: original token can not have a zero address!");
     // Check if the contract with the provided address has `holders()` function
     // NOTE: If `origToken` is not a contract address(e.g. EOA) this call will revert without a reason
@@ -69,10 +69,10 @@ contract Nano is INano, Ownable, ReentrancyGuard{
     // Get all holders of the origToken
     address[] memory receivers = INanoProducedToken(origToken).holders();
     require(receivers.length > 0, "Nano: no dividends receivers were found!");
-    // It is impossible to give distTokens for zero origTokens
     uint256 totalWeightedAmount = 0;
     // This function reverts if weight is incorrect.
     checkWeight(origToken, weight);
+    // Distribute dividends to each of the holders
     for (uint256 i = 0; i < receivers.length; i++) {
       uint256 userBalance = INanoProducedToken(origToken).balanceOf(receivers[i]);
       uint256 weightedAmount = userBalance / weight;
@@ -86,7 +86,7 @@ contract Nano is INano, Ownable, ReentrancyGuard{
         require(success, "Nano: dividends transfer failed!");
       } else {
         // Other ERC20 tokens
-        // If total assumed amount of tokens to be distributed as dividends is higher than current contract's balance, than it it impossible to
+        // If total assumed amount of tokens to be distributed as dividends is higher than current contract's balance, than it is impossible to
         // distribute dividends.
         require(totalWeightedAmount <= INanoProducedToken(distToken).balanceOf(address(this)), "Nano: not enough dividend tokens to distribute with the provided weight!");
         bool res = INanoProducedToken(distToken).transfer(receivers[i], weightedAmount);
@@ -105,8 +105,8 @@ contract Nano is INano, Ownable, ReentrancyGuard{
   function checkWeight(address origToken, uint256 weight) public view {
     require(origToken != address(0), "Nano: original token can not have a zero address!");
     address[] memory receivers = INanoProducedToken(origToken).holders();
-    // The lowest balance of origTokens among receivers
     uint256 minBalance = type(uint256).max;
+    // Find the lowest balance
     for (uint256 i = 0; i < receivers.length; i++) {
       uint256 singleBalance = INanoProducedToken(origToken).balanceOf(receivers[i]);
       if (singleBalance < minBalance) {
@@ -124,8 +124,8 @@ contract Nano is INano, Ownable, ReentrancyGuard{
   function calcMinWeight(address origToken) external view returns(uint256) {
     require(origToken != address(0), "Nano: original token can not have a zero address!");
     address[] memory receivers = INanoProducedToken(origToken).holders();
-    // The lowest balance of origTokens among receivers
     uint256 minBalance = type(uint256).max;
+    // Find the lowest balance
     for (uint256 i = 0; i < receivers.length; i++) {
       uint256 singleBalance = INanoProducedToken(origToken).balanceOf(receivers[i]);
       if (singleBalance < minBalance) {
