@@ -104,8 +104,6 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
         _tokenIds.increment();
         // NOTE The lowest token ID is 1
         uint256 tokenId = _tokenIds.current();
-        // Connect admin token ID to controlled ERC20 address
-        setControlledAddress(tokenId, ERC20Address);
         // Mark that controlled token has been used once
         _usedControlled[ERC20Address] = true;
         // Mark that token with the current ID belongs to the user
@@ -116,6 +114,8 @@ contract NanoAdmin is INanoAdmin, ERC721, Ownable {
         
         // Mint the token
         super._safeMint(to, tokenId);
+        // Connect admin token ID to controlled ERC20 address
+        setControlledAddress(tokenId, ERC20Address);
     }
 
 
