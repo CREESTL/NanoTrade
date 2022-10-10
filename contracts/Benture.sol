@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./interfaces/IBenture.sol";
-import "./interfaces/INanoProducedToken.sol";
+import "./interfaces/IBentureProducedToken.sol";
 
 
 
@@ -31,7 +31,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard{
     (bool yes, ) = origToken.call(abi.encodeWithSignature("holders()"));
     require(yes, "Benture: provided original token does not support required functions!");
     // Get all holders of the origToken
-    address[] memory receivers = INanoProducedToken(origToken).holders();
+    address[] memory receivers = IBentureProducedToken(origToken).holders();
     require(receivers.length > 0, "Benture: no dividends receivers were found!");
     uint256 length = receivers.length;
     // Distribute dividends to each of the holders
@@ -43,7 +43,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard{
         require(success, "Benture: dividends transfer failed!");
       } else {
         // Other ERC20 tokens
-        bool res = INanoProducedToken(distToken).transfer(receivers[i], amount / length);
+        bool res = IBentureProducedToken(distToken).transfer(receivers[i], amount / length);
         require(res, "Benture: dividends distribution failed!");
       }
     }
@@ -67,14 +67,14 @@ contract Benture is IBenture, Ownable, ReentrancyGuard{
     require(yes, "Benture: provided original token does not support required functions!");
     require(weight >= 1, "Benture: weight is too low!");
     // Get all holders of the origToken
-    address[] memory receivers = INanoProducedToken(origToken).holders();
+    address[] memory receivers = IBentureProducedToken(origToken).holders();
     require(receivers.length > 0, "Benture: no dividends receivers were found!");
     uint256 totalWeightedAmount = 0;
     // This function reverts if weight is incorrect.
     checkWeight(origToken, weight);
     // Distribute dividends to each of the holders
     for (uint256 i = 0; i < receivers.length; i++) {
-      uint256 userBalance = INanoProducedToken(origToken).balanceOf(receivers[i]);
+      uint256 userBalance = IBentureProducedToken(origToken).balanceOf(receivers[i]);
       uint256 weightedAmount = userBalance / weight;
       // This amount does not have decimals
       totalWeightedAmount += weightedAmount;
@@ -88,8 +88,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard{
         // Other ERC20 tokens
         // If total assumed amount of tokens to be distributed as dividends is higher than current contract's balance, than it is impossible to
         // distribute dividends.
-        require(totalWeightedAmount <= INanoProducedToken(distToken).balanceOf(address(this)), "Benture: not enough dividend tokens to distribute with the provided weight!");
-        bool res = INanoProducedToken(distToken).transfer(receivers[i], weightedAmount);
+        require(totalWeightedAmount <= IBentureProducedToken(distToken).balanceOf(address(this)), "Benture: not enough dividend tokens to distribute with the provided weight!");
+        bool res = IBentureProducedToken(distToken).transfer(receivers[i], weightedAmount);
         require(res, "Benture: dividends distribution failed!");
       }
     }
@@ -104,11 +104,11 @@ contract Benture is IBenture, Ownable, ReentrancyGuard{
   /// @param weight The amount of origTokens required to get a single distToken
   function checkWeight(address origToken, uint256 weight) public view {
     require(origToken != address(0), "Benture: original token can not have a zero address!");
-    address[] memory receivers = INanoProducedToken(origToken).holders();
+    address[] memory receivers = IBentureProducedToken(origToken).holders();
     uint256 minBalance = type(uint256).max;
     // Find the lowest balance
     for (uint256 i = 0; i < receivers.length; i++) {
-      uint256 singleBalance = INanoProducedToken(origToken).balanceOf(receivers[i]);
+      uint256 singleBalance = IBentureProducedToken(origToken).balanceOf(receivers[i]);
       if (singleBalance < minBalance) {
         minBalance = singleBalance;
       }
@@ -123,11 +123,11 @@ contract Benture is IBenture, Ownable, ReentrancyGuard{
   /// @param origToken The address of the token that is held by receivers
   function calcMinWeight(address origToken) external view returns(uint256) {
     require(origToken != address(0), "Benture: original token can not have a zero address!");
-    address[] memory receivers = INanoProducedToken(origToken).holders();
+    address[] memory receivers = IBentureProducedToken(origToken).holders();
     uint256 minBalance = type(uint256).max;
     // Find the lowest balance
     for (uint256 i = 0; i < receivers.length; i++) {
-      uint256 singleBalance = INanoProducedToken(origToken).balanceOf(receivers[i]);
+      uint256 singleBalance = IBentureProducedToken(origToken).balanceOf(receivers[i]);
       if (singleBalance < minBalance) {
         minBalance = singleBalance;
       }

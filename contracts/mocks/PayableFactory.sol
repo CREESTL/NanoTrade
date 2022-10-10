@@ -2,10 +2,10 @@
 
 pragma solidity ^0.8.0;
 
-import "../NanoFactory.sol";
+import "../BentureFactory.sol";
 
 // An ERC20 factory capable of receiving ether
-contract PayableFactory is NanoFactory {
+contract PayableFactory is BentureFactory {
 
     receive() external payable {}
 

@@ -12,10 +12,10 @@ async function main() {
 
   console.log(`[NOTICE!] Chain of deployment: ${network.name}`);
 
-  // Contract #1: Nano Factory
+  // Contract #1: Benture Factory
 
   // Deploy
-  contractName = "NanoFactory";
+  contractName = "BentureFactory";
   console.log(`[${contractName}]: Start of Deployment...`);
   _contractProto = await ethers.getContractFactory(contractName);
   contractDeployTx = await _contractProto.deploy();
@@ -47,10 +47,10 @@ async function main() {
 
   // ====================================================
 
-  // Contract #2: Nano Admin
+  // Contract #2: Benture Admin
 
   // Deploy
-  contractName = "NanoAdmin";
+  contractName = "BentureAdmin";
   console.log(`[${contractName}]: Start of Deployment...`);
   _contractProto = await ethers.getContractFactory(contractName);
   contractDeployTx = await _contractProto.deploy(factory.address);
@@ -85,10 +85,10 @@ async function main() {
 
   // ====================================================
 
-  // Contract #3: Nano
+  // Contract #3: Benture
 
   // Deploy
-  contractName = "Nano";
+  contractName = "Benture";
   console.log(`[${contractName}]: Start of Deployment...`);
   _contractProto = await ethers.getContractFactory(contractName);
   contractDeployTx = await _contractProto.deploy();

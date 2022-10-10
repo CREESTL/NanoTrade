@@ -1,37 +1,37 @@
 {
   "goerli": {
-    "Nano": {
+    "Benture": {
       "address": "",
       "verification": ""
     },
-    "NanoAdmin": {
+    "BentureAdmin": {
       "address": "",
       "verification": ""
     },
-    "NanoFactory": {
+    "BentureFactory": {
       "address": "",
       "verification": ""
     },
-    "NanoProducedToken": {
+    "BentureProducedToken": {
       "address": "",
       "verification": ""
     }
   },
 
   "ethereum": {
-    "Nano": {
+    "Benture": {
       "address": "",
       "verification": ""
     },
-    "NanoAdmin": {
+    "BentureAdmin": {
       "address": "",
       "verification": ""
     },
-    "NanoFactory": {
+    "BentureFactory": {
       "address": "",
       "verification": ""
     },
-    "NanoProducedToken": {
+    "BentureProducedToken": {
       "address": "",
       "verification": ""
     }

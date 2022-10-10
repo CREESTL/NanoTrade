@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./interfaces/INanoProducedToken.sol";
+import "./interfaces/IBentureProducedToken.sol";
 import "./interfaces/IBentureAdmin.sol";
 
 /// @title A custom ERC721 contract that allows to mint controlled ERC20 tokens

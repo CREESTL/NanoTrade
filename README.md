@@ -96,7 +96,7 @@ __Roles__:
 
 <a name="erc20"/>
 
-#### NanoProducedToken.sol
+#### BentureProducedToken.sol
 This is an [ERC20](https://docs.openzeppelin.com/contracts/4.x/erc20) token that is created by the entrepreneur. 
 It can be:
 - minted (if mintability is activated)
@@ -105,30 +105,30 @@ It can be:
 
 The contract of the token saves addresses of each holder of the token to use in the future.  
 
-#### NanoFactory.sol
-This is a factory contract that is used by the entrepreneur to create new [NanoProducedTokens](#erc20).
-The entrepreneur can call a `createERC20Token` function of the factory providing all necessary parameters and the factory will deploy a new contract of NanoProducedToken token with these parameters. This token is meant to be sold on the marketplace and bought by investors. Each investor buying a token becomes a token holder.
-Moreover, with each new created NanoProducedToken contract the factory mints an admin ([NanoAdmin](#admin)) token to the entrepreneur who created the token. 
+#### BentureFactory.sol
+This is a factory contract that is used by the entrepreneur to create new [BentureProducedTokens](#erc20).
+The entrepreneur can call a `createERC20Token` function of the factory providing all necessary parameters and the factory will deploy a new contract of BentureProducedToken token with these parameters. This token is meant to be sold on the marketplace and bought by investors. Each investor buying a token becomes a token holder.
+Moreover, with each new created BentureProducedToken contract the factory mints an admin ([BentureAdmin](#admin)) token to the entrepreneur who created the token. 
 
 <a name="admin"/>
 
-#### NanoAdmin.sol
-This is an [ERC721](https://docs.openzeppelin.com/contracts/4.x/erc721) token that is minted to the creator of each new [NanoProducedToken](#erc20). This token proves the ownership of created NanoProducedToken and gives admin rights i.e. allows the NanoAdmin holder to mint new NanoProducedTokens.
+#### BentureAdmin.sol
+This is an [ERC721](https://docs.openzeppelin.com/contracts/4.x/erc721) token that is minted to the creator of each new [BentureProducedToken](#erc20). This token proves the ownership of created BentureProducedToken and gives admin rights i.e. allows the BentureAdmin holder to mint new BentureProducedTokens.
 It can be:
 - minted
 - transfered between addresses
 - burnt by the owner 
 
-It is important to mention that NanoAdmin token proves the ownership of NanoProducedToken _contract in general, and not of every minted token_. So if Bob owns 1000 NanoProducedTokens, an entrepreneur owning the NanoAdmin token of that NanoProducedToken will not be able to transfer or burn Bob's tokens. The _only thing_ he can do is _mint_ more NanoProducedTokens (that will not be owned by anyone at first).  
+It is important to mention that BentureAdmin token proves the ownership of BentureProducedToken _contract in general, and not of every minted token_. So if Bob owns 1000 BentureProducedTokens, an entrepreneur owning the BentureAdmin token of that BentureProducedToken will not be able to transfer or burn Bob's tokens. The _only thing_ he can do is _mint_ more BentureProducedTokens (that will not be owned by anyone at first).  
 
-Let's assume that Alice created a new "ABC" token using NanoFactory contract. She now owns the ABC token contract which is confirmed with her also holding a NanoAdmin token connected to the ABC token. 
-- If Alice transfers her NanoAdmin token to Bob, then Bob becomes the owner of ABC token and gets admin rights as well
-- If Alice burns her NanoAdmin token, then ABC token is left without an owner forever. That means that all holders of ABC tokens will still be able to transfer, burn, sell their tokens, but no new tokens will ever be minted
+Let's assume that Alice created a new "ABC" token using BentureFactory contract. She now owns the ABC token contract which is confirmed with her also holding a BentureAdmin token connected to the ABC token. 
+- If Alice transfers her BentureAdmin token to Bob, then Bob becomes the owner of ABC token and gets admin rights as well
+- If Alice burns her BentureAdmin token, then ABC token is left without an owner forever. That means that all holders of ABC tokens will still be able to transfer, burn, sell their tokens, but no new tokens will ever be minted
 - If all holders of ABC tokens burn their tokens, Alice still remains the owner. She still can mint new ABC tokens
 
-#### Nano.sol
-This is a dividend-distributing contract. Dividends are distributed among [NanoProducedTokens](#erc20) holders.
-Let's assume that Alice is the entrepreneur and she wishes to pay dividends to all 100 users who bought the ABC tokens she created. First, Alice has to choose the address of the token to holders of which she would like to pay the dividends. She chooses the address of ABC token. Second, Alice has to provide Nano contract with enough tokens that will be distributed as dividends and choose the address of that token. Alice wants to pay dividends in another ERC20 token - GDG (suppose she has purchased it somewhere). She sends 700 GDGs to the Nano contract and chooses GDG's address. Now all she has to do is call a dividend-distributing function of the Nano contract and all ABC holders will receive their dividends.
+#### Benture.sol
+This is a dividend-distributing contract. Dividends are distributed among [BentureProducedTokens](#erc20) holders.
+Let's assume that Alice is the entrepreneur and she wishes to pay dividends to all 100 users who bought the ABC tokens she created. First, Alice has to choose the address of the token to holders of which she would like to pay the dividends. She chooses the address of ABC token. Second, Alice has to provide Benture contract with enough tokens that will be distributed as dividends and choose the address of that token. Alice wants to pay dividends in another ERC20 token - GDG (suppose she has purchased it somewhere). She sends 700 GDGs to the Benture contract and chooses GDG's address. Now all she has to do is call a dividend-distributing function of the Benture contract and all ABC holders will receive their dividends.
 
 Two important things to notice:
 1. Dividends can be payed in one of two ways:
@@ -138,8 +138,8 @@ Two important things to notice:
     2.1 _ERC20 tokens_. In order to pay dividends in ERC20 tokens Alice has to call `distributeDividendsEqual` or `distributeDividendsWeighted` function providing ERC20's address as the second parameter
     2.2 _Ether_. In order to pay dividends in ether Alice has to call `distributeDividendsEqual` or `distributeDividendsWeighted` function providing [zero address](https://ethereum.org/en/glossary/#zero-address) as the second parameter
 
-Also it is worth mentioning that Nano contract is not necessarily a "dividend-distributing" contract but rather a "token-distributing" contract. It is public and can be used not only by NanoAdmin holders. For example, if Sam wishes to pay all 10 holders of some ZZZ token (not owned or created by him) equal amount of YYY tokens what he can do is:
-- Send some YYY tokens to the Nano contract. 100 in this case
+Also it is worth mentioning that Benture contract is not necessarily a "dividend-distributing" contract but rather a "token-distributing" contract. It is public and can be used not only by BentureAdmin holders. For example, if Sam wishes to pay all 10 holders of some ZZZ token (not owned or created by him) equal amount of YYY tokens what he can do is:
+- Send some YYY tokens to the Benture contract. 100 in this case
 - Call `distributeDividendsEqual` function with ZZZ address as the first parameter and YYY address as the second parameter.
 
 Each of 10 ZZZ holders will receive 10 YYY tokens.
