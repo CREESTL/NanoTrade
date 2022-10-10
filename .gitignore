@@ -11,4 +11,3 @@ artifacts
 
 *.env
 package-lock.json
-scripts/deployOutput.json

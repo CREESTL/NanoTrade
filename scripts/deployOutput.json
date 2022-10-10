@@ -1,0 +1,39 @@
+{
+  "goerli": {
+    "Nano": {
+      "address": "",
+      "verification": ""
+    },
+    "NanoAdmin": {
+      "address": "",
+      "verification": ""
+    },
+    "NanoFactory": {
+      "address": "",
+      "verification": ""
+    },
+    "NanoProducedToken": {
+      "address": "",
+      "verification": ""
+    }
+  },
+
+  "ethereum": {
+    "Nano": {
+      "address": "",
+      "verification": ""
+    },
+    "NanoAdmin": {
+      "address": "",
+      "verification": ""
+    },
+    "NanoFactory": {
+      "address": "",
+      "verification": ""
+    },
+    "NanoProducedToken": {
+      "address": "",
+      "verification": ""
+    }
+  }
+}
