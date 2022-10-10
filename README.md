@@ -65,6 +65,7 @@ npx hardhat run scripts/deploy.js --network ethereum
 Deployment script takes more than 4 minutes to complete. Please, be patient!.   
 
 After the contracts get deployed you can find their _addresses_ and code verification _URLs_ in the `deployOutput.json` file.
+Note that this file only refreshes the addresses of contracts that have been successfully deployed (or _redeployed_). If you deploy only a single contract then its address will get updated and all other addresses will remain untouched and will link to "old" contracts.
 You have to provide these wallets with real/test tokens in order to _call contracts' methods_ from them. 
 
 Please note that all deployed contracts __are verified__ on [Etherscan](https://etherscan.io/) (testnet [Ethersan](https://rinkeby.etherscan.io/)), 
