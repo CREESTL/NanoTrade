@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 
 /// @title An interface of a factory of custom ERC20 tokens
-interface INanoFactory {
+interface IBentureFactory {
 
     /// @notice Returns the address of the produced ERC20 token
     /// @return The address of the produced ERC20 token

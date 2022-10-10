@@ -3,13 +3,13 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "./NanoProducedToken.sol";
-import "./interfaces/INanoFactory.sol";
-import "./interfaces/INanoAdmin.sol";
+import "./BentureProducedToken.sol";
+import "./interfaces/IBentureFactory.sol";
+import "./interfaces/IBentureAdmin.sol";
 
 
 /// @title A factory of custom ERC20 tokens
-contract NanoFactory is INanoFactory {
+contract BentureFactory is IBentureFactory {
 
     /// @dev The address of the last token that was produced by the factory
     address private _lastProducedToken;
@@ -37,7 +37,7 @@ contract NanoFactory is INanoFactory {
         address adminToken_
     ) external {
 
-        NanoProducedToken newToken = new NanoProducedToken(
+        BentureProducedToken newToken = new BentureProducedToken(
             name, 
             symbol,
             decimals,
@@ -52,7 +52,7 @@ contract NanoFactory is INanoFactory {
         _lastProducedToken = address(newToken);           
 
         // Mint admin token to the creator of this ERC20 token
-        INanoAdmin(adminToken_).mintWithERC20Address(msg.sender, address(newToken));
+        IBentureAdmin(adminToken_).mintWithERC20Address(msg.sender, address(newToken));
 
         
     }
