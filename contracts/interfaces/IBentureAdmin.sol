@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 
 /// @title An interface of a factory of custom ERC20 tokens
-interface INanoAdmin {
+interface IBentureAdmin {
 
 
     /// @notice Checks it the provided address owns any admin token
