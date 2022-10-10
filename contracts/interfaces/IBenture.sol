@@ -6,7 +6,7 @@ pragma solidity ^0.8.9;
 /// @title Dividend-Paying Token Interface
  
 /// @dev An interface for a dividend-paying token contract.
-interface INano {
+interface IBenture {
 
 
   /// @notice Distributes one token as dividends for holders of another token _equally _
