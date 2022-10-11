@@ -1,23 +1,18 @@
 {
-  "goerli": {
+  "mumbai": {
     "Benture": {
-      "address": "",
-      "verification": ""
+      "address": "0x706E443758b9ed45e3d08e767eDd6aaB2820BD1E",
+      "verification": "https://mumbai.polygonscan.com/address/0x706E443758b9ed45e3d08e767eDd6aaB2820BD1E#code"
     },
     "BentureAdmin": {
-      "address": "",
-      "verification": ""
+      "address": "0xEa51E413702D4ce99B6Df29C95ac326fBa8D8f82",
+      "verification": "https://mumbai.polygonscan.com/address/0xEa51E413702D4ce99B6Df29C95ac326fBa8D8f82#code"
     },
     "BentureFactory": {
-      "address": "",
-      "verification": ""
+      "address": "0x3E1CEF5e992d9aBc357f06Ff50D578f3094D3393",
+      "verification": "https://mumbai.polygonscan.com/address/0x3E1CEF5e992d9aBc357f06Ff50D578f3094D3393#code"
     },
-    "BentureProducedToken": {
-      "address": "",
-      "verification": ""
-    }
   },
-
   "ethereum": {
     "Benture": {
       "address": "",
@@ -31,9 +26,5 @@
       "address": "",
       "verification": ""
     },
-    "BentureProducedToken": {
-      "address": "",
-      "verification": ""
-    }
   }
 }
