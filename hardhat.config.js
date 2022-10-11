@@ -33,6 +33,8 @@ module.exports = {
     goerli: {
       url: `https://goerli.infura.io/v3/${INFURA_API_KEY}`,
       accounts: [ACC_PRIVATE_KEY],
+      gasPrice: 4000000000,
+      network_id: '5',
     },
     // Ethereum mainnet
     ethereum: {
