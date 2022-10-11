@@ -32,7 +32,7 @@ module.exports = {
     // Ethereum Goerli testnet
     goerli: {
       url: `https://goerli.infura.io/v3/${INFURA_API_KEY}`,
-      accounts: [ACC_PRIVATE_KEY]
+      accounts: [ACC_PRIVATE_KEY],
     },
     // Ethereum mainnet
     ethereum: {
@@ -50,8 +50,8 @@ module.exports = {
     }
   },
   skipFiles: ["node_modules"],
-    gasReporter: {
-        enabled: true,
-        url: "http://localhost:8545"
-    },
+  gasReporter: {
+      enabled: true,
+      url: "http://localhost:8545"
+  }
 };
