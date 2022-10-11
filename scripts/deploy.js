@@ -125,12 +125,13 @@ async function main() {
 
   // ====================================================
 
-  console.log(`See Results in "${__dirname + '/deployOutput.json'}" File`);
-  
   fs.writeFileSync(
     path.resolve(__dirname, "./deployOutput.json"),
     JSON.stringify(OUTPUT_DEPLOY, null, "  ")
   );
+
+  console.log(`\n***Deployment and verification are completed!***\n***See Results in "${__dirname + '/deployOutput.json'}" file***`);
+  
 }
 
 main()
