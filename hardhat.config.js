@@ -8,6 +8,7 @@ require("hardhat-gas-reporter");
 
 const {
         ETHERSCAN_API_KEY,
+        POLYGONSCAN_API_KEY,
         ACC_PRIVATE_KEY,
         INFURA_API_KEY
     } = process.env;
@@ -29,12 +30,10 @@ module.exports = {
     localhost: {
       url: "http://127.0.0.1:8545",
     },
-    // Ethereum Goerli testnet
-    goerli: {
-      url: `https://goerli.infura.io/v3/${INFURA_API_KEY}`,
-      accounts: [ACC_PRIVATE_KEY],
-      gasPrice: 1500000000,
-      network_id: '5',
+    // Polygon Mumbai testnet
+    mumbai: {
+      url: "https://rpc-mumbai.maticvigil.com",
+      accounts: [ACC_PRIVATE_KEY]
     },
     // Ethereum mainnet
     ethereum: {
@@ -45,10 +44,17 @@ module.exports = {
   mocha: {
     timeout: 20000000000
   },
+  paths: {
+    sources: "./contracts/",
+    tests: "./tests/",
+    artifacts: "./build/artifacts",
+    cache: "./build/cache",
+    deployments: "./build/deployments",
+  },
   etherscan: {
     apiKey: {
       mainnet: ETHERSCAN_API_KEY,
-      goerli: ETHERSCAN_API_KEY
+      polygonMumbai: POLYGONSCAN_API_KEY
     }
   },
   skipFiles: ["node_modules"],
