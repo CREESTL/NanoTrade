@@ -5,6 +5,7 @@ const delay = require("delay");
 
 // JSON file to keep information about previous deployments
 const OUTPUT_DEPLOY = require("./deployOutput.json");
+let zeroAddress = ethers.constants.AddressZero;
 
 let contractName;
 
@@ -19,6 +20,7 @@ async function main() {
   console.log(`[${contractName}]: Start of Deployment...`);
   _contractProto = await ethers.getContractFactory(contractName);
   contractDeployTx = await _contractProto.deploy();
+  console.log(contractDeployTx.deployTransaction);
   factory = await contractDeployTx.deployed();
   console.log(`[${contractName}]: Deployment Finished!`);
   OUTPUT_DEPLOY[network.name][contractName].address = factory.address;
@@ -92,26 +94,26 @@ async function main() {
   console.log(`[${contractName}]: Start of Deployment...`);
   _contractProto = await ethers.getContractFactory(contractName);
   contractDeployTx = await _contractProto.deploy();
-  nano = await contractDeployTx.deployed();
+  benture = await contractDeployTx.deployed();
   console.log(`[${contractName}]: Deployment Finished!`);
-  OUTPUT_DEPLOY[network.name][contractName].address = nano.address;
+  OUTPUT_DEPLOY[network.name][contractName].address = benture.address;
 
   // Verify
   console.log(`[${contractName}]: Start of Verification...`);
 
   await delay(90000);
 
-  OUTPUT_DEPLOY[network.name][contractName].address = nano.address;
+  OUTPUT_DEPLOY[network.name][contractName].address = benture.address;
   if (network.name === "ethereum") {
-    url = "https://etherscan.io/address/" + nano.address + "#code";
+    url = "https://etherscan.io/address/" + benture.address + "#code";
   } else if (network.name === "goerli") {
-    url = "https://goerli.etherscan.io/address/" + nano.address + "#code";
+    url = "https://goerli.etherscan.io/address/" + benture.address + "#code";
   }
   OUTPUT_DEPLOY[network.name][contractName].verification = url;
   
   try { 
     await hre.run("verify:verify", {
-      address: nano.address,
+      address: benture.address,
     });
   } catch (error) {
     console.error(error);
