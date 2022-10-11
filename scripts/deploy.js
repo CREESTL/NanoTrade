@@ -8,6 +8,9 @@ const OUTPUT_DEPLOY = require("./deployOutput.json");
 let zeroAddress = ethers.constants.AddressZero;
 
 let contractName;
+let factory;
+let admin;
+let benture;
 
 async function main() {
 
@@ -18,9 +21,8 @@ async function main() {
   // Deploy
   contractName = "BentureFactory";
   console.log(`[${contractName}]: Start of Deployment...`);
-  _contractProto = await ethers.getContractFactory(contractName);
-  contractDeployTx = await _contractProto.deploy();
-  console.log(contractDeployTx.deployTransaction);
+  let _contractProto = await ethers.getContractFactory(contractName);
+  let contractDeployTx = await _contractProto.deploy();
   factory = await contractDeployTx.deployed();
   console.log(`[${contractName}]: Deployment Finished!`);
   OUTPUT_DEPLOY[network.name][contractName].address = factory.address;
