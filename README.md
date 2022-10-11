@@ -25,13 +25,13 @@ The following information will guide you through the process of building and dep
     ```
     ETHERSCAN_API_KEY=***your etherscan API key***
     ```
+- Create an account on [Polygonscan](https://polygonscan.com/). Go to `Account -> API Keys`. Create a new API key. Copy it to `.env` file
+    ```
+   POLYGONSCAN_API_KEY=***your etherscan API key***
+    ```
 - Copy your wallet's private key (see [Wallets](#wallets)) to `.env` file
     ```
     ACC_PRIVATE_KEY=***your private key***
-    ```
-- Create an account on [Etherscan](https://etherscan.io/). Go to `Account -> API Keys`. Create a new API key. Copy it to `.env` file
-    ```
-    ETHERSCAN_API_KEY=***your etherscan API key***
     ```
 - Create an account on [Infura](https://infura.io/). Go to `Dashboard -> Create new key -> Manage key`. Copy API key to `.env` file
     ```
@@ -49,10 +49,10 @@ npx hardhat compile
 Start  deployment _only_ if build was successful!
 
 #### Testnets
-а) __Goerli__ test network  
-Make sure you have _enough GoerliETH_ tokens for testnet. You can get it for free from [faucet](https://goerlifaucet.com/). 
+а) __Mumbai__ test network  
+Make sure you have _enough MATIC tokens_ for testnet. You can get it for free from [faucet](https://faucet.polygon.technology/). 
 ```
-npx hardhat run scripts/deploy.js --network goerli
+npx hardhat run scripts/deploy.js --network mumbai
 ```  
 
 #### Mainnets
@@ -68,7 +68,7 @@ After the contracts get deployed you can find their _addresses_ and code verific
 Note that this file only refreshes the addresses of contracts that have been successfully deployed (or _redeployed_). If you deploy only a single contract then its address will get updated and all other addresses will remain untouched and will link to "old" contracts.
 You have to provide these wallets with real/test tokens in order to _call contracts' methods_ from them. 
 
-Please note that all deployed contracts __are verified__ on [Etherscan](https://etherscan.io/) (testnet [Ethersan](https://rinkeby.etherscan.io/)), 
+Please note that all deployed contracts __are verified__ on [Etherscan](https://etherscan.io/) or [Polygonscan](https://mumbai.polygonscan.com/)
 
 <a name="wallets"/>
 
@@ -142,5 +142,4 @@ Two important things to notice:
 Also it is worth mentioning that Benture contract is not necessarily a "dividend-distributing" contract but rather a "token-distributing" contract. It is public and can be used not only by BentureAdmin holders. For example, if Sam wishes to pay all 10 holders of some ZZZ token (not owned or created by him) equal amount of YYY tokens what he can do is:
 - Send some YYY tokens to the Benture contract. 100 in this case
 - Call `distributeDividendsEqual` function with ZZZ address as the first parameter and YYY address as the second parameter.
-
-Each of 10 ZZZ holders will receive 10 YYY tokens.
+- Each of 10 ZZZ holders will receive 10 YYY tokens.
