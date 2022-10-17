@@ -71,8 +71,9 @@ contract Benture is IBenture, Ownable, ReentrancyGuard{
     uint256 totalWeightedAmount = 0;
     // This function reverts if weight is incorrect.
     checkWeight(origToken, weight);
+    uint256 length = receivers.length;
     // Distribute dividends to each of the holders
-    for (uint256 i = 0; i < receivers.length; i++) {
+    for (uint256 i = 0; i < length; i++) {
       uint256 userBalance = IBentureProducedToken(origToken).balanceOf(receivers[i]);
       uint256 weightedAmount = userBalance / weight;
       // This amount does not have decimals
@@ -104,7 +105,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard{
   function checkWeight(address origToken, uint256 weight) public view {
     require(origToken != address(0), "Benture: original token can not have a zero address!");
     address[] memory receivers = IBentureProducedToken(origToken).holders();
-    for (uint256 i = 0; i < receivers.length; i++) {
+    uint256 length = receivers.length;
+    for (uint256 i = 0; i < length; i++) {
       uint256 singleBalance = IBentureProducedToken(origToken).balanceOf(receivers[i]);
       // If any of the receivers does not have at least `weight` tokens then it means that no dividends can be distributed
       require(singleBalance >= weight, "Benture: some of the receivers does not have enough tokens for the provided weight!");

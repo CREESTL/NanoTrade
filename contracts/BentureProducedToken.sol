@@ -140,8 +140,8 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
         require(balanceOf(caller) != 0, "BentureProducedToken: caller does not have any tokens to burn!");
         emit ControlledTokenBurnt(caller, amount);
         _burn(caller, amount);
-        // If the whole supply of tokens has been burnt - remove the address from holders
-        if(totalSupply() == 0) {
+        // If caller does not have any tokens - remove the address from holders
+        if(balanceOf(msg.sender) == 0) {
             // NOTE: `delete` does not change the length of any array. It replaces a "deleted" item
             //        with a default value
             // Get the addresses position and delete it from the array
