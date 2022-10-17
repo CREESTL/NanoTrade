@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./interfaces/IBenture.sol";
 import "./interfaces/IBentureProducedToken.sol";
 
-
 /// @title Dividend-Paying Token
 contract Benture is IBenture, Ownable, ReentrancyGuard{
 
@@ -33,19 +32,26 @@ contract Benture is IBenture, Ownable, ReentrancyGuard{
     address[] memory receivers = IBentureProducedToken(origToken).holders();
     require(receivers.length > 0, "Benture: no dividends receivers were found!");
     uint256 length = receivers.length;
+    uint parts = length;
+    // If one of the receivers is the `Benture` contract itself - do not distribute dividends to it
+    // Reduce the number of receivers as well to calculate dividends correctly
+    if (IBentureProducedToken(origToken).isHolder(address(this))) {
+      parts -= 1;
+    }
     // Distribute dividends to each of the holders
     for (uint256 i = 0; i < length; i++) {
-      // If any of the receivers if a zero address, that means that he burnt all his origTokens
+      // If any of the receivers is a zero address, that means that he burnt all his origTokens
       // Ignore such receivers
-      if (receivers[i] != address(0)) {
+      if ((receivers[i] != address(0)) && (receivers[i] != address(this))) {
         if (distToken == address(0)){
           // Native tokens (wei)
-          require(amount <= address(this).balance, "Benture: not enough dividend tokens to distribute!");
-          (bool success, ) = receivers[i].call{value: amount / length}("");
+          require(amount <= address(this).balance, "Benture: not enough native dividend tokens to distribute!");
+          (bool success, ) = receivers[i].call{value: amount / parts}("");
           require(success, "Benture: dividends transfer failed!");
         } else {
           // Other ERC20 tokens
-          bool res = IBentureProducedToken(distToken).transfer(receivers[i], amount / length);
+          require(amount <= IBentureProducedToken(distToken).balanceOf(address(this)), "Benture: not enough ERC20 dividend tokens to distribute!");
+          bool res = IBentureProducedToken(distToken).transfer(receivers[i], amount / parts);
           require(res, "Benture: dividends distribution failed!");
         }        
       }
@@ -78,9 +84,9 @@ contract Benture is IBenture, Ownable, ReentrancyGuard{
     uint256 length = receivers.length;
     // Distribute dividends to each of the holders
     for (uint256 i = 0; i < length; i++) {
-      // If any of the receivers if a zero address, that means that he burnt all his origTokens
+      // If any of the receivers is a zero address, that means that he burnt all his origTokens
       // Ignore such receivers
-      if (receivers[i] != address(0)) {
+      if ((receivers[i] != address(0)) && (receivers[i] != address(this))) {
         uint256 userBalance = IBentureProducedToken(origToken).balanceOf(receivers[i]);
         uint256 weightedAmount = userBalance / weight;
         // This amount does not have decimals
