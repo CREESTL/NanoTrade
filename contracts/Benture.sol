@@ -35,15 +35,19 @@ contract Benture is IBenture, Ownable, ReentrancyGuard{
     uint256 length = receivers.length;
     // Distribute dividends to each of the holders
     for (uint256 i = 0; i < length; i++) {
-      if (distToken == address(0)){
-        // Native tokens (wei)
-        require(amount <= address(this).balance, "Benture: not enough dividend tokens to distribute!");
-        (bool success, ) = receivers[i].call{value: amount / length}("");
-        require(success, "Benture: dividends transfer failed!");
-      } else {
-        // Other ERC20 tokens
-        bool res = IBentureProducedToken(distToken).transfer(receivers[i], amount / length);
-        require(res, "Benture: dividends distribution failed!");
+      // If any of the receivers if a zero address, that means that he burnt all his origTokens
+      // Ignore such receivers
+      if (receivers[i] != address(0)) {
+        if (distToken == address(0)){
+          // Native tokens (wei)
+          require(amount <= address(this).balance, "Benture: not enough dividend tokens to distribute!");
+          (bool success, ) = receivers[i].call{value: amount / length}("");
+          require(success, "Benture: dividends transfer failed!");
+        } else {
+          // Other ERC20 tokens
+          bool res = IBentureProducedToken(distToken).transfer(receivers[i], amount / length);
+          require(res, "Benture: dividends distribution failed!");
+        }        
       }
     }
 
@@ -74,23 +78,27 @@ contract Benture is IBenture, Ownable, ReentrancyGuard{
     uint256 length = receivers.length;
     // Distribute dividends to each of the holders
     for (uint256 i = 0; i < length; i++) {
-      uint256 userBalance = IBentureProducedToken(origToken).balanceOf(receivers[i]);
-      uint256 weightedAmount = userBalance / weight;
-      // This amount does not have decimals
-      totalWeightedAmount += weightedAmount;
-      if (distToken == address(0)) {
-        // Native tokens (wei)
-        require(totalWeightedAmount * (1 ether) <= address(this).balance, "Benture: not enough dividend tokens to distribute with the provided weight!");
-        // Value is the same as `weightedAmount * (1 ether)`
-        (bool success, ) = receivers[i].call{value: userBalance * (1 ether) / weight}("");
-        require(success, "Benture: dividends transfer failed!");
-      } else {
-        // Other ERC20 tokens
-        // If total assumed amount of tokens to be distributed as dividends is higher than current contract's balance, than it is impossible to
-        // distribute dividends.
-        require(totalWeightedAmount <= IBentureProducedToken(distToken).balanceOf(address(this)), "Benture: not enough dividend tokens to distribute with the provided weight!");
-        bool res = IBentureProducedToken(distToken).transfer(receivers[i], weightedAmount);
-        require(res, "Benture: dividends distribution failed!");
+      // If any of the receivers if a zero address, that means that he burnt all his origTokens
+      // Ignore such receivers
+      if (receivers[i] != address(0)) {
+        uint256 userBalance = IBentureProducedToken(origToken).balanceOf(receivers[i]);
+        uint256 weightedAmount = userBalance / weight;
+        // This amount does not have decimals
+        totalWeightedAmount += weightedAmount;
+        if (distToken == address(0)) {
+          // Native tokens (wei)
+          require(totalWeightedAmount * (1 ether) <= address(this).balance, "Benture: not enough dividend tokens to distribute with the provided weight!");
+          // Value is the same as `weightedAmount * (1 ether)`
+          (bool success, ) = receivers[i].call{value: userBalance * (1 ether) / weight}("");
+          require(success, "Benture: dividends transfer failed!");
+        } else {
+          // Other ERC20 tokens
+          // If total assumed amount of tokens to be distributed as dividends is higher than current contract's balance, than it is impossible to
+          // distribute dividends.
+          require(totalWeightedAmount <= IBentureProducedToken(distToken).balanceOf(address(this)), "Benture: not enough dividend tokens to distribute with the provided weight!");
+          bool res = IBentureProducedToken(distToken).transfer(receivers[i], weightedAmount);
+          require(res, "Benture: dividends distribution failed!");
+        }       
       }
     }
     

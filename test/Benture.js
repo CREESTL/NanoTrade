@@ -104,6 +104,17 @@ describe("Benture Dividend-Paying Token", () => {
 
       });
 
+      it('Should distribute dividends if one holder is a zero address', async() => {
+        // Mint some tokens to 2 accounts. Each of them becomes a holder.
+        await origToken.mint(ownerAcc.address, 1000);
+        await origToken.mint(clientAcc1.address, 1000);
+        // Burn tokens from one account. He is no longer a holder.
+        await origToken.connect(ownerAcc).burn(1000);
+        await expect(nano.distributeDividendsEqual(origToken.address, distToken.address, 90))
+        .to.emit(nano, "DividendsDistributed")
+        .withArgs(anyValue, anyValue);
+      });
+
       it('Should fail to distribute too high dividends', async() => {
         await origToken.mint(ownerAcc.address, 100_000);
         await expect(nano.distributeDividendsEqual(origToken.address, distToken.address, 10_000_000))
@@ -205,7 +216,7 @@ describe("Benture Dividend-Paying Token", () => {
       it('Should fail to distribute dividends with too high weight', async() => {
         await origToken.mint(ownerAcc.address, 10)
         await expect(nano.distributeDividendsWeighted(origToken.address, distToken.address, 1000))
-        .to.be.revertedWith("Benture: none of the receivers has enough tokens for the provided weight!");
+        .to.be.revertedWith("Benture: some of the receivers does not have enough tokens for the provided weight!");
       });
 
     });
@@ -360,7 +371,7 @@ describe("Benture Dividend-Paying Token", () => {
         await ownerAcc.sendTransaction({to: nano.address, value: parseEther("8")});
         await origToken.mint(ownerAcc.address, 10);
         await expect(nano.distributeDividendsWeighted(origToken.address, zeroAddress, 1000))
-        .to.be.revertedWith("Benture: none of the receivers has enough tokens for the provided weight!");
+        .to.be.revertedWith("Benture: some of the receivers does not have enough tokens for the provided weight!");
       });
 
     });
@@ -402,7 +413,7 @@ describe("Benture Dividend-Paying Token", () => {
         await origToken.mint(clientAcc1.address, 1000);
         await origToken.mint(clientAcc2.address, 1000);
         await expect(nano.checkWeight(origToken.address, 10_000))
-        .to.be.revertedWith("Benture: none of the receivers has enough tokens for the provided weight!");
+        .to.be.revertedWith("Benture: some of the receivers does not have enough tokens for the provided weight!");
       });
 
       it('Should accept normal weight', async() => {
