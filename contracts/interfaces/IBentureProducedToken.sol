@@ -27,6 +27,11 @@ interface IBentureProducedToken is IERC20 {
     /// @return The array of addresses of all token holders
     function holders() external view returns (address[] memory);
 
+    /// @notice Checks if the address is a holder
+    /// @param account The address to check
+    /// @return True if address is a holder. False if it is not
+    function isHolder(address account) external view returns (bool);
+
     /// @notice Creates tokens and assigns them to account, increasing the total supply.
     /// @param to The receiver of tokens
     /// @param amount The amount of tokens to mint

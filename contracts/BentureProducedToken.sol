@@ -103,6 +103,14 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
         return _holders;
     }
 
+
+    /// @notice Checks if the address is a holder
+    /// @param account The address to check
+    /// @return True if address is a holder. False if it is not
+    function isHolder(address account) public view returns (bool) {
+        return _usedHolders[account];
+    }
+
     /// @notice Creates tokens and assigns them to account, increasing the total supply.
     /// @param to The receiver of tokens
     /// @param amount The amount of tokens to mint
@@ -163,7 +171,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
     function _transfer(address from, address to, uint256 amount) internal override {
         require(from != address(0), "BentureProducedToken: sender can not be a zero address!");
         require(to != address(0), "BentureProducedToken: receiver can not be a zero address!");
-        require(_usedHolders[from], "BentureProducedToken: sender does not have any tokens to transfer!");
+        require(isHolder(from), "BentureProducedToken: sender does not have any tokens to transfer!");
         emit ControlledTokenTransferred(from, to, amount);
         // If the receiver is not yet a holder, he becomes a holder
         if (!_usedHolders[to]) {

@@ -182,6 +182,14 @@ describe("Benture Produced Token", () => {
       .to.be.revertedWith("BentureProducedToken: the amount of tokens to burn must be greater than zero!");
     });
 
+    it('Should indicate that account is no longer a holder after burning tokens', async() => {
+      let amount = 1000;
+      await token.mint(clientAcc1.address, amount);
+      expect(await token.isHolder(clientAcc1.address)).to.equal(true);
+      await token.connect(clientAcc1).burn(amount)
+      expect(await token.isHolder(clientAcc1.address)).to.equal(false);
+    });
+
   });
 
 
