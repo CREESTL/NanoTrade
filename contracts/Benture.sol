@@ -9,7 +9,6 @@ import "./interfaces/IBenture.sol";
 import "./interfaces/IBentureProducedToken.sol";
 
 
-
 /// @title Dividend-Paying Token
 contract Benture is IBenture, Ownable, ReentrancyGuard{
 
@@ -105,16 +104,11 @@ contract Benture is IBenture, Ownable, ReentrancyGuard{
   function checkWeight(address origToken, uint256 weight) public view {
     require(origToken != address(0), "Benture: original token can not have a zero address!");
     address[] memory receivers = IBentureProducedToken(origToken).holders();
-    uint256 minBalance = type(uint256).max;
-    // Find the lowest balance
     for (uint256 i = 0; i < receivers.length; i++) {
       uint256 singleBalance = IBentureProducedToken(origToken).balanceOf(receivers[i]);
-      if (singleBalance < minBalance) {
-        minBalance = singleBalance;
-      }
+      // If any of the receivers does not have at least `weight` tokens then it means that no dividends can be distributed
+      require(singleBalance >= weight, "Benture: some of the receivers does not have enough tokens for the provided weight!");
     }
-    // If none of the receivers has at least `weight` tokens then it means that no dividends can be distributed
-    require(minBalance >= weight, "Benture: none of the receivers has enough tokens for the provided weight!");
   }
 
 
