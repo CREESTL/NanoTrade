@@ -40,7 +40,7 @@ interface IBentureAdmin {
         uint256 indexed tokenId
     );
 
-    /// @dev Indicates that an ERC721 token got transfered
+    /// @dev Indicates that an ERC721 token got transferred
     event AdminTokenTransfered(
         address indexed from, 
         address indexed to, 

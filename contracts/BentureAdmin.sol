@@ -140,7 +140,7 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
     /// @notice Transfers admin token with the provided ID from one address to another address
     /// @param from The address to transfer from
     /// @param to The address to transfer to
-    /// @param tokenId The ID of the token to be transfered
+    /// @param tokenId The ID of the token to be transferred
     function _transfer(address from, address to, uint256 tokenId) internal override {
         require(from != address(0), "BentureAdmin: sender can not be a zero address!");
         require(to != address(0), "BentureAdmin: receiver can not be a zero address!");

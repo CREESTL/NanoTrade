@@ -49,7 +49,7 @@ interface IBentureProducedToken is IERC20 {
     /// @notice Indicates that a new ERC20 was burnt
     event ControlledTokenBurnt(address indexed account, uint256 amount);
     
-    /// @notice Indicates that a new ERC20 was transfered
+    /// @notice Indicates that a new ERC20 was transferred
     event ControlledTokenTransferred(address indexed from, address indexed to, uint256 amount);
 
 }

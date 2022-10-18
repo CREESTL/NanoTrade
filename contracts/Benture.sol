@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./interfaces/IBenture.sol";
 import "./interfaces/IBentureProducedToken.sol";
 
+
 /// @title Dividend-Paying Token
 contract Benture is IBenture, Ownable, ReentrancyGuard{
 

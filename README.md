@@ -102,7 +102,7 @@ __Roles__:
 This is an [ERC20](https://docs.openzeppelin.com/contracts/4.x/erc20) token that is created by the entrepreneur. 
 It can be:
 - minted (if mintability is activated)
-- transfered between addresses
+- transferred between addresses
 - burnt by the owner of tokens  
 
 The contract of the token saves addresses of each holder of the token to use in the future.  
@@ -118,7 +118,7 @@ Moreover, with each new created BentureProducedToken contract the factory mints 
 This is an [ERC721](https://docs.openzeppelin.com/contracts/4.x/erc721) token that is minted to the creator of each new [BentureProducedToken](#erc20). This token proves the ownership of created BentureProducedToken and gives admin rights i.e. allows the BentureAdmin holder to mint new BentureProducedTokens.
 It can be:
 - minted
-- transfered between addresses
+- transferred between addresses
 - burnt by the owner 
 
 It is important to mention that BentureAdmin token proves the ownership of BentureProducedToken _contract in general, and not of every minted token_. So if Bob owns 1000 BentureProducedTokens, an entrepreneur owning the BentureAdmin token of that BentureProducedToken will not be able to transfer or burn Bob's tokens. The _only thing_ he can do is _mint_ more BentureProducedTokens (that will not be owned by anyone at first).  
