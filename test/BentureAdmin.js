@@ -47,11 +47,8 @@ describe("Benture Admin Token", () => {
     await rummy.deployed(); 
 
     // Make factory contract a signer
-    await hre.network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [factory.address],
-    });
-    factorySigner = await ethers.getSigner(factory.address);
+
+    factorySigner = await ethers.getImpersonatedSigner(factory.address);
 
     // Provide some ether to the factory contract to be able to send transactions
     await ownerAcc.sendTransaction({to: factory.address, value: parseEther("1")});
