@@ -132,9 +132,19 @@ describe("Benture Dividend-Paying Token", () => {
       });
 
       it('Should fail to distribute too high dividends', async() => {
-        await origToken.mint(ownerAcc.address, 100_000);
-        // distToken balance of benture is 1_000_000, but we try to distribute x10
-        await expect(benture.distributeDividendsEqual(origToken.address, distToken.address, 10_000_000))
+        await origToken.mint(ownerAcc.address, 1_000_000);
+        // distToken balance of benture is 1_000_000 (preminted in `beforeEach` hook),
+        // but we try to distribute 1_000_001
+        await expect(benture.distributeDividendsEqual(origToken.address, distToken.address, 1_000_001))
+        .to.be.revertedWith("Benture: not enough ERC20 dividend tokens to distribute!");
+      });
+
+      it('Should fail to distribute too high dividends #2', async() => {
+        // Mint origTokens both to account and the Benture contract
+        await origToken.mint(ownerAcc.address, 1_000_000);
+        await origToken.mint(benture.address, 1_000_000);
+        // Try to distribute these tokens (more than minted)
+        await expect(benture.distributeDividendsEqual(origToken.address, origToken.address, 1_000_001))
         .to.be.revertedWith("Benture: not enough ERC20 dividend tokens to distribute!");
       });
 
