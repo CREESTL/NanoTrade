@@ -108,6 +108,15 @@ describe("Benture Produced Token", () => {
       .to.be.revertedWith("BentureAdmin: user does not have an admin token!");
     });
 
+    it('Should fail to mint if caller transferred his admin token', async() => {
+      let amount = 1000;
+      // Transfer admin token from owner account to client #2 account
+      await adminToken.connect(ownerAcc).transferFrom(ownerAcc.address, clientAcc2.address, 1);
+      // Try to call mint funcion from owner account
+      await expect(token.connect(ownerAcc).mint(clientAcc1.address, amount))
+      .to.be.revertedWith("BentureAdmin: user does not have an admin token!");
+    });
+
     it('Should fail to mint if mint is disabled', async() => {
       // Create a new token with `mint` function deactivated
       await factory.createERC20Token(
