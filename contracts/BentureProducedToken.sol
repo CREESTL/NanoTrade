@@ -165,12 +165,13 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
     /// @notice Moves tokens from one account to another account
     /// @param from The address to transfer from
     /// @param to The address to transfer to
-    /// @param amount The amount of tokens to be transfered
+    /// @param amount The amount of tokens to be transferred
     /// @dev It is called by high-level functions. That is why it is necessary to override it
     /// @dev Transfers are permitted for everyone - not just admin token holders
     function _transfer(address from, address to, uint256 amount) internal override {
         require(from != address(0), "BentureProducedToken: sender can not be a zero address!");
         require(to != address(0), "BentureProducedToken: receiver can not be a zero address!");
+        require(to != from, "BentureProducedToken: sender can not be a receiver!");
         require(isHolder(from), "BentureProducedToken: sender does not have any tokens to transfer!");
         emit ControlledTokenTransferred(from, to, amount);
         // If the receiver is not yet a holder, he becomes a holder
@@ -182,7 +183,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
             // Mark holder's address as used
             _usedHolders[to] = true;
         }
-        // If all tokens of the holder get transfered - he is no longer a holder
+        // If all tokens of the holder get transferred - he is no longer a holder
         uint256 fromBalance = balanceOf(from);
         if (amount >= fromBalance) {
             // NOTE: `delete` does not change the length of any array. It replaces a "deleted" item

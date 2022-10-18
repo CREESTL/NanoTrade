@@ -233,7 +233,7 @@ describe("Benture Produced Token", () => {
       expect(endHolders.length - startHolders.length).to.equal(1);
     });
 
-    it('Should delete account from holders if all of its tokens get transfered', async() => {
+    it('Should delete account from holders if all of its tokens get transferred', async() => {
       let amount = 1000;
       await token.mint(clientAcc1.address, amount);
       let startHolders = await token.holders();
@@ -241,6 +241,22 @@ describe("Benture Produced Token", () => {
       await expect(token.connect(clientAcc1).transfer(clientAcc2.address, amount));
       let endHolders = await token.holders();
       expect(endHolders[0]).to.equal(zeroAddress);
+    });
+
+    it('Should keep address a holder if he transferes tokens and gets them back', async() => {
+      let amount = 1000;
+      await token.mint(clientAcc1.address, amount);
+      await expect(token.connect(clientAcc1).transfer(clientAcc2.address, amount));
+      expect(await token.isHolder(clientAcc1.address)).to.equal(false);
+      await expect(token.connect(clientAcc2).transfer(clientAcc1.address, amount));
+      expect(await token.isHolder(clientAcc1.address)).to.equal(true);
+    });
+
+    it('Should not allow a user to transfer tokens to himself', async() => {
+      let amount = 1000;
+      await token.mint(clientAcc1.address, amount);
+      await expect(token.connect(clientAcc1).transfer(clientAcc1.address, amount))
+      .to.be.revertedWith("BentureProducedToken: sender can not be a receiver!");
     });
 
     it('Should fail to transfer tokens if receiver has zero address', async() => {
