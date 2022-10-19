@@ -7,6 +7,8 @@
     "ethers": "^5.7.1",
     "hardhat": "^2.10.1",
     "hardhat-deploy": "^0.11.18",
+    "prettier": "^2.7.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.24",
     "solidity-coverage": "^0.7.21"
   },
   "dependencies": {
