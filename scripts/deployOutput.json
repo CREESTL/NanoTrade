@@ -11,7 +11,7 @@
     "BentureFactory": {
       "address": "0x3E1CEF5e992d9aBc357f06Ff50D578f3094D3393",
       "verification": "https://mumbai.polygonscan.com/address/0x3E1CEF5e992d9aBc357f06Ff50D578f3094D3393#code"
-    },
+    }
   },
   "ethereum": {
     "Benture": {
@@ -25,6 +25,6 @@
     "BentureFactory": {
       "address": "",
       "verification": ""
-    },
+    }
   }
 }

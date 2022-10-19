@@ -8,7 +8,6 @@ import "./interfaces/IBentureProducedToken.sol";
 import "./interfaces/IBentureAdmin.sol";
 
 contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
-
     string internal _tokenName;
     string internal _tokenSymbol;
     uint8 internal _decimals;
@@ -26,9 +25,9 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
     mapping(address => bool) internal _usedHolders;
 
     /// @dev Checks if mintability is activated
-    modifier WhenMintable() { 
-        require (_mintable, "BentureProducedToken: the token is not mintable!"); 
-        _; 
+    modifier WhenMintable() {
+        require(_mintable, "BentureProducedToken: the token is not mintable!");
+        _;
     }
 
     /// @dev Checks if caller is an admin token holder
@@ -37,7 +36,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
         _;
     }
 
-    /// @dev Creates a new controlled ERC20 token. 
+    /// @dev Creates a new controlled ERC20 token.
     /// @param name_ The name of the token
     /// @param symbol_ The symbol of the token
     /// @param decimals_ Number of decimals of the token
@@ -45,7 +44,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
     /// @param maxTotalSupply_ Maximum amount of tokens to be minted
     /// @param adminToken_ Address of the admin token for controlled token
     /// @dev Only the factory can initialize controlled tokens
-    constructor (
+    constructor(
         string memory name_,
         string memory symbol_,
         uint8 decimals_,
@@ -53,14 +52,32 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
         uint256 maxTotalSupply_,
         address adminToken_
     ) ERC20(name_, symbol_) {
-        require(bytes(name_).length > 0, "BentureProducedToken: initial token name can not be empty!");
-        require(bytes(symbol_).length > 0, "BentureProducedToken: initial token symbol can not be empty!");
-        require(decimals_ > 0, "BentureProducedToken: initial decimals can not be zero!");
-        require(adminToken_ != address(0), "BentureProducedToken: admin token address can not be a zero address!");
+        require(
+            bytes(name_).length > 0,
+            "BentureProducedToken: initial token name can not be empty!"
+        );
+        require(
+            bytes(symbol_).length > 0,
+            "BentureProducedToken: initial token symbol can not be empty!"
+        );
+        require(
+            decimals_ > 0,
+            "BentureProducedToken: initial decimals can not be zero!"
+        );
+        require(
+            adminToken_ != address(0),
+            "BentureProducedToken: admin token address can not be a zero address!"
+        );
         if (mintable_) {
-            require(maxTotalSupply_ != 0, "BentureProducedToken: max total supply can not be zero!");
+            require(
+                maxTotalSupply_ != 0,
+                "BentureProducedToken: max total supply can not be zero!"
+            );
         } else {
-            require(maxTotalSupply_ == 0, "BentureProducedToken: max total supply must be zero for unmintable tokens!");
+            require(
+                maxTotalSupply_ == 0,
+                "BentureProducedToken: max total supply must be zero for unmintable tokens!"
+            );
         }
         _tokenName = name_;
         _tokenSymbol = symbol_;
@@ -68,41 +85,52 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
         _mintable = mintable_;
         _maxTotalSupply = maxTotalSupply_;
         _adminToken = adminToken_;
-
     }
-
 
     /// @notice Returns the name of the token
     /// @return The name of the token
-    function name() public view override(ERC20, IBentureProducedToken) returns(string memory) {
+    function name()
+        public
+        view
+        override(ERC20, IBentureProducedToken)
+        returns (string memory)
+    {
         return _tokenName;
     }
 
     /// @notice Returns the symbol of the token
     /// @return The symbol of the token
-    function symbol() public view override(ERC20, IBentureProducedToken) returns(string memory) {
+    function symbol()
+        public
+        view
+        override(ERC20, IBentureProducedToken)
+        returns (string memory)
+    {
         return _tokenSymbol;
     }
 
     /// @notice Returns number of decimals of the token
     /// @return The number of decimals of the token
-    function decimals() public view override(ERC20, IBentureProducedToken) returns(uint8) {
+    function decimals()
+        public
+        view
+        override(ERC20, IBentureProducedToken)
+        returns (uint8)
+    {
         return _decimals;
     }
 
     /// @notice Indicates whether the token is mintable or not
     /// @return True if the token is mintable. False - if it is not
-    function mintable() external view override returns(bool) {
+    function mintable() external view override returns (bool) {
         return _mintable;
     }
-
 
     /// @notice Returns the array of addresses of all token holders
     /// @return The array of addresses of all token holders
     function holders() external view returns (address[] memory) {
         return _holders;
     }
-
 
     /// @notice Checks if the address is a holder
     /// @param account The address to check
@@ -116,9 +144,20 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
     /// @param amount The amount of tokens to mint
     /// @dev Can only be called by the owner of the admin NFT
     /// @dev Can only be called when token is mintable
-    function mint(address to, uint256 amount) external override hasAdminToken WhenMintable {
-        require(to != address(0), "BentureProducedToken: can not mint to zero address!");
-        require(totalSupply() + amount <= _maxTotalSupply, "BentureProducedToken: supply exceeds maximum supply!");
+    function mint(address to, uint256 amount)
+        external
+        override
+        hasAdminToken
+        WhenMintable
+    {
+        require(
+            to != address(0),
+            "BentureProducedToken: can not mint to zero address!"
+        );
+        require(
+            totalSupply() + amount <= _maxTotalSupply,
+            "BentureProducedToken: supply exceeds maximum supply!"
+        );
         emit ControlledTokenCreated(to, amount);
         // If there are any holders then add address to holders only if it's not there already
         if (_holders.length > 0) {
@@ -126,17 +165,17 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
                 // Push another address to the end of the array
                 _holders.push(to);
                 // Remember this address position
-                _holdersIndexes[to] = _holders.length - 1;  
+                _holdersIndexes[to] = _holders.length - 1;
                 // Mark holder's address as used
                 _usedHolders[to] = true;
             }
-        // If there are no holders then add the first one
+            // If there are no holders then add the first one
         } else {
             _holders.push(to);
-            _holdersIndexes[to] = _holders.length - 1;  
+            _holdersIndexes[to] = _holders.length - 1;
             _usedHolders[to] = true;
         }
-       
+
         _mint(to, amount);
     }
 
@@ -144,16 +183,22 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
     /// @param amount The amount of tokens to burn
     function burn(uint256 amount) external override {
         address caller = msg.sender;
-        require(amount > 0, "BentureProducedToken: the amount of tokens to burn must be greater than zero!");
-        require(balanceOf(caller) != 0, "BentureProducedToken: caller does not have any tokens to burn!");
+        require(
+            amount > 0,
+            "BentureProducedToken: the amount of tokens to burn must be greater than zero!"
+        );
+        require(
+            balanceOf(caller) != 0,
+            "BentureProducedToken: caller does not have any tokens to burn!"
+        );
         emit ControlledTokenBurnt(caller, amount);
         _burn(caller, amount);
         // If caller does not have any tokens - remove the address from holders
-        if(balanceOf(msg.sender) == 0) {
+        if (balanceOf(msg.sender) == 0) {
             // NOTE: `delete` does not change the length of any array. It replaces a "deleted" item
             //        with a default value
             // Get the addresses position and delete it from the array
-            delete _holders[_holdersIndexes[caller]];  
+            delete _holders[_holdersIndexes[caller]];
             // Delete its index as well
             delete _holdersIndexes[caller];
             // Mark this holder as unused
@@ -161,25 +206,40 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
         }
     }
 
-
     /// @notice Moves tokens from one account to another account
     /// @param from The address to transfer from
     /// @param to The address to transfer to
     /// @param amount The amount of tokens to be transferred
     /// @dev It is called by high-level functions. That is why it is necessary to override it
     /// @dev Transfers are permitted for everyone - not just admin token holders
-    function _transfer(address from, address to, uint256 amount) internal override {
-        require(from != address(0), "BentureProducedToken: sender can not be a zero address!");
-        require(to != address(0), "BentureProducedToken: receiver can not be a zero address!");
-        require(to != from, "BentureProducedToken: sender can not be a receiver!");
-        require(isHolder(from), "BentureProducedToken: sender does not have any tokens to transfer!");
+    function _transfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal override {
+        require(
+            from != address(0),
+            "BentureProducedToken: sender can not be a zero address!"
+        );
+        require(
+            to != address(0),
+            "BentureProducedToken: receiver can not be a zero address!"
+        );
+        require(
+            to != from,
+            "BentureProducedToken: sender can not be a receiver!"
+        );
+        require(
+            isHolder(from),
+            "BentureProducedToken: sender does not have any tokens to transfer!"
+        );
         emit ControlledTokenTransferred(from, to, amount);
         // If the receiver is not yet a holder, he becomes a holder
         if (!_usedHolders[to]) {
             // Push another address to the end of the array
             _holders.push(to);
             // Remember the position of this address
-            _holdersIndexes[to] = _holders.length - 1;  
+            _holdersIndexes[to] = _holders.length - 1;
             // Mark holder's address as used
             _usedHolders[to] = true;
         }
@@ -189,7 +249,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
             // NOTE: `delete` does not change the length of any array. It replaces a "deleted" item
             //        with a default value
             // Get the addresses position and delete it from the array
-            delete _holders[_holdersIndexes[from]];  
+            delete _holders[_holdersIndexes[from]];
             // Delete its index as well
             delete _holdersIndexes[from];
             // Mark this holder as unused

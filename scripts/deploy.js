@@ -13,7 +13,6 @@ let admin;
 let benture;
 
 async function main() {
-
   console.log(`[NOTICE!] Chain of deployment: ${network.name}`);
 
   // Contract #1: Benture Factory
@@ -29,7 +28,7 @@ async function main() {
 
   // Verify
   console.log(`[${contractName}]: Start of Verification...`);
-  
+
   await delay(90000);
 
   OUTPUT_DEPLOY[network.name][contractName].address = factory.address;
@@ -39,8 +38,8 @@ async function main() {
     url = "https://mumbai.polygonscan.com/address/" + factory.address + "#code";
   }
   OUTPUT_DEPLOY[network.name][contractName].verification = url;
-  
-  try { 
+
+  try {
     await hre.run("verify:verify", {
       address: factory.address,
     });
@@ -74,13 +73,11 @@ async function main() {
     url = "https://mumbai.polygonscan.com/address/" + admin.address + "#code";
   }
   OUTPUT_DEPLOY[network.name][contractName].verification = url;
-  
-  try { 
+
+  try {
     await hre.run("verify:verify", {
       address: admin.address,
-      constructorArguments: [
-        factory.address
-      ]
+      constructorArguments: [factory.address],
     });
   } catch (error) {
     console.error(error);
@@ -96,7 +93,9 @@ async function main() {
   console.log(`[${contractName}]: Start of Deployment...`);
   _contractProto = await ethers.getContractFactory(contractName);
   contractDeployTx = await _contractProto.deploy();
-  console.log(`Deployment transaction hash: ${contractDeployTx.deployTransaction.hash}`);
+  console.log(
+    `Deployment transaction hash: ${contractDeployTx.deployTransaction.hash}`
+  );
   benture = await contractDeployTx.deployed();
   console.log(`[${contractName}]: Deployment Finished!`);
   OUTPUT_DEPLOY[network.name][contractName].address = benture.address;
@@ -113,8 +112,8 @@ async function main() {
     url = "https://mumbai.polygonscan.com/address/" + benture.address + "#code";
   }
   OUTPUT_DEPLOY[network.name][contractName].verification = url;
-  
-  try { 
+
+  try {
     await hre.run("verify:verify", {
       address: benture.address,
     });
@@ -130,8 +129,11 @@ async function main() {
     JSON.stringify(OUTPUT_DEPLOY, null, "  ")
   );
 
-  console.log(`\n***Deployment and verification are completed!***\n***See Results in "${__dirname + '/deployOutput.json'}" file***`);
-  
+  console.log(
+    `\n***Deployment and verification are completed!***\n***See Results in "${
+      __dirname + "/deployOutput.json"
+    }" file***`
+  );
 }
 
 main()

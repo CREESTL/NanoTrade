@@ -7,16 +7,14 @@ import "./BentureProducedToken.sol";
 import "./interfaces/IBentureFactory.sol";
 import "./interfaces/IBentureAdmin.sol";
 
-
 /// @title A factory of custom ERC20 tokens
 contract BentureFactory is IBentureFactory {
-
     /// @dev The address of the last token that was produced by the factory
     address private _lastProducedToken;
 
     /// @notice Returns the address of the produced ERC20 token
     /// @return The address of the produced ERC20 token
-    function lastProducedToken() external view returns(address) {
+    function lastProducedToken() external view returns (address) {
         return _lastProducedToken;
     }
 
@@ -36,25 +34,24 @@ contract BentureFactory is IBentureFactory {
         uint256 maxTotalSupply,
         address adminToken_
     ) external {
-
         BentureProducedToken newToken = new BentureProducedToken(
-            name, 
+            name,
             symbol,
             decimals,
             mintable,
             maxTotalSupply,
             adminToken_
-        ); 
+        );
 
         emit CreateERC20Token(name, symbol, decimals, mintable);
-        
+
         // The address of the produced token gets changed each time
-        _lastProducedToken = address(newToken);           
+        _lastProducedToken = address(newToken);
 
         // Mint admin token to the creator of this ERC20 token
-        IBentureAdmin(adminToken_).mintWithERC20Address(msg.sender, address(newToken));
-
-        
+        IBentureAdmin(adminToken_).mintWithERC20Address(
+            msg.sender,
+            address(newToken)
+        );
     }
-
 }

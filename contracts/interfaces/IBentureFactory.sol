@@ -2,13 +2,11 @@
 
 pragma solidity ^0.8.0;
 
-
 /// @title An interface of a factory of custom ERC20 tokens
 interface IBentureFactory {
-
     /// @notice Returns the address of the produced ERC20 token
     /// @return The address of the produced ERC20 token
-    function lastProducedToken() external view returns(address);
+    function lastProducedToken() external view returns (address);
 
     /// @notice Creates a new ERC20 token and mints an admin token proving ownership
     /// @param name The name of the token
@@ -27,7 +25,6 @@ interface IBentureFactory {
         address adminToken_
     ) external;
 
-    
     /// @dev Indicates that a new ERC20 token was created
     event CreateERC20Token(
         string indexed name,

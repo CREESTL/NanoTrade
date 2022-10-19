@@ -7,11 +7,11 @@ require("solidity-coverage");
 require("hardhat-gas-reporter");
 
 const {
-        ETHERSCAN_API_KEY,
-        POLYGONSCAN_API_KEY,
-        ACC_PRIVATE_KEY,
-        INFURA_API_KEY
-    } = process.env;
+  ETHERSCAN_API_KEY,
+  POLYGONSCAN_API_KEY,
+  ACC_PRIVATE_KEY,
+  INFURA_API_KEY,
+} = process.env;
 
 module.exports = {
   solidity: {
@@ -19,9 +19,9 @@ module.exports = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 200
-      }
-    }
+        runs: 200,
+      },
+    },
   },
   networks: {
     hardhat: {
@@ -33,30 +33,30 @@ module.exports = {
     // Polygon Mumbai testnet
     mumbai: {
       url: "https://rpc-mumbai.maticvigil.com",
-      accounts: [ACC_PRIVATE_KEY]
+      accounts: [ACC_PRIVATE_KEY],
     },
     // Ethereum mainnet
     ethereum: {
       url: `https://mainnet.infura.io/v3/${INFURA_API_KEY}`,
-      accounts: [ACC_PRIVATE_KEY]
-    }
+      accounts: [ACC_PRIVATE_KEY],
+    },
   },
   mocha: {
-    timeout: 20000000000
+    timeout: 20000000000,
   },
   paths: {
     sources: "./contracts/",
-    tests: "./test/"
+    tests: "./test/",
   },
   etherscan: {
     apiKey: {
       mainnet: ETHERSCAN_API_KEY,
-      polygonMumbai: POLYGONSCAN_API_KEY
-    }
+      polygonMumbai: POLYGONSCAN_API_KEY,
+    },
   },
   skipFiles: ["node_modules"],
   gasReporter: {
-      enabled: true,
-      url: "http://localhost:8545"
-  }
+    enabled: true,
+    url: "http://localhost:8545",
+  },
 };
