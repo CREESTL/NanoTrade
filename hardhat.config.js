@@ -46,10 +46,7 @@ module.exports = {
   },
   paths: {
     sources: "./contracts/",
-    tests: "./tests/",
-    artifacts: "./build/artifacts",
-    cache: "./build/cache",
-    deployments: "./build/deployments",
+    tests: "./test/"
   },
   etherscan: {
     apiKey: {
