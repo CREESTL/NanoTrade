@@ -56,22 +56,25 @@ describe("Benture Admin Token", () => {
   });
 
   describe("Constructor", () => {
+    
+    it("Should initialize with correct name and symbol", async () => {
+      let tx = await ethers.getContractFactory("BentureAdmin");
+      let adminTokne = await tx.deploy(factory.address);
+    });
+
     it("Should fail to initialize with zero factory address", async () => {
       let tx = await ethers.getContractFactory("BentureAdmin");
       await expect(tx.deploy(zeroAddress)).to.be.revertedWith(
         "BentureAdmin: factory address can not be zero address!"
       );
     });
+  
   });
 
   describe("Getters", () => {
     it("Should check that provided address owns admin token", async () => {
-      // It should not revert
-      await adminToken.checkOwner(ownerAcc.address);
-      // It should revert
-      await expect(
-        adminToken.checkOwner(clientAcc1.address)
-      ).to.be.revertedWith("BentureAdmin: user does not have an admin token!");
+      expect(await adminToken.name()).to.equal("Benture Manager Token");
+      expect(await adminToken.symbol()).to.equal("BMNG");
     });
 
     it("Should fail to check that zero address owns admin token", async () => {

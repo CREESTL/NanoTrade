@@ -47,7 +47,7 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
 
     /// @dev Creates an "empty" NFT
     /// @param factoryAddress_ The address of the factory minting admin tokens
-    constructor(address factoryAddress_) ERC721("", "") {
+    constructor(address factoryAddress_) ERC721("Benture Manager Token", "BMNG") {
         require(
             factoryAddress_ != address(0),
             "BentureAdmin: factory address can not be zero address!"
