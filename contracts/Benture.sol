@@ -52,11 +52,10 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         }
         // Distribute dividends to each of the holders
         for (uint256 i = 0; i < length; i++) {
-            // If any of the receivers is a zero address, that means that he burnt all his origTokens
-            // Ignore such receivers
-            if (
-                (receivers[i] != address(0)) && (receivers[i] != address(this))
-            ) {
+            // No dividends should be distributed to a zero address
+            require(receivers[i] != address(0), "Benture: no dividends for a zero address allowed!");
+            // If `Benture` contract is a receiver, just ignore it and move to the next one
+            if (receivers[i] != address(this)) {
                 if (distToken == address(0)) {
                     // Native tokens (wei)
                     require(
@@ -125,11 +124,10 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         uint256 length = receivers.length;
         // Distribute dividends to each of the holders
         for (uint256 i = 0; i < length; i++) {
-            // If any of the receivers is a zero address, that means that he burnt all his origTokens
-            // Ignore such receivers
-            if (
-                (receivers[i] != address(0)) && (receivers[i] != address(this))
-            ) {
+            // No dividends should be distributed to a zero address
+            require(receivers[i] != address(0), "Benture: no dividends for a zero address allowed!");
+            // If `Benture` contract is a receiver, just ignore it and move to the next one
+            if (receivers[i] != address(this)) {  
                 uint256 userBalance = IBentureProducedToken(origToken)
                     .balanceOf(receivers[i]);
                 uint256 weightedAmount = userBalance / weight;

@@ -161,7 +161,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
         emit ControlledTokenCreated(to, amount);
         // If there are any holders then add address to holders only if it's not there already
         if (_holders.length > 0) {
-            if (_holdersIndexes[to] == 0 && _holders[0] != to) {
+            if (!_usedHolders[to]) {
                 // Push another address to the end of the array
                 _holders.push(to);
                 // Remember this address position
@@ -169,7 +169,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
                 // Mark holder's address as used
                 _usedHolders[to] = true;
             }
-            // If there are no holders then add the first one
+        // If there are no holders then add the first one
         } else {
             _holders.push(to);
             _holdersIndexes[to] = _holders.length - 1;
@@ -195,14 +195,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
         _burn(caller, amount);
         // If caller does not have any tokens - remove the address from holders
         if (balanceOf(msg.sender) == 0) {
-            // NOTE: `delete` does not change the length of any array. It replaces a "deleted" item
-            //        with a default value
-            // Get the addresses position and delete it from the array
-            delete _holders[_holdersIndexes[caller]];
-            // Delete its index as well
-            delete _holdersIndexes[caller];
-            // Mark this holder as unused
-            delete _usedHolders[caller];
+            deleteHolder(_holdersIndexes[caller]);
         }
     }
 
@@ -246,15 +239,27 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
         // If all tokens of the holder get transferred - he is no longer a holder
         uint256 fromBalance = balanceOf(from);
         if (amount >= fromBalance) {
-            // NOTE: `delete` does not change the length of any array. It replaces a "deleted" item
-            //        with a default value
-            // Get the addresses position and delete it from the array
-            delete _holders[_holdersIndexes[from]];
-            // Delete its index as well
-            delete _holdersIndexes[from];
-            // Mark this holder as unused
-            delete _usedHolders[from];
+            deleteHolder(_holdersIndexes[from]);
         }
         super._transfer(from, to, amount);
+    }
+
+    /// @notice Deletes a holder from holders list
+    /// @dev It does not preserve the order of elements!!!
+    function deleteHolder(uint256 index) internal {
+        uint256 length = _holders.length;
+        require(index < length, "BentureProducedToken: index to delete is out of range!");
+        address deletedHolder = _holders[index];
+        // First, delete the index of the deleted holder
+        delete _holdersIndexes[deletedHolder];
+        // Then delete the holder from used holders
+        delete _usedHolders[deletedHolder];
+        // Place the last element of the array instead of the deleted one
+        _holders[index] = _holders[length - 1];
+        address replacingHolder = _holders[index];
+        // Update the index of the element that was placed instead of the deleted one
+        _holdersIndexes[replacingHolder] = index; 
+        // Delete a second copy of that element
+        _holders.pop();
     }
 }

@@ -156,27 +156,29 @@ describe("Benture Produced Token", () => {
     it("Should burn some tokens from address and leave address in holders", async () => {
       let amount = 1000;
       await token.mint(clientAcc1.address, amount);
+      let startLength = (await token.holders()).length;
       let startBalance = await token.balanceOf(clientAcc1.address);
-      let startHolders = await token.holders();
+      expect(await token.isHolder(clientAcc1.address)).to.equal(true);
       await expect(token.connect(clientAcc1).burn(amount / 2))
         .to.emit(token, "ControlledTokenBurnt")
         .withArgs(anyValue, amount / 2);
-      let endHolders = await token.holders();
       let endBalance = await token.balanceOf(clientAcc1.address);
-      // There is only one holder. Should be the same in both arrays.
-      expect(endHolders[0]).to.equal(startHolders[0]);
+      expect(await token.isHolder(clientAcc1.address)).to.equal(true);
+      let endLength = (await token.holders()).length;
+      expect(endLength).to.equal(startLength);
       expect(startBalance - endBalance).to.equal(amount / 2);
     });
 
     it("Should burn all tokens from address and remove address from holders", async () => {
       let amount = 1000;
       await token.mint(clientAcc1.address, amount);
-      let startHolders = await token.holders();
-      expect(startHolders[0]).to.equal(clientAcc1.address);
+      let startLength = (await token.holders()).length;
+      expect(startLength).to.equal(1);
+      expect(await token.isHolder(clientAcc1.address)).to.equal(true);
       await token.connect(clientAcc1).burn(amount);
-      let endHolders = await token.holders();
-      // Actually it gets replaced by zero address. The length of holders stays the same
-      expect(endHolders[0]).to.equal(zeroAddress);
+      let endLength = (await token.holders()).length;
+      expect(endLength).to.equal(0);
+      expect(await token.isHolder(clientAcc1.address)).to.equal(false);
     });
 
     it("Should fail to burn tokens if caller does not have any", async () => {
@@ -214,7 +216,8 @@ describe("Benture Produced Token", () => {
       let startHolders = await token.holders();
       // And only one account should be a holder
       expect(startHolders.length).to.equal(1);
-      expect(startHolders[0]).to.equal(clientAcc1.address);
+      expect(await token.isHolder(clientAcc1.address)).to.equal(true);
+      expect(await token.isHolder(clientAcc2.address)).to.equal(false);
       await expect(
         token.connect(clientAcc1).transfer(clientAcc2.address, amount / 2)
       )
@@ -223,8 +226,8 @@ describe("Benture Produced Token", () => {
       let endHolders = await token.holders();
       // Now both accounts should become holders and have half of tokens each
       expect(endHolders.length).to.equal(2);
-      expect(endHolders[0]).to.equal(clientAcc1.address);
-      expect(endHolders[1]).to.equal(clientAcc2.address);
+      expect(await token.isHolder(clientAcc1.address)).to.equal(true);
+      expect(await token.isHolder(clientAcc2.address)).to.equal(true);;
       let endBalanceAcc1 = await token.balanceOf(clientAcc1.address);
       let endBalanceAcc2 = await token.balanceOf(clientAcc2.address);
       expect(endBalanceAcc1).to.equal(amount / 2);
@@ -253,13 +256,11 @@ describe("Benture Produced Token", () => {
     it("Should delete account from holders if all of its tokens get transferred", async () => {
       let amount = 1000;
       await token.mint(clientAcc1.address, amount);
-      let startHolders = await token.holders();
-      expect(startHolders[0]).to.equal(clientAcc1.address);
+      expect(await token.isHolder(clientAcc1.address)).to.equal(true);
       await expect(
         token.connect(clientAcc1).transfer(clientAcc2.address, amount)
       );
-      let endHolders = await token.holders();
-      expect(endHolders[0]).to.equal(zeroAddress);
+      expect(await token.isHolder(clientAcc1.address)).to.equal(false);
     });
 
     it("Should keep address a holder if he transferes tokens and gets them back", async () => {
@@ -304,6 +305,7 @@ describe("Benture Produced Token", () => {
       );
     });
   });
+
 
   describe("Constructor", () => {
     it("Should fail to initialize with wrong name", async () => {
