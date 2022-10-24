@@ -56,7 +56,6 @@ describe("Benture Admin Token", () => {
   });
 
   describe("Constructor", () => {
-    
     it("Should initialize with correct name and symbol", async () => {
       let tx = await ethers.getContractFactory("BentureAdmin");
       let adminTokne = await tx.deploy(factory.address);
@@ -68,7 +67,6 @@ describe("Benture Admin Token", () => {
         "BentureAdmin: factory address can not be zero address!"
       );
     });
-  
   });
 
   describe("Getters", () => {

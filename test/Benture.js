@@ -225,9 +225,7 @@ describe("Benture Dividend-Paying Token", () => {
             distToken.address,
             1000
           )
-        ).to.be.revertedWith(
-          "Benture: no dividends receivers were found!"
-        );
+        ).to.be.revertedWith("Benture: no dividends receivers were found!");
       });
 
       it("Should fail to distribute dividends if original token has zero address", async () => {
@@ -239,35 +237,38 @@ describe("Benture Dividend-Paying Token", () => {
         );
       });
 
-
       it("Should fail to distribute dividends from a wrong 3rd attempt", async () => {
         // owner has 10_000 tokens
         // benture has 10_000 tokens
         await origToken.mint(ownerAcc.address, 10_000);
         await origToken.mint(benture.address, 10_000);
         await benture.distributeDividendsEqual(
-            origToken.address,
-            origToken.address,
-            10_000
-          );
+          origToken.address,
+          origToken.address,
+          10_000
+        );
         // owner has 20_000 tokens
         // benture has 0 tokens
         await origToken.mint(benture.address, 10_000);
         // owner has 20_000 tokens
         // benture has 10_000 tokens
         await benture.distributeDividendsEqual(
-            origToken.address,
-            origToken.address,
-            10_000
-          );
+          origToken.address,
+          origToken.address,
+          10_000
+        );
         // owner has 30_000 tokens
         // benture has 0 tokens
         // This fails
-        await expect(benture.distributeDividendsEqual(
+        await expect(
+          benture.distributeDividendsEqual(
             origToken.address,
             origToken.address,
             5_000
-          )).to.be.revertedWith("Benture: not enough ERC20 dividend tokens to distribute!");
+          )
+        ).to.be.revertedWith(
+          "Benture: not enough ERC20 dividend tokens to distribute!"
+        );
       });
     });
 
@@ -428,9 +429,7 @@ describe("Benture Dividend-Paying Token", () => {
             distToken.address,
             10
           )
-        ).to.be.revertedWith(
-          "Benture: no dividends receivers were found!"
-        );
+        ).to.be.revertedWith("Benture: no dividends receivers were found!");
       });
 
       it("Should fail to distribute dividends for native tokens holders", async () => {
@@ -555,12 +554,8 @@ describe("Benture Dividend-Paying Token", () => {
         )
           .to.emit(benture, "DividendsDistributed")
           .withArgs(anyValue, anyValue);
-        let endBalance1 = await ethers.provider.getBalance(
-          clientAcc1.address
-        );
-        let endBalance2 = await ethers.provider.getBalance(
-          clientAcc2.address
-        );
+        let endBalance1 = await ethers.provider.getBalance(clientAcc1.address);
+        let endBalance2 = await ethers.provider.getBalance(clientAcc2.address);
         // Less then 1 ether should be paid for gas for `burn` operation above
         expect(endBalance1.sub(startBalance1)).to.be.lt(parseEther("1"));
         expect(endBalance2.sub(startBalance2)).to.equal(parseEther("5"));
@@ -603,7 +598,6 @@ describe("Benture Dividend-Paying Token", () => {
           parseEther("5")
         );
       });
-
 
       it("Should not distribute dividends if benture address is the only holder", async () => {
         await origToken.mint(benture.address, 1000);
@@ -677,11 +671,8 @@ describe("Benture Dividend-Paying Token", () => {
             zeroAddress,
             parseEther("1")
           )
-        ).to.be.revertedWith(
-          "Benture: no dividends receivers were found!"
-        );
+        ).to.be.revertedWith("Benture: no dividends receivers were found!");
       });
-
     });
 
     describe("Weighted dividends", () => {
@@ -744,7 +735,6 @@ describe("Benture Dividend-Paying Token", () => {
         expect(endBalance3.sub(startBalance3)).to.be.lt(parseEther("2"));
       });
 
-
       it("Should distribute dividends if one holder gets deleted", async () => {
         // Mint some tokens to 2 accounts. Each of them becomes a holder.
         await origToken.mint(clientAcc1.address, 1000);
@@ -770,12 +760,8 @@ describe("Benture Dividend-Paying Token", () => {
         )
           .to.emit(benture, "DividendsDistributed")
           .withArgs(anyValue, anyValue);
-        let endBalance1 = await ethers.provider.getBalance(
-          clientAcc1.address
-        );
-        let endBalance2 = await ethers.provider.getBalance(
-          clientAcc2.address
-        );
+        let endBalance1 = await ethers.provider.getBalance(clientAcc1.address);
+        let endBalance2 = await ethers.provider.getBalance(clientAcc2.address);
         // Less then 1 ether should be paid for gas for `burn` operation above
         expect(endBalance1.sub(startBalance1)).to.be.lt(parseEther("1"));
         expect(endBalance2.sub(startBalance2)).to.equal(parseEther("5"));
@@ -819,7 +805,6 @@ describe("Benture Dividend-Paying Token", () => {
           parseEther("2")
         );
       });
-
 
       it("Should not distribute dividends if benture address is the only holder", async () => {
         await origToken.mint(benture.address, 100);
@@ -897,17 +882,18 @@ describe("Benture Dividend-Paying Token", () => {
         );
       });
 
-
       it("Should fail to distribute dividends to no receivers", async () => {
         await ownerAcc.sendTransaction({
           to: benture.address,
           value: parseEther("8"),
         });
         await expect(
-          benture.distributeDividendsWeighted(origToken.address, zeroAddress, 10)
-        ).to.be.revertedWith(
-          "Benture: no dividends receivers were found!"
-        );
+          benture.distributeDividendsWeighted(
+            origToken.address,
+            zeroAddress,
+            10
+          )
+        ).to.be.revertedWith("Benture: no dividends receivers were found!");
       });
 
       it("Should fail to distribute dividends for native tokens holders", async () => {

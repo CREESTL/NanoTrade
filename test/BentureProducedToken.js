@@ -227,7 +227,7 @@ describe("Benture Produced Token", () => {
       // Now both accounts should become holders and have half of tokens each
       expect(endHolders.length).to.equal(2);
       expect(await token.isHolder(clientAcc1.address)).to.equal(true);
-      expect(await token.isHolder(clientAcc2.address)).to.equal(true);;
+      expect(await token.isHolder(clientAcc2.address)).to.equal(true);
       let endBalanceAcc1 = await token.balanceOf(clientAcc1.address);
       let endBalanceAcc2 = await token.balanceOf(clientAcc2.address);
       expect(endBalanceAcc1).to.equal(amount / 2);
@@ -305,7 +305,6 @@ describe("Benture Produced Token", () => {
       );
     });
   });
-
 
   describe("Constructor", () => {
     it("Should fail to initialize with wrong name", async () => {

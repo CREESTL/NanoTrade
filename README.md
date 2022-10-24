@@ -37,7 +37,7 @@ The following information will guide you through the process of building and dep
   ACC_PRIVATE_KEY=***your private key***
   ```
 - Create an account on [Infura](https://infura.io/). Go to `Dashboard -> Create new key -> Manage key`. Copy API key to `.env` file
-  ` INFURA_API_KEY=***your infura API key*** `
+  `INFURA_API_KEY=***your infura API key***`
   :warning:**DO NOT SHARE YOUR .env FILE IN ANY WAY OR YOU RISK TO LOSE ALL YOUR FUNDS**:warning:
 
 ### 1. Build
