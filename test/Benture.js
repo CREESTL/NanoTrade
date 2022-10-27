@@ -158,6 +158,32 @@ describe("Benture Dividend-Paying Token", () => {
         expect(bentureStartBalance.sub(bentureEndBalance)).to.equal(666);
       });
 
+      it("Should distribute tokens to the list of addresses including benture address", async () => {
+        await origToken.mint(clientAcc1.address, 10_000);
+        await origToken.mint(clientAcc2.address, 10_000);
+        await origToken.mint(benture.address, 10_000);
+        let client1StartBalance = await origToken.balanceOf(clientAcc1.address);
+        let client2StartBalance = await origToken.balanceOf(clientAcc2.address);
+        let bentureStartBalance = await origToken.balanceOf(benture.address);
+        await expect(
+          benture.distributeDividendsEqual(
+            origToken.address,
+            origToken.address,
+            10_000
+          )
+        )
+          .to.emit(benture, "DividendsDistributed")
+          .withArgs(anyValue, anyValue);
+
+        let client1EndBalance = await origToken.balanceOf(clientAcc1.address);
+        let client2EndBalance = await origToken.balanceOf(clientAcc2.address);
+        let bentureEndBalance = await origToken.balanceOf(benture.address);
+        // 10_000 tokens from Benture should be equaly distributed to 2 accounts
+        expect(client1EndBalance.sub(client1StartBalance)).to.equal(5_000);
+        expect(client2EndBalance.sub(client2StartBalance)).to.equal(5_000);
+        expect(bentureEndBalance).to.equal(0);
+      });
+
       it("Should not distribute dividends if benture address is the only holder", async () => {
         await origToken.mint(benture.address, 1000);
         let bentureStartBalance = await distToken.balanceOf(benture.address);
@@ -359,6 +385,32 @@ describe("Benture Dividend-Paying Token", () => {
         expect(ownerEndBalance.sub(ownerStartBalance)).to.equal(100);
         // ...from the benture contract
         expect(bentureStartBalance.sub(bentureEndBalance)).to.equal(100);
+      });
+
+      it("Should distribute tokens to the list of addresses including benture address", async () => {
+        await origToken.mint(clientAcc1.address, 10_000);
+        await origToken.mint(clientAcc2.address, 10_000);
+        await origToken.mint(benture.address, 10_000);
+        let client1StartBalance = await origToken.balanceOf(clientAcc1.address);
+        let client2StartBalance = await origToken.balanceOf(clientAcc2.address);
+        let bentureStartBalance = await origToken.balanceOf(benture.address);
+        await expect(
+          benture.distributeDividendsWeighted(
+            origToken.address,
+            origToken.address,
+            1000
+          )
+        )
+          .to.emit(benture, "DividendsDistributed")
+          .withArgs(anyValue, anyValue);
+
+        let client1EndBalance = await origToken.balanceOf(clientAcc1.address);
+        let client2EndBalance = await origToken.balanceOf(clientAcc2.address);
+        let bentureEndBalance = await origToken.balanceOf(benture.address);
+        // 10_000 / 1000 = 10 tokens per account shoud be distributed
+        expect(client1EndBalance.sub(client1StartBalance)).to.equal(10);
+        expect(client2EndBalance.sub(client2StartBalance)).to.equal(10);
+        expect(bentureStartBalance.sub(bentureEndBalance)).to.equal(20);
       });
 
       it("Should not distribute dividends if benture address is the only holder", async () => {
@@ -599,6 +651,52 @@ describe("Benture Dividend-Paying Token", () => {
         );
       });
 
+      it("Should distribute tokens to the list of addresses including benture address", async () => {
+        await origToken.mint(clientAcc1.address, 10_000);
+        await origToken.mint(clientAcc2.address, 10_000);
+        await origToken.mint(benture.address, 10_000);
+        await ownerAcc.sendTransaction({
+          to: benture.address,
+          value: parseEther("6"),
+        });
+        let client1StartBalance = await ethers.provider.getBalance(
+          clientAcc1.address
+        );
+        let client2StartBalance = await ethers.provider.getBalance(
+          clientAcc2.address
+        );
+        let bentureStartBalance = await ethers.provider.getBalance(
+          benture.address
+        );
+        await expect(
+          benture.distributeDividendsEqual(
+            origToken.address,
+            zeroAddress,
+            parseEther("6")
+          )
+        )
+          .to.emit(benture, "DividendsDistributed")
+          .withArgs(anyValue, anyValue);
+
+        let client1EndBalance = await ethers.provider.getBalance(
+          clientAcc1.address
+        );
+        let client2EndBalance = await ethers.provider.getBalance(
+          clientAcc2.address
+        );
+        let bentureEndBalance = await ethers.provider.getBalance(
+          benture.address
+        );
+        // 6 / 2 = 3 tokens per account shoud be distributed
+        expect(client1EndBalance.sub(client1StartBalance)).to.equal(
+          parseEther("3")
+        );
+        expect(client2EndBalance.sub(client2StartBalance)).to.equal(
+          parseEther("3")
+        );
+        expect(bentureEndBalance).to.equal(parseEther("0"));
+      });
+
       it("Should not distribute dividends if benture address is the only holder", async () => {
         await origToken.mint(benture.address, 1000);
         await ownerAcc.sendTransaction({
@@ -801,6 +899,54 @@ describe("Benture Dividend-Paying Token", () => {
           parseEther("2")
         );
         // ...from the benture contract
+        expect(bentureStartBalance.sub(bentureEndBalance)).to.equal(
+          parseEther("2")
+        );
+      });
+
+      it("Should distribute tokens to the list of addresses including benture address", async () => {
+        await origToken.mint(clientAcc1.address, 10_000);
+        await origToken.mint(clientAcc2.address, 10_000);
+        await origToken.mint(benture.address, 10_000);
+        await ownerAcc.sendTransaction({
+          to: benture.address,
+          value: parseEther("6"),
+        });
+        let client1StartBalance = await ethers.provider.getBalance(
+          clientAcc1.address
+        );
+        let client2StartBalance = await ethers.provider.getBalance(
+          clientAcc2.address
+        );
+        let bentureStartBalance = await ethers.provider.getBalance(
+          benture.address
+        );
+        await expect(
+          benture.distributeDividendsWeighted(
+            origToken.address,
+            zeroAddress,
+            10_000
+          )
+        )
+          .to.emit(benture, "DividendsDistributed")
+          .withArgs(anyValue, anyValue);
+
+        let client1EndBalance = await ethers.provider.getBalance(
+          clientAcc1.address
+        );
+        let client2EndBalance = await ethers.provider.getBalance(
+          clientAcc2.address
+        );
+        let bentureEndBalance = await ethers.provider.getBalance(
+          benture.address
+        );
+        // 10_000 / 10_000 = 1 token per account shoud be distributed
+        expect(client1EndBalance.sub(client1StartBalance)).to.equal(
+          parseEther("1")
+        );
+        expect(client2EndBalance.sub(client2StartBalance)).to.equal(
+          parseEther("1")
+        );
         expect(bentureStartBalance.sub(bentureEndBalance)).to.equal(
           parseEther("2")
         );

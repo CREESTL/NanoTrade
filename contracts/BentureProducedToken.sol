@@ -169,7 +169,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
                 // Mark holder's address as used
                 _usedHolders[to] = true;
             }
-        // If there are no holders then add the first one
+            // If there are no holders then add the first one
         } else {
             _holders.push(to);
             _holdersIndexes[to] = _holders.length - 1;
@@ -248,7 +248,10 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
     /// @dev It does not preserve the order of elements!!!
     function deleteHolder(uint256 index) internal {
         uint256 length = _holders.length;
-        require(index < length, "BentureProducedToken: index to delete is out of range!");
+        require(
+            index < length,
+            "BentureProducedToken: index to delete is out of range!"
+        );
         address deletedHolder = _holders[index];
         // First, delete the index of the deleted holder
         delete _holdersIndexes[deletedHolder];
@@ -258,7 +261,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
         _holders[index] = _holders[length - 1];
         address replacingHolder = _holders[index];
         // Update the index of the element that was placed instead of the deleted one
-        _holdersIndexes[replacingHolder] = index; 
+        _holdersIndexes[replacingHolder] = index;
         // Delete a second copy of that element
         _holders.pop();
     }
