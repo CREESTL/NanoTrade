@@ -53,13 +53,16 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // Distribute dividends to each of the holders
         for (uint256 i = 0; i < length; i++) {
             // No dividends should be distributed to a zero address
-            require(receivers[i] != address(0), "Benture: no dividends for a zero address allowed!");
+            require(
+                receivers[i] != address(0),
+                "Benture: no dividends for a zero address allowed!"
+            );
             // If `Benture` contract is a receiver, just ignore it and move to the next one
             if (receivers[i] != address(this)) {
                 if (distToken == address(0)) {
                     // Native tokens (wei)
                     require(
-                        amount <= address(this).balance,
+                        amount / parts <= address(this).balance,
                         "Benture: not enough native dividend tokens to distribute!"
                     );
                     (bool success, ) = receivers[i].call{value: amount / parts}(
@@ -67,9 +70,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
                     );
                     require(success, "Benture: dividends transfer failed!");
                 } else {
-                    // Other ERC20 tokens
                     require(
-                        amount <=
+                        amount / parts <=
                             IBentureProducedToken(distToken).balanceOf(
                                 address(this)
                             ),
@@ -125,9 +127,12 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // Distribute dividends to each of the holders
         for (uint256 i = 0; i < length; i++) {
             // No dividends should be distributed to a zero address
-            require(receivers[i] != address(0), "Benture: no dividends for a zero address allowed!");
+            require(
+                receivers[i] != address(0),
+                "Benture: no dividends for a zero address allowed!"
+            );
             // If `Benture` contract is a receiver, just ignore it and move to the next one
-            if (receivers[i] != address(this)) {  
+            if (receivers[i] != address(this)) {
                 uint256 userBalance = IBentureProducedToken(origToken)
                     .balanceOf(receivers[i]);
                 uint256 weightedAmount = userBalance / weight;
