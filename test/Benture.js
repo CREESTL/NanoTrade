@@ -200,7 +200,7 @@ describe("Benture Dividend-Paying Token", () => {
         expect(bentureStartBalance).to.equal(bentureStartBalance);
       });
 
-      it("Should fail to distribute too high dividends", async () => {
+      it("Should fail to distribute too high dividends #1", async () => {
         await origToken.mint(ownerAcc.address, 1_000_000);
         // distToken balance of benture is 1_000_000 (preminted in `beforeEach` hook),
         // but we try to distribute 1_000_001
@@ -228,6 +228,53 @@ describe("Benture Dividend-Paying Token", () => {
           )
         ).to.be.revertedWith(
           "Benture: not enough ERC20 dividend tokens to distribute!"
+        );
+      });
+
+      it("Should fail to distribute too high dividends #3", async () => {
+        // Mint origTokens to 2 client accounts
+        await origToken.mint(clientAcc1.address, 1_000_000);
+        await origToken.mint(clientAcc2.address, 1_000_000);
+        await origToken.mint(benture.address, 1_000_000);
+        // Try to distribute these tokens (more than minted)
+        // 1_000_001 / 2 is 500_000 because of Solidity arithmetic operations
+        // but it checks the whole amount without division into parts
+        await expect(
+          benture.distributeDividendsEqual(
+            origToken.address,
+            origToken.address,
+            1_000_001
+          )
+        ).to.be.revertedWith(
+          "Benture: not enough ERC20 dividend tokens to distribute!"
+        );
+      });
+
+      it("Should fail to distribute dividends if the amount is lower than the number of receivers", async () => {
+        // Mint origTokens to 3 accounts
+        await origToken.mint(clientAcc1.address, 1_000_000);
+        await origToken.mint(clientAcc2.address, 1_000_000);
+        await origToken.mint(ownerAcc.address, 1_000_000);
+        await origToken.mint(benture.address, 1_000_000);
+        // It is impossible to distribute 2 tokens to 3 accounts
+        await expect(
+          benture.distributeDividendsEqual(
+            origToken.address,
+            origToken.address,
+            2
+          )
+        ).to.be.revertedWith(
+          "Benture: too many receivers for the provided amount!"
+        );
+        // It is impossible to distribute 1 token to 3 accounts
+        await expect(
+          benture.distributeDividendsEqual(
+            origToken.address,
+            origToken.address,
+            1
+          )
+        ).to.be.revertedWith(
+          "Benture: too many receivers for the provided amount!"
         );
       });
 
@@ -724,7 +771,7 @@ describe("Benture Dividend-Paying Token", () => {
         );
       });
 
-      it("Should fail to distribute too high dividends", async () => {
+      it("Should fail to distribute too high dividends #1", async () => {
         await origToken.mint(ownerAcc.address, 1000);
         await ownerAcc.sendTransaction({
           to: benture.address,
@@ -740,6 +787,77 @@ describe("Benture Dividend-Paying Token", () => {
           "Benture: not enough native dividend tokens to distribute!"
         );
       });
+
+      it("Should fail to distribute too high dividends #2", async () => {
+        await origToken.mint(ownerAcc.address, 1_000);
+        await origToken.mint(benture.address, 1_000);
+        await ownerAcc.sendTransaction({
+          to: benture.address,
+          value: parseEther("5"),
+        });
+        await expect(
+          benture.distributeDividendsEqual(
+            origToken.address,
+            zeroAddress,
+            parseEther("10")
+          )
+        ).to.be.revertedWith(
+          "Benture: not enough native dividend tokens to distribute!"
+        );
+      });
+
+      it("Should fail to distribute too high dividends #3", async () => {
+        await origToken.mint(clientAcc1.address, 1_000);
+        await origToken.mint(clientAcc2.address, 1_000);
+        await origToken.mint(benture.address, 1_000);
+        await ownerAcc.sendTransaction({
+          to: benture.address,
+          value: parseEther("5"),
+        });
+        await expect(
+          benture.distributeDividendsEqual(
+            origToken.address,
+            zeroAddress,
+            parseEther("10")
+          )
+        ).to.be.revertedWith(
+          "Benture: not enough native dividend tokens to distribute!"
+        );
+      });
+
+      it("Should fail to distribute dividends if the amount is lower than the number of receivers", async () => {
+        // Mint origTokens to 3 accounts
+        await origToken.mint(clientAcc1.address, 1_000_000);
+        await origToken.mint(clientAcc2.address, 1_000_000);
+        await origToken.mint(ownerAcc.address, 1_000_000);
+        await ownerAcc.sendTransaction({
+          to: benture.address,
+          // 2 wei
+          value: 2,
+        });
+        // It is impossible to distribute 1 wei to 3 accounts
+        await expect(
+          benture.distributeDividendsEqual(
+            origToken.address,
+            zeroAddress,
+            1
+          )
+        ).to.be.revertedWith(
+          "Benture: too many receivers for the provided amount!"
+        );
+        // It is impossible to distribute 1 wei to 3 accounts
+        await expect(
+          benture.distributeDividendsEqual(
+            origToken.address,
+            zeroAddress,
+            1
+          )
+        ).to.be.revertedWith(
+          "Benture: too many receivers for the provided amount!"
+        );
+      });
+
+
 
       it("Should fail to distribute dividends to invalid token holders", async () => {
         await origToken.mint(ownerAcc.address, 1000);

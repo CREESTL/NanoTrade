@@ -37,14 +37,18 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             yes,
             "Benture: provided original token does not support required functions!"
         );
+        // Check that provided amount does not exceed contract's balance
+        _checkAmount(distToken, amount);
         // Get all holders of the origToken
         address[] memory receivers = IBentureProducedToken(origToken).holders();
-        require(
-            receivers.length > 0,
-            "Benture: no dividends receivers were found!"
-        );
         uint256 length = receivers.length;
         uint256 parts = length;
+        require(
+            length > 0,
+            "Benture: no dividends receivers were found!"
+        );
+        // It is impossible to distribute dividends if the amount is less then the number of receivers
+        require(amount >= length, "Benture: too many receivers for the provided amount!");
         // If one of the receivers is the `Benture` contract itself - do not distribute dividends to it
         // Reduce the number of receivers as well to calculate dividends correctly
         if (IBentureProducedToken(origToken).isHolder(address(this))) {
@@ -218,5 +222,24 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // Minimum weight is the lowest balance
         uint256 minWeight = minBalance;
         return minWeight;
+    }
+
+    /// @dev Checks that the Benture contract has enough tokens to distribute 
+    ///      all dividends
+    /// @param distToken The address of the token to check
+    /// @param amount The amount of tokens planned to distribute
+    function _checkAmount(address distToken, uint256 amount) private view {
+        if (distToken == address(0)) {
+            require (amount <= address(this).balance,
+                "Benture: not enough native dividend tokens to distribute!"
+            );
+        } else {
+            require (amount <=
+                IBentureProducedToken(distToken).balanceOf(
+                    address(this)
+                ),
+            "Benture: not enough ERC20 dividend tokens to distribute!"
+            );
+        }
     }
 }
