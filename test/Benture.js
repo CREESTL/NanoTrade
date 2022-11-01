@@ -837,27 +837,17 @@ describe("Benture Dividend-Paying Token", () => {
         });
         // It is impossible to distribute 1 wei to 3 accounts
         await expect(
-          benture.distributeDividendsEqual(
-            origToken.address,
-            zeroAddress,
-            1
-          )
+          benture.distributeDividendsEqual(origToken.address, zeroAddress, 1)
         ).to.be.revertedWith(
           "Benture: too many receivers for the provided amount!"
         );
         // It is impossible to distribute 1 wei to 3 accounts
         await expect(
-          benture.distributeDividendsEqual(
-            origToken.address,
-            zeroAddress,
-            1
-          )
+          benture.distributeDividendsEqual(origToken.address, zeroAddress, 1)
         ).to.be.revertedWith(
           "Benture: too many receivers for the provided amount!"
         );
       });
-
-
 
       it("Should fail to distribute dividends to invalid token holders", async () => {
         await origToken.mint(ownerAcc.address, 1000);
