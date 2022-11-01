@@ -120,14 +120,15 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         require(weight >= 1, "Benture: weight is too low!");
         // Get all holders of the origToken
         address[] memory receivers = IBentureProducedToken(origToken).holders();
+        uint256 length = receivers.length;
         require(
-            receivers.length > 0,
+            length > 0,
             "Benture: no dividends receivers were found!"
         );
         uint256 totalWeightedAmount = 0;
+        // Check that each receiver has at least `weight` amount of tokens
         // This function reverts if weight is incorrect.
         checkWeight(origToken, weight);
-        uint256 length = receivers.length;
         // Distribute dividends to each of the holders
         for (uint256 i = 0; i < length; i++) {
             // No dividends should be distributed to a zero address
@@ -139,8 +140,15 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             if (receivers[i] != address(this)) {
                 uint256 userBalance = IBentureProducedToken(origToken)
                     .balanceOf(receivers[i]);
+                // How many tokens current receiver should get
+                // If user's balance is lower than weight, this division's result is 0
+                // Float division will be rounded down to the lower number e.g. 4001 / 2 = 2000
+                // and that follows the logic: to get 2001 distTokens one should have 4002 origTokens
+                // and he does not. 1 token above 4000 does not change the weightedAmount
                 uint256 weightedAmount = userBalance / weight;
-                // This amount does not have decimals
+                // How many tokens have already been distributed plus those that should be distributed now
+                // This amount does not have decimals. It's a simple base-10 integer. So it should be 
+                // multiplied by (1 ether) to get its equivalent in wei
                 totalWeightedAmount += weightedAmount;
                 if (distToken == address(0)) {
                     // Native tokens (wei)
