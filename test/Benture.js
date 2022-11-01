@@ -1234,39 +1234,5 @@ describe("Benture Dividend-Paying Token", () => {
         );
       });
     });
-
-    describe("Check Weight", () => {
-      it("Should reject too high weight", async () => {
-        await ownerAcc.sendTransaction({
-          to: benture.address,
-          value: parseEther("8"),
-        });
-        await origToken.mint(ownerAcc.address, 1000);
-        await origToken.mint(clientAcc1.address, 1000);
-        await origToken.mint(clientAcc2.address, 1000);
-        await expect(
-          benture.checkWeight(origToken.address, 10_000)
-        ).to.be.revertedWith(
-          "Benture: some of the receivers does not have enough tokens for the provided weight!"
-        );
-      });
-
-      it("Should accept normal weight", async () => {
-        await ownerAcc.sendTransaction({
-          to: benture.address,
-          value: parseEther("8"),
-        });
-        await origToken.mint(ownerAcc.address, 1000);
-        await origToken.mint(clientAcc1.address, 1000);
-        await origToken.mint(clientAcc2.address, 1000);
-        await expect(benture.checkWeight(origToken.address, 1000));
-      });
-
-      it("Should fail to check weight if original token has zero address", async () => {
-        await expect(benture.checkWeight(zeroAddress, 1000)).to.be.revertedWith(
-          "Benture: original token can not have a zero address!"
-        );
-      });
-    });
   });
 });

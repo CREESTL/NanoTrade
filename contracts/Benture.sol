@@ -126,9 +126,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             "Benture: no dividends receivers were found!"
         );
         uint256 totalWeightedAmount = 0;
-        // Check that each receiver has at least `weight` amount of tokens
-        // This function reverts if weight is incorrect.
-        checkWeight(origToken, weight);
         // Distribute dividends to each of the holders
         for (uint256 i = 0; i < length; i++) {
             // No dividends should be distributed to a zero address
@@ -141,19 +138,22 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
                 uint256 userBalance = IBentureProducedToken(origToken)
                     .balanceOf(receivers[i]);
                 // How many tokens current receiver should get
-                // If user's balance is lower than weight, this division's result is 0
                 // Float division will be rounded down to the lower number e.g. 4001 / 2 = 2000
                 // and that follows the logic: to get 2001 distTokens one should have 4002 origTokens
                 // and he does not. 1 token above 4000 does not change the weightedAmount
                 uint256 weightedAmount = userBalance / weight;
-                // How many tokens have already been distributed plus those that should be distributed now
-                // This amount does not have decimals. It's a simple base-10 integer. So it should be 
-                // multiplied by (1 ether) to get its equivalent in wei
+                // If user's balance is lower than weight then `weightAmount` is 0
+                // If any of the users does not have at least `weight` origTokens then it is impossible
+                // to distribute dividends to him
+                require(weightedAmount > 0, "Benture: some of the receivers does not have enough tokens for the provided weight!");
+                // Increase the total amount of distributed tokens
                 totalWeightedAmount += weightedAmount;
                 if (distToken == address(0)) {
                     // Native tokens (wei)
                     require(
-                        totalWeightedAmount * (1 ether) <=
+                        // Check that the amount we are trying to transfer does not exceed contract's balance
+                        // The same as `weightedAmount * (1 ether)`
+                        userBalance * (1 ether) / weight <=
                             address(this).balance,
                         "Benture: not enough dividend tokens to distribute with the provided weight!"
                     );
@@ -167,7 +167,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
                     // If total assumed amount of tokens to be distributed as dividends is higher than current contract's balance, than it is impossible to
                     // distribute dividends.
                     require(
-                        totalWeightedAmount <=
+                        weightedAmount <=
                             IBentureProducedToken(distToken).balanceOf(
                                 address(this)
                             ),
@@ -185,28 +185,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         emit DividendsDistributed(distToken, totalWeightedAmount);
     }
 
-    /// @notice Checks if provided weight is valid for current receivers
-    /// @param origToken The address of the token that is held by receivers
-    ///        Can not be a zero address!
-    /// @param weight The amount of origTokens required to get a single distToken
-    function checkWeight(address origToken, uint256 weight) public view {
-        require(
-            origToken != address(0),
-            "Benture: original token can not have a zero address!"
-        );
-        address[] memory receivers = IBentureProducedToken(origToken).holders();
-        uint256 length = receivers.length;
-        for (uint256 i = 0; i < length; i++) {
-            uint256 singleBalance = IBentureProducedToken(origToken).balanceOf(
-                receivers[i]
-            );
-            // If any of the receivers does not have at least `weight` tokens then it means that no dividends can be distributed
-            require(
-                singleBalance >= weight,
-                "Benture: some of the receivers does not have enough tokens for the provided weight!"
-            );
-        }
-    }
 
     /// @notice Calculates the minimum currently allowed weight.
     ///         Weight used in distributing dividends should be equal/greater than this

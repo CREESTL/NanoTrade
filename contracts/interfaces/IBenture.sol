@@ -33,12 +33,6 @@ interface IBenture {
         uint256 weight
     ) external;
 
-    /// @notice Checks if provided weight is valid for current receivers
-    /// @param origToken The address of the token that is held by receivers
-    ///        Can not be a zero address!
-    /// @param weight The amount of origTokens required to get a single distToken
-    function checkWeight(address origToken, uint256 weight) external view;
-
     /// @notice Calculates the minimum currently allowed weight.
     ///         Weight used in distributing dividends should be equal/greater than this
     /// @param origToken The address of the token that is held by receivers
