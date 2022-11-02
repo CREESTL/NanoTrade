@@ -557,15 +557,18 @@ describe("Benture Dividend-Paying Token", () => {
 
       it("Should fail to distribute dividends with too high weight", async () => {
         await origToken.mint(ownerAcc.address, 10);
-        await expect(
-          benture.distributeDividendsWeighted(
+        await origToken.mint(clientAcc1.address, 10);
+        await origToken.mint(clientAcc2.address, 10);
+        let startBalance = await distToken.balanceOf(benture.address);
+        await benture.distributeDividendsWeighted(
             origToken.address,
             distToken.address,
+            // None of the receivers has enough tokens for that weight, so no dividends would be 
+            // distributed and the balance of Benture will stay the same
             1000
-          )
-        ).to.be.revertedWith(
-          "Benture: some of the receivers does not have enough tokens for the provided weight!"
-        );
+          );
+        let endBalance = await distToken.balanceOf(benture.address);
+        expect(endBalance).to.equal(startBalance);
       });
     });
   });
@@ -1180,15 +1183,18 @@ describe("Benture Dividend-Paying Token", () => {
           value: parseEther("8"),
         });
         await origToken.mint(ownerAcc.address, 10);
-        await expect(
-          benture.distributeDividendsWeighted(
+        await origToken.mint(clientAcc1.address, 10);
+        await origToken.mint(clientAcc2.address, 10);
+        let startBalance = await distToken.balanceOf(benture.address);
+        await benture.distributeDividendsWeighted(
             origToken.address,
             zeroAddress,
+            // None of the receivers has enough tokens for that weight, so no dividends would be 
+            // distributed and the balance of Benture will stay the same
             1000
-          )
-        ).to.be.revertedWith(
-          "Benture: some of the receivers does not have enough tokens for the provided weight!"
-        );
+          );
+        let endBalance = await distToken.balanceOf(benture.address);
+        expect(endBalance).to.equal(startBalance);
       });
     });
   });

@@ -138,14 +138,13 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
                 // Float division will be rounded down to the lower number e.g. 4001 / 2 = 2000
                 // and that follows the logic: to get 2001 distTokens one should have 4002 origTokens
                 // and he does not. 1 token above 4000 does not change the weightedAmount
-                uint256 weightedAmount = userBalance / weight;
                 // If user's balance is lower than weight then `weightAmount` is 0
-                // If any of the users does not have at least `weight` origTokens then it is impossible
-                // to distribute dividends to him
-                require(
-                    weightedAmount > 0,
-                    "Benture: some of the receivers does not have enough tokens for the provided weight!"
-                );
+                uint256 weightedAmount = userBalance / weight;
+                // If any of the users does not have at least `weight` origTokens then he does not receive any dividends
+                // and all others - do
+                if (weightedAmount == 0) {
+                    continue;
+                }
                 // Increase the total amount of distributed tokens
                 totalWeightedAmount += weightedAmount;
                 if (distToken == address(0)) {
