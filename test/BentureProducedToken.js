@@ -60,6 +60,15 @@ describe("Benture Produced Token", () => {
       let holders = await token.holders();
       expect(holders.length).to.equal(0);
     });
+
+    it("Should check that user is an admin", async() => {
+      // Owner is an admin
+      await expect(token.checkAdmin(ownerAcc.address)).not.to.be.reverted;
+      // Client is not
+      await expect(token.checkAdmin(clientAcc1.address)).to.be.revertedWith(
+        "BentureAdmin: user does not have an admin token!"
+      );
+    })
   });
 
   describe("Mint", () => {

@@ -30,6 +30,10 @@ interface IBentureProducedToken is IERC20 {
     /// @return True if address is a holder. False if it is not
     function isHolder(address account) external view returns (bool);
 
+    /// @notice Checks if user is an admin of this token
+    /// @param account The address to check
+    function checkAdmin(address account) external view;
+
     /// @notice Creates tokens and assigns them to account, increasing the total supply.
     /// @param to The receiver of tokens
     /// @param amount The amount of tokens to mint

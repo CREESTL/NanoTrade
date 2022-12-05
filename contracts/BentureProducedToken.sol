@@ -139,6 +139,13 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
         return _usedHolders[account];
     }
 
+    /// @notice Checks if user is an admin of this token
+    /// @param account The address to check
+    function checkAdmin(address account) public view {
+        // This reverts. Does not return boolean.
+        IBentureAdmin(_adminToken).verifyAdminToken(account, address(this));
+    }
+
     /// @notice Creates tokens and assigns them to account, increasing the total supply.
     /// @param to The receiver of tokens
     /// @param amount The amount of tokens to mint
