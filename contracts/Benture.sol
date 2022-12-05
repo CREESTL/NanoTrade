@@ -39,6 +39,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         );
         // Check that provided amount does not exceed contract's balance
         _checkAmount(distToken, amount);
+        // Check that caller is an admin of `origToken`
+        IBentureProducedToken(origToken).checkAdmin(msg.sender);
         // Get all holders of the origToken
         address[] memory receivers = IBentureProducedToken(origToken).holders();
         uint256 length = receivers.length;
@@ -118,6 +120,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             "Benture: provided original token does not support required functions!"
         );
         require(weight >= 1, "Benture: weight is too low!");
+        // Check that caller is an admin of `origToken`
+        IBentureProducedToken(origToken).checkAdmin(msg.sender);
         // Get all holders of the origToken
         address[] memory receivers = IBentureProducedToken(origToken).holders();
         uint256 length = receivers.length;

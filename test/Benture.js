@@ -343,6 +343,22 @@ describe("Benture Dividend-Paying Token", () => {
           "Benture: not enough ERC20 dividend tokens to distribute!"
         );
       });
+
+      it("Should fail to distribute dividends if caller is not origToken admin", async () => {
+        await origToken.mint(ownerAcc.address, 1000);
+        await origToken.mint(clientAcc1.address, 10);
+        await origToken.mint(clientAcc2.address, 10);
+        await expect(
+          benture.connect(clientAcc1).distributeDividendsEqual(
+            origToken.address,
+            distToken.address,
+            1000
+          )
+        ).to.be.revertedWith(
+          "BentureAdmin: user does not have an admin token!"
+        );
+      });
+
     });
 
     describe("Weighted dividends", () => {
@@ -569,6 +585,21 @@ describe("Benture Dividend-Paying Token", () => {
           );
         let endBalance = await distToken.balanceOf(benture.address);
         expect(endBalance).to.equal(startBalance);
+      });
+
+      it("Should fail to distribute dividends if caller is not origToken admin", async () => {
+        await origToken.mint(ownerAcc.address, 1000);
+        await origToken.mint(clientAcc1.address, 10);
+        await origToken.mint(clientAcc2.address, 10);
+        await expect(
+          benture.connect(clientAcc1).distributeDividendsWeighted(
+            origToken.address,
+            distToken.address,
+            1000
+          )
+        ).to.be.revertedWith(
+          "BentureAdmin: user does not have an admin token!"
+        );
       });
     });
   });
@@ -882,6 +913,25 @@ describe("Benture Dividend-Paying Token", () => {
           )
         ).to.be.revertedWith("Benture: no dividends receivers were found!");
       });
+
+      it("Should fail to distribute dividends if caller is not origToken admin", async () => {
+        await ownerAcc.sendTransaction({
+          to: benture.address,
+          value: parseEther("5"),
+        });
+        await origToken.mint(clientAcc1.address, 10);
+        await origToken.mint(clientAcc2.address, 10);
+        await expect(
+          benture.connect(clientAcc1).distributeDividendsEqual(
+            origToken.address,
+            zeroAddress,
+            parseEther("1")
+          )
+        ).to.be.revertedWith(
+          "BentureAdmin: user does not have an admin token!"
+        );
+      });
+
     });
 
     describe("Weighted dividends", () => {
@@ -1196,6 +1246,26 @@ describe("Benture Dividend-Paying Token", () => {
         let endBalance = await distToken.balanceOf(benture.address);
         expect(endBalance).to.equal(startBalance);
       });
+
+      it("Should fail to distribute dividends if caller is not origToken admin", async () => {
+        await ownerAcc.sendTransaction({
+          to: benture.address,
+          value: parseEther("5"),
+        });
+        await origToken.mint(clientAcc1.address, 10);
+        await origToken.mint(clientAcc2.address, 10);
+        await expect(
+          benture.connect(clientAcc1).distributeDividendsWeighted(
+            origToken.address,
+            zeroAddress,
+            parseEther("1")
+          )
+        ).to.be.revertedWith(
+          "BentureAdmin: user does not have an admin token!"
+        );
+      });
+
+
     });
   });
 
