@@ -20,6 +20,10 @@ interface IBentureAdmin {
         view
         returns (address);
 
+    /// @notice Returns the list of all admin tokens of the user
+    /// @param admin The address of the admin
+    function getAdminTokenIds(address admin) external view returns(uint256[] memory);
+
     /// @notice Mints a new ERC721 token with the address of the controlled ERC20 token
     /// @param to The address of the receiver of the token
     /// @param ERC20Address The address of the controlled ERC20 token

@@ -114,6 +114,45 @@ describe("Benture Admin Token", () => {
         "BentureAdmin: no controlled token exists for this admin token!"
       );
     });
+
+    it("Should get the list of all admin tokens of the admin", async () => {
+      // First, admin has only one admin token
+      let tokenIds = await adminToken.getAdminTokenIds(ownerAcc.address);
+      expect(tokenIds.length).to.eq(1);
+      await factory.createERC20Token(
+        "Dummy",
+        "DMM",
+        18,
+        true,
+        1_000_000,
+        adminToken.address
+      );
+      tokenIds = await adminToken.getAdminTokenIds(ownerAcc.address);
+      expect(tokenIds.length).to.eq(2);
+    });
+
+    it("Should fail to get the list of admin tokens for zero address", async () => {
+      await expect(adminToken.getAdminTokenIds(zeroAddress)).to.be.revertedWith("BentureAdmin: admin address can not be a zero address!");
+    });
+
+    it("Should verify that admin controlls several projects", async () => {
+      await factory.createERC20Token(
+        "Dummy",
+        "DMM",
+        18,
+        true,
+        1_000_000,
+        adminToken.address
+      );
+
+      newTokenAddress = await factory.lastProducedToken();
+      newToken = await ethers.getContractAt("BentureProducedToken", newTokenAddress);
+      await expect(adminToken.verifyAdminToken(ownerAcc.address, token.address)).not.to.be.reverted;
+      await expect(adminToken.verifyAdminToken(ownerAcc.address, newToken.address)).not.to.be.reverted;
+      await expect(adminToken.verifyAdminToken(ownerAcc.address, newToken.address)).not.to.be.reverted;
+      await expect(adminToken.checkOwner(ownerAcc.address)).not.to.be.reverted;
+    });
+
   });
 
   describe("Mint", () => {
@@ -214,6 +253,36 @@ describe("Benture Admin Token", () => {
         .mintWithERC20Address(clientAcc1.address, rummy.address);
       await expect(adminToken.connect(clientAcc2).burn(2)).to.be.revertedWith(
         "BentureAdmin: only owner of the token is allowed to burn it!"
+      );
+    });
+
+    it("Should burn one of several admin tokens of the user", async () => {
+      await factory.createERC20Token(
+        "Dummy",
+        "DMM",
+        18,
+        true,
+        1_000_000,
+        adminToken.address
+      );
+      // Now owner has 2 admin tokens
+      newTokenAddress = await factory.lastProducedToken();
+      newToken = await ethers.getContractAt("BentureProducedToken", newTokenAddress);
+      let startBalance = await adminToken.balanceOf(ownerAcc.address);
+      expect(startBalance).to.eq(2);
+      // Try to burn the second token
+      expect(await adminToken.connect(ownerAcc).burn(2))
+        .to.emit(adminToken, "AdminTokenBurnt")
+        .withArgs(anyValue);
+      let endBalance = await adminToken.balanceOf(ownerAcc.address);
+      expect(endBalance).to.eq(1);
+      // Check that user is still an admin
+      await expect(
+        adminToken.verifyAdminToken(ownerAcc.address, token.address)
+      ).not.to.be.reverted;
+      // Check that it is impossible to get the controlled address for burnt admin token
+      await expect(adminToken.getControlledAddressById(2)).to.be.revertedWith(
+        "BentureAdmin: no controlled token exists for this admin token!"
       );
     });
   });
