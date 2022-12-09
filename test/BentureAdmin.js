@@ -132,7 +132,9 @@ describe("Benture Admin Token", () => {
     });
 
     it("Should fail to get the list of admin tokens for zero address", async () => {
-      await expect(adminToken.getAdminTokenIds(zeroAddress)).to.be.revertedWith("BentureAdmin: admin address can not be a zero address!");
+      await expect(adminToken.getAdminTokenIds(zeroAddress)).to.be.revertedWith(
+        "BentureAdmin: admin address can not be a zero address!"
+      );
     });
 
     it("Should verify that admin controlls several projects", async () => {
@@ -146,13 +148,20 @@ describe("Benture Admin Token", () => {
       );
 
       newTokenAddress = await factory.lastProducedToken();
-      newToken = await ethers.getContractAt("BentureProducedToken", newTokenAddress);
-      await expect(adminToken.verifyAdminToken(ownerAcc.address, token.address)).not.to.be.reverted;
-      await expect(adminToken.verifyAdminToken(ownerAcc.address, newToken.address)).not.to.be.reverted;
-      await expect(adminToken.verifyAdminToken(ownerAcc.address, newToken.address)).not.to.be.reverted;
+      newToken = await ethers.getContractAt(
+        "BentureProducedToken",
+        newTokenAddress
+      );
+      await expect(adminToken.verifyAdminToken(ownerAcc.address, token.address))
+        .not.to.be.reverted;
+      await expect(
+        adminToken.verifyAdminToken(ownerAcc.address, newToken.address)
+      ).not.to.be.reverted;
+      await expect(
+        adminToken.verifyAdminToken(ownerAcc.address, newToken.address)
+      ).not.to.be.reverted;
       await expect(adminToken.checkOwner(ownerAcc.address)).not.to.be.reverted;
     });
-
   });
 
   describe("Mint", () => {
@@ -267,7 +276,10 @@ describe("Benture Admin Token", () => {
       );
       // Now owner has 2 admin tokens
       newTokenAddress = await factory.lastProducedToken();
-      newToken = await ethers.getContractAt("BentureProducedToken", newTokenAddress);
+      newToken = await ethers.getContractAt(
+        "BentureProducedToken",
+        newTokenAddress
+      );
       let startBalance = await adminToken.balanceOf(ownerAcc.address);
       expect(startBalance).to.eq(2);
       // Try to burn the second token
@@ -277,9 +289,8 @@ describe("Benture Admin Token", () => {
       let endBalance = await adminToken.balanceOf(ownerAcc.address);
       expect(endBalance).to.eq(1);
       // Check that user is still an admin
-      await expect(
-        adminToken.verifyAdminToken(ownerAcc.address, token.address)
-      ).not.to.be.reverted;
+      await expect(adminToken.verifyAdminToken(ownerAcc.address, token.address))
+        .not.to.be.reverted;
       // Check that it is impossible to get the controlled address for burnt admin token
       await expect(adminToken.getControlledAddressById(2)).to.be.revertedWith(
         "BentureAdmin: no controlled token exists for this admin token!"
@@ -297,7 +308,7 @@ describe("Benture Admin Token", () => {
           .connect(clientAcc1)
           .transferFrom(clientAcc1.address, clientAcc2.address, 2)
       )
-        .to.emit(adminToken, "AdminTokenTransfered")
+        .to.emit(adminToken, "AdminTokenTransferred")
         .withArgs(anyValue, anyValue, 2);
       let firstBalance = await adminToken.balanceOf(clientAcc1.address);
       let secondBalance = await adminToken.balanceOf(clientAcc2.address);

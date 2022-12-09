@@ -233,6 +233,6 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
 
         super._transfer(from, to, tokenId);
 
-        emit AdminTokenTransfered(from, to, tokenId);
+        emit AdminTokenTransferred(from, to, tokenId);
     }
 }

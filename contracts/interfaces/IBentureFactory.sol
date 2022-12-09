@@ -29,6 +29,7 @@ interface IBentureFactory {
     event CreateERC20Token(
         string indexed name,
         string indexed symbol,
+        address indexed tokenAddress,
         uint8 decimals,
         bool mintable
     );

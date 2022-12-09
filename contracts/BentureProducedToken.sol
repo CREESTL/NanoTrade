@@ -42,6 +42,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
     /// @param decimals_ Number of decimals of the token
     /// @param mintable_ Token may be either mintable or not. Can be changed later.
     /// @param maxTotalSupply_ Maximum amount of tokens to be minted
+    ///        Use `0` to create a token with no maximum amount
     /// @param adminToken_ Address of the admin token for controlled token
     /// @dev Only the factory can initialize controlled tokens
     constructor(
@@ -68,11 +69,17 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
             adminToken_ != address(0),
             "BentureProducedToken: admin token address can not be a zero address!"
         );
+        // In any case, maxTotalSupply can't be negative
+        require(maxTotalSupply_ >= 0, "BentureProducedToken: max total supply can not be a negative value!");
         if (mintable_) {
-            require(
-                maxTotalSupply_ != 0,
-                "BentureProducedToken: max total supply can not be zero!"
-            );
+            // If token is mintable it could either have a fixed maxTotalSupply or 
+            // have an "infinite" supply
+            // ("infinite" up to max value of `uint256` type)
+            if (maxTotalSupply_ == 0) {
+                // If 0 value was provided by the user, that means he wants to create 
+                // a token with an "infinite" max total supply
+                maxTotalSupply_ = type(uint256).max;
+            }
         } else {
             require(
                 maxTotalSupply_ == 0,
@@ -130,6 +137,12 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
     /// @return The array of addresses of all token holders
     function holders() external view returns (address[] memory) {
         return _holders;
+    }
+
+    /// @notice Returns the max total supply of the token
+    /// @return The max total supply of the token
+    function maxTotalSupply() external view returns (uint256) {
+        return _maxTotalSupply;
     }
 
     /// @notice Checks if the address is a holder

@@ -25,6 +25,10 @@ interface IBentureProducedToken is IERC20 {
     /// @return The array of addresses of all token holders
     function holders() external view returns (address[] memory);
 
+    /// @notice Returns the max total supply of the token
+    /// @return The max total supply of the token
+    function maxTotalSupply() external view returns (uint256);
+
     /// @notice Checks if the address is a holder
     /// @param account The address to check
     /// @return True if address is a holder. False if it is not

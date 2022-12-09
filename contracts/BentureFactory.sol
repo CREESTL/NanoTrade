@@ -43,7 +43,7 @@ contract BentureFactory is IBentureFactory {
             adminToken_
         );
 
-        emit CreateERC20Token(name, symbol, decimals, mintable);
+        emit CreateERC20Token(name, symbol, address(newToken), decimals, mintable);
 
         // The address of the produced token gets changed each time
         _lastProducedToken = address(newToken);

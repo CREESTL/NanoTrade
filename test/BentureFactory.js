@@ -28,14 +28,18 @@ describe("Benture Factory", () => {
     it("Should create a new ERC20 token and connect it to ERC721 token", async () => {
       expect(await adminToken.balanceOf(ownerAcc.address)).to.equal(0);
       expect(await factory.lastProducedToken()).to.equal(zeroAddress);
-      await factory.createERC20Token(
-        "Dummy",
-        "DMM",
-        18,
-        true,
-        1_000_000,
-        adminToken.address
-      );
+      await expect(
+        factory.createERC20Token(
+          "Dummy",
+          "DMM",
+          18,
+          true,
+          1_000_000,
+          adminToken.address
+        )
+      )
+        .to.emit(factory, "CreateERC20Token")
+        .withArgs("Dummy", "DMM", await factory.lastProducedToken(), 18, true);
       expect(await factory.lastProducedToken()).to.not.equal(zeroAddress);
       expect(await adminToken.balanceOf(ownerAcc.address)).to.equal(1);
     });

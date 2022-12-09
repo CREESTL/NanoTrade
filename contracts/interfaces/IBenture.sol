@@ -18,7 +18,7 @@ interface IBenture {
         address origToken,
         address distToken,
         uint256 amount
-    ) external;
+    ) external payable;
 
     /// @notice Distributes one token as dividends for holders of another token _according to each user's balance_
     /// @param origToken The address of the token that is held by receivers
@@ -31,12 +31,7 @@ interface IBenture {
         address origToken,
         address distToken,
         uint256 weight
-    ) external;
-
-    /// @notice Calculates the minimum currently allowed weight.
-    ///         Weight used in distributing dividends should be equal/greater than this
-    /// @param origToken The address of the token that is held by receivers
-    function calcMinWeight(address origToken) external view returns (uint256);
+    ) external payable;
 
     /// @dev Indicates that dividends were distributed
     /// @param distToken The address of dividend token that gets distributed

@@ -43,7 +43,7 @@ interface IBentureAdmin {
     event AdminTokenBurnt(uint256 indexed tokenId);
 
     /// @dev Indicates that an ERC721 token got transferred
-    event AdminTokenTransfered(
+    event AdminTokenTransferred(
         address indexed from,
         address indexed to,
         uint256 tokenId

@@ -61,14 +61,37 @@ describe("Benture Produced Token", () => {
       expect(holders.length).to.equal(0);
     });
 
-    it("Should check that user is an admin", async() => {
+    it("Should have a fixed max token supply", async () => {
+      expect(await token.maxTotalSupply()).to.equal(1_000_000);
+    });
+
+    it("Should have an 'infinite' max total supply", async () => {
+      await factory.createERC20Token(
+        "AAA",
+        "BBB",
+        18,
+        true,
+        // Zero for "infinite" max total supply
+        0,
+        adminToken.address
+      );
+
+      // Get the address of the last ERC20 token produced in the factory
+      let newTokenAddress = await factory.lastProducedToken();
+      let newToken = await ethers.getContractAt("BentureProducedToken", newTokenAddress);
+      // Actually it's not infinite. It's a max possible value in Solidity - type(uint256).max
+      expect(await newToken.maxTotalSupply()).to.equal(ethers.constants.MaxUint256);
+
+    });
+
+    it("Should check that user is an admin", async () => {
       // Owner is an admin
       await expect(token.checkAdmin(ownerAcc.address)).not.to.be.reverted;
       // Client is not
       await expect(token.checkAdmin(clientAcc1.address)).to.be.revertedWith(
         "BentureAdmin: user does not have an admin token!"
       );
-    })
+    });
   });
 
   describe("Mint", () => {
@@ -99,6 +122,7 @@ describe("Benture Produced Token", () => {
         "BentureProducedToken: supply exceeds maximum supply!"
       );
     });
+
 
     it("Should fail to mint to zero address", async () => {
       let amount = 1000;
@@ -316,6 +340,7 @@ describe("Benture Produced Token", () => {
   });
 
   describe("Constructor", () => {
+
     it("Should fail to initialize with wrong name", async () => {
       await expect(
         factory.createERC20Token(
@@ -373,21 +398,6 @@ describe("Benture Produced Token", () => {
         )
       ).to.be.revertedWith(
         "BentureProducedToken: admin token address can not be a zero address!"
-      );
-    });
-
-    it("Should fail to initialize with wrong max total supply", async () => {
-      await expect(
-        factory.createERC20Token(
-          "Dummy",
-          "DMM",
-          18,
-          true,
-          0,
-          adminToken.address
-        )
-      ).to.be.revertedWith(
-        "BentureProducedToken: max total supply can not be zero!"
       );
     });
 
