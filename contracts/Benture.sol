@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./interfaces/IBenture.sol";
 import "./interfaces/IBentureProducedToken.sol";
 
-/// @title Dividend-Paying Token
+/// @title Dividends ditributing contract
 contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @dev The contract must be able to receive ether to pay dividends with it
     receive() external payable {}
@@ -105,7 +105,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         } else {
             endBalance = address(this).balance;
         }
-        // TODO do tests for it
         // All distTokens that were for some reason not distributed are returned 
         // to the admin
         uint256 reallyDistributed = startBalance - endBalance;
@@ -226,7 +225,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             endBalance = address(this).balance;
         }
 
-        // TODO do tests for it
         // All distTokens that were for some reason not distributed are returned 
         // to the admin
         uint256 reallyDistributed = startBalance - endBalance;

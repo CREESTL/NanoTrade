@@ -1,4 +1,5 @@
 const { ethers } = require("hardhat");
+const { BigNumber } = require("ethers");
 const { expect } = require("chai");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 
@@ -12,7 +13,7 @@ describe("Benture Dividend-Paying Token", () => {
 
   // Deploy all contracts before each test suite
   beforeEach(async () => {
-    [ownerAcc, clientAcc1, clientAcc2] = await ethers.getSigners();
+    [ownerAcc, clientAcc1, clientAcc2, clientAcc3] = await ethers.getSigners(); 
 
     // Deploy a factory contract
     let factoryTx = await ethers.getContractFactory("BentureFactory");
@@ -185,6 +186,27 @@ describe("Benture Dividend-Paying Token", () => {
         expect(client1EndBalance.sub(client1StartBalance)).to.equal(5_000);
         expect(client2EndBalance.sub(client2StartBalance)).to.equal(5_000);
         expect(bentureEndBalance).to.equal(0);
+      });
+
+      it("Should return undistributed tokens back to admin", async () => {
+        await origToken.mint(clientAcc1.address, 1);
+        await origToken.mint(clientAcc2.address, 1);
+        let ownerStartBalance = await distToken.balanceOf(ownerAcc.address);
+        await expect(
+          benture.connect(ownerAcc).distributeDividendsEqual(
+            origToken.address,
+            distToken.address,
+            // 1001 / 2 = 500
+            // One should be left
+            1001
+          )
+        )
+          .to.emit(benture, "DividendsDistributed")
+          .withArgs(anyValue, anyValue);
+
+        let ownerEndBalance = await distToken.balanceOf(ownerAcc.address);
+        // 500 * 2 should be distributed and 1 returned
+        expect(ownerStartBalance.sub(ownerEndBalance)).to.equal(1000);
       });
 
       it("Should not distribute dividends if benture address is the only holder", async () => {
@@ -470,6 +492,27 @@ describe("Benture Dividend-Paying Token", () => {
         expect(bentureStartBalance).to.equal(bentureEndBalance);
       });
 
+      it("Should return undistributed tokens back to admin", async () => {
+        await origToken.mint(clientAcc1.address, 1);
+        await origToken.mint(clientAcc2.address, 1);
+        let ownerStartBalance = await distToken.balanceOf(ownerAcc.address);
+        await expect(
+          benture.connect(ownerAcc).distributeDividendsWeighted(
+            origToken.address,
+            distToken.address,
+            // 1001 / 2 = 500
+            // One should be left
+            1001
+          )
+        )
+          .to.emit(benture, "DividendsDistributed")
+          .withArgs(anyValue, anyValue);
+
+        let ownerEndBalance = await distToken.balanceOf(ownerAcc.address);
+        // 500 * 2 should be distributed and 1 returned
+        expect(ownerStartBalance.sub(ownerEndBalance)).to.equal(1000);
+      });
+
       it("Should not distribute dividends if benture address is the only holder", async () => {
         await origToken.mint(benture.address, 1000);
         let bentureStartBalance = await distToken.balanceOf(benture.address);
@@ -734,6 +777,35 @@ describe("Benture Dividend-Paying Token", () => {
           parseEther("3")
         );
         expect(bentureEndBalance).to.equal(parseEther("0"));
+      });
+
+      it("Should return undistributed tokens back to admin", async () => {
+        await origToken.mint(clientAcc1.address, 1);
+        await origToken.mint(clientAcc2.address, 1);
+        await origToken.mint(clientAcc3.address, 1);
+        let ownerStartBalance = await ethers.provider.getBalance(
+          ownerAcc.address
+        );
+        await expect(
+          benture.connect(ownerAcc).distributeDividendsEqual(
+            origToken.address,
+            zeroAddress,
+            // 500000... / 3 = 16666.....
+            parseEther("5"),
+            {value: parseEther("5")}
+          )
+        )
+          .to.emit(benture, "DividendsDistributed")
+          .withArgs(anyValue, anyValue);
+
+        let ownerEndBalance = await ethers.provider.getBalance(
+          ownerAcc.address
+        );
+        let forEach = parseEther("5").div(3);
+        let forAll = forEach.mul(3);
+        let expectedDiff = ownerStartBalance.sub(forAll);
+        let expectedDiffWithGas = expectedDiff.mul(BigNumber.from("2"));
+        expect(ownerStartBalance.sub(ownerEndBalance)).to.be.lt(expectedDiffWithGas);
       });
 
       it("Should not distribute dividends if benture address is the only holder", async () => {
@@ -1019,6 +1091,35 @@ describe("Benture Dividend-Paying Token", () => {
           5000
         );
         expect(bentureStartBalance).to.equal(bentureEndBalance);
+      });
+
+      it("Should return undistributed tokens back to admin", async () => {
+        await origToken.mint(clientAcc1.address, 1);
+        await origToken.mint(clientAcc2.address, 1);
+        await origToken.mint(clientAcc3.address, 1);
+        let ownerStartBalance = await ethers.provider.getBalance(
+          ownerAcc.address
+        );
+        await expect(
+          benture.connect(ownerAcc).distributeDividendsWeighted(
+            origToken.address,
+            zeroAddress,
+            // 500000... / 3 = 16666.....
+            parseEther("5"),
+            {value: parseEther("5")}
+          )
+        )
+          .to.emit(benture, "DividendsDistributed")
+          .withArgs(anyValue, anyValue);
+
+        let ownerEndBalance = await ethers.provider.getBalance(
+          ownerAcc.address
+        );
+        let forEach = parseEther("5").div(3);
+        let forAll = forEach.mul(3);
+        let expectedDiff = ownerStartBalance.sub(forAll);
+        let expectedDiffWithGas = expectedDiff.mul(BigNumber.from("2"));
+        expect(ownerStartBalance.sub(ownerEndBalance)).to.be.lt(expectedDiffWithGas);
       });
 
       it("Should not distribute dividends if benture address is the only holder", async () => {
