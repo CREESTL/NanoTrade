@@ -89,7 +89,7 @@ interface ISalary {
     /// @param employeeAddress Address of employee.
     /// @param name New name of employee.
     /// @dev Only admin can call this method.
-    function addNameToEmployee(address employeeAddress, string memory name) external;
+    function setNameToEmployee(address employeeAddress, string memory name) external;
 
     /// @notice Removes name from employee.
     /// @param employeeAddress Address of employee.
@@ -99,16 +99,23 @@ interface ISalary {
     /// @notice Adds salary to employee.
     /// @param employeeAddress Address of employee.
     /// @dev Only admin can call this method.
-    function addSalaryToEmployee(address employeeAddress, SalaryInfo memory salary) external;
+    function addSalaryToEmployee(
+        address employeeAddress, 
+        uint256 periodDuration,
+        uint256 amountOfPeriods,
+        address tokenAddress,
+        uint256 totalTokenAmount,
+        uint256 tokensAmountPerPeriod
+    ) external;
 
     /// @notice Removes salary from employee.
     /// @param employeeAddress Address of employee.
     /// @param salaryId ID of employee salary.
     /// @dev Only admin can call this method.
-    function removeSalaryFromEmployee(address employeeAddress, uint256 salaryId) external;
+    function removeSalaryFromEmployee(uint256 salaryId) external;
 
     /// @notice Withdraws employee's salary.
     /// @param salaryId IDs of employee salaries.
     /// @dev Anyone can call this method. No restrictions.
-    function withdrawSalary(uint256[]  memory salaryId) external;
+    function withdrawSalary(uint256 salaryId) external;
 }
