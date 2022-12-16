@@ -138,20 +138,16 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
     /// @param tokenId The ID of the admin token to delete
     function deleteOneId(address admin, uint256 tokenId) internal {
         // Get all current admin token IDs
-        uint256[] memory allIds = _holderToIds[admin];
-        // This array will replace the current one
-        uint256[] memory replacingIds = new uint256[](allIds.length - 1);
-        uint256 index = 0;
-        for (uint256 i = 0; i < allIds.length; i++) {
-            // Copy all IDs except for the one that has to be deleted
-            if (allIds[i] != tokenId) {
-                replacingIds[index] = allIds[i];
-                // Only increment index when actually adding a new value into the replacing array
-                index++;
+        uint256[] storage allIds = _holderToIds[admin];
+        uint256 length = allIds.length;
+        for (uint256 i = 0; i < length; i++) {
+            if (allIds[i] == tokenId) {
+                // Place the last ID instead of the deleted one and pop the second 
+                // copy of it
+                allIds[i] = allIds[length - 1];
+                allIds.pop();
             }
         }
-        // Replace an old array with a new one
-        _holderToIds[admin] = replacingIds;
     }
 
     /// @notice Mints a new ERC721 token with the address of the controlled ERC20 token
@@ -208,7 +204,6 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
         delete _idToHolder[tokenId];
 
         super._burn(tokenId);
-
         emit AdminTokenBurnt(tokenId);
     }
 
