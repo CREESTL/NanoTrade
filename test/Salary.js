@@ -19,7 +19,7 @@ describe("Salary", () => {
     }
 
   beforeEach(async () => {
-    [adminAcc1, adminAcc2, clientAcc1, clientAcc2] = await ethers.getSigners();
+    [adminAcc1, adminAcc2, clientAcc1, clientAcc2, clientAcc3] = await ethers.getSigners();
 
     // Deploy a factory contract
     let factoryTx = await ethers.getContractFactory("BentureFactory");
@@ -93,7 +93,7 @@ describe("Salary", () => {
     await adminToken.transferFrom(adminAcc1.address, adminAcc2.address, "1")
   });
 
-  xdescribe("Salary tests", () => {
+  describe("Salary tests", () => {
     it("Should add new Employee", async () => {
         await salary.addEmployee(clientAcc1.address)
         expect(await salary.checkIfUserIsEmployeeOfAdmin(adminAcc1.address, clientAcc1.address)).to.be.true
@@ -144,17 +144,8 @@ describe("Salary", () => {
         let tokensAmountPerPeriod = 10
         await salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
         
-        //console.log(await salary.getSalaryById(1))
-        let salaryInfo = await salary.getSalariesByEmployee(clientAcc1.address)
-        expect(salaryInfo[0].id).to.be.equal("1")
-        expect(salaryInfo[0].periodDuration).to.be.equal(periodDuration)
-        expect(salaryInfo[0].amountOfPeriods).to.be.equal(amountOfPeriods)
-        expect(salaryInfo[0].tokenAddress).to.be.equal(tokenAddress)
-        expect(salaryInfo[0].totalTokenAmount).to.be.equal(totalTokenAmount)
-        expect(salaryInfo[0].tokensAmountPerPeriod).to.be.equal(tokensAmountPerPeriod)
-        expect(salaryInfo[0].lastWithdrawalTime).to.be.equal((await getTimestump()).toString())
-        expect(salaryInfo[0].employer).to.be.equal(adminAcc1.address)
-        expect(salaryInfo[0].employee).to.be.equal(clientAcc1.address)
+        let salaryInfo = await salary.getSalariesIdByEmployee(clientAcc1.address)
+        expect(salaryInfo.length).to.be.equal(1)
 
         salaryInfo = await salary.getSalaryById("1")
         expect(salaryInfo.id).to.be.equal("1")
@@ -182,19 +173,20 @@ describe("Salary", () => {
 
       await salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
       
-      let salaryInfo = await salary.getSalariesByEmployee(clientAcc1.address)
-      expect(salaryInfo[0].id).to.be.equal("1")
-      expect(salaryInfo[0].periodDuration).to.be.equal(periodDuration)
-      expect(salaryInfo[0].amountOfPeriods).to.be.equal(amountOfPeriods)
-      expect(salaryInfo[0].tokenAddress).to.be.equal(tokenAddress)
-      expect(salaryInfo[0].totalTokenAmount).to.be.equal(totalTokenAmount)
-      expect(salaryInfo[0].tokensAmountPerPeriod).to.be.equal(tokensAmountPerPeriod)
-      expect(salaryInfo[0].lastWithdrawalTime).to.be.equal((await getTimestump()).toString())
-      expect(salaryInfo[0].employer).to.be.equal(adminAcc1.address)
-      expect(salaryInfo[0].employee).to.be.equal(clientAcc1.address)
+      let id = (await salary.getSalariesIdByEmployee(clientAcc1.address)).toString()
+      let salaryInfo = await salary.getSalaryById(id)
+      expect(salaryInfo.id).to.be.equal("1")
+      expect(salaryInfo.periodDuration).to.be.equal(periodDuration)
+      expect(salaryInfo.amountOfPeriods).to.be.equal(amountOfPeriods)
+      expect(salaryInfo.tokenAddress).to.be.equal(tokenAddress)
+      expect(salaryInfo.totalTokenAmount).to.be.equal(totalTokenAmount)
+      expect(salaryInfo.tokensAmountPerPeriod).to.be.equal(tokensAmountPerPeriod)
+      expect(salaryInfo.lastWithdrawalTime).to.be.equal((await getTimestump()).toString())
+      expect(salaryInfo.employer).to.be.equal(adminAcc1.address)
+      expect(salaryInfo.employee).to.be.equal(clientAcc1.address)
 
       await salary.removeSalaryFromEmployee("1")
-      salaryInfo = await salary.getSalariesByEmployee(clientAcc1.address)
+      salaryInfo = await salary.getSalariesIdByEmployee(clientAcc1.address)
       expect(salaryInfo.toString()).to.be.equal("")
 
       salaryInfo = await salary.getSalaryById("1")
@@ -221,11 +213,8 @@ describe("Salary", () => {
 
         let timeAfterWithdrawal = await getTimestump()
         expect(await mockERC20.balanceOf(clientAcc1.address)).to.be.equal(timeAfterWithdrawal - timeBeforeWithdrawal)
-        let salaryInfo = await salary.getSalariesByEmployee(clientAcc1.address)
-        expect(salaryInfo[0].lastWithdrawalTime).to.be.equal(await getTimestump())
-        expect(salaryInfo[0].amountOfWithdrawals).to.be.equal(1)
 
-        salaryInfo = await salary.getSalaryById("1")
+        let salaryInfo = await salary.getSalaryById("1")
         expect(salaryInfo.lastWithdrawalTime).to.be.equal(await getTimestump())
         expect(salaryInfo.amountOfWithdrawals).to.be.equal(1)
 
@@ -233,6 +222,101 @@ describe("Salary", () => {
         expect(await mockERC20.balanceOf(clientAcc1.address)).to.be.equal(expectedBalance)
         expect(await mockERC20.balanceOf(adminAcc1.address)).to.be.equal(initOwnerBalance - expectedBalance)
     });
+
+    it("Should let withdraw salary to Employee through Employee removal", async () => {
+      let initOwnerBalance = 1200
+      await mockERC20.mint(adminAcc1.address, initOwnerBalance)
+      await mockERC20.approve(salary.address, initOwnerBalance)
+      await salary.addEmployee(clientAcc1.address)
+      let periodDuration = 60
+      let amountOfPeriods = 10
+      let tokenAddress = mockERC20.address
+      let totalTokenAmount = 600
+      let tokensAmountPerPeriod = 60
+      await salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
+
+      let timeBeforeWithdrawal = await getTimestump()
+
+      //Already spent 1 sec
+      await increaseTime(59)
+      await salary.removeEmployee(clientAcc1.address)
+
+      let timeAfterWithdrawal = await getTimestump()
+      expect(await mockERC20.balanceOf(clientAcc1.address)).to.be.equal(timeAfterWithdrawal - timeBeforeWithdrawal)
+
+      let expectedBalance = tokensAmountPerPeriod * (timeAfterWithdrawal - timeBeforeWithdrawal) / periodDuration
+      expect(await mockERC20.balanceOf(clientAcc1.address)).to.be.equal(expectedBalance)
+      expect(await mockERC20.balanceOf(adminAcc1.address)).to.be.equal(initOwnerBalance - expectedBalance)
+  });
+
+  it("Should let not withdraw any additional tokens through removal right after withdraw", async () => {
+    let initOwnerBalance = 1200
+    await mockERC20.mint(adminAcc1.address, initOwnerBalance)
+    await mockERC20.approve(salary.address, initOwnerBalance)
+    await salary.addEmployee(clientAcc1.address)
+    let periodDuration = 60
+    let amountOfPeriods = 10
+    let tokenAddress = mockERC20.address
+    let totalTokenAmount = 600
+    let tokensAmountPerPeriod = 60
+    await salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
+
+    let timeBeforeWithdrawal = await getTimestump()
+
+    //Already spent 1 sec
+    await increaseTime(59)
+    await salary.connect(clientAcc1).withdrawSalary("1")
+    await salary.removeEmployee(clientAcc1.address)
+
+    let timeAfterWithdrawal = await getTimestump()
+    expect(await mockERC20.balanceOf(clientAcc1.address)).to.be.equal(timeAfterWithdrawal - timeBeforeWithdrawal)
+
+    let expectedBalance = tokensAmountPerPeriod * (timeAfterWithdrawal - timeBeforeWithdrawal) / periodDuration
+    expect(await mockERC20.balanceOf(clientAcc1.address)).to.be.equal(expectedBalance)
+    expect(await mockERC20.balanceOf(adminAcc1.address)).to.be.equal(initOwnerBalance - expectedBalance)
+});
+
+it("Should withdraw through removeEmployee only for setted periods", async () => {
+  let initOwnerBalance = 600
+  await mockERC20.mint(adminAcc1.address, initOwnerBalance)
+  await mockERC20.approve(salary.address, initOwnerBalance)
+  await salary.addEmployee(clientAcc1.address)
+  let periodDuration = 60
+  let amountOfPeriods = 10
+  let tokenAddress = mockERC20.address
+  let totalTokenAmount = 600
+  let tokensAmountPerPeriod = 60
+  await salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
+
+  //Already spent 1 sec
+  await increaseTime(periodDuration * amountOfPeriods * 100)
+
+  await salary.removeEmployee(clientAcc1.address)
+
+  expect(await mockERC20.balanceOf(clientAcc1.address)).to.be.equal(totalTokenAmount)
+  expect(await mockERC20.balanceOf(adminAcc1.address)).to.be.equal(0)
+});
+
+it("Should withdraw through withdrawSalary only for setted periods", async () => {
+  let initOwnerBalance = 600
+  await mockERC20.mint(adminAcc1.address, initOwnerBalance)
+  await mockERC20.approve(salary.address, initOwnerBalance)
+  await salary.addEmployee(clientAcc1.address)
+  let periodDuration = 60
+  let amountOfPeriods = 10
+  let tokenAddress = mockERC20.address
+  let totalTokenAmount = 600
+  let tokensAmountPerPeriod = 60
+  await salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
+
+  //Already spent 1 sec
+  await increaseTime(periodDuration * amountOfPeriods * 100)
+
+  await salary.connect(clientAcc1).withdrawSalary(1)
+
+  expect(await mockERC20.balanceOf(clientAcc1.address)).to.be.equal(totalTokenAmount)
+  expect(await mockERC20.balanceOf(adminAcc1.address)).to.be.equal(0)
+});
 
     it("Should add more than 1 salary to Employee from 1 admin", async () => {
         await mockERC20.mint(adminAcc1.address, 800)
@@ -245,16 +329,17 @@ describe("Salary", () => {
         let tokensAmountPerPeriod = 10
         await salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
 
-        let salaryInfo = await salary.getSalariesByEmployee(clientAcc1.address)
-        expect(salaryInfo[0].id).to.be.equal("1")
-        expect(salaryInfo[0].periodDuration).to.be.equal(periodDuration)
-        expect(salaryInfo[0].amountOfPeriods).to.be.equal(amountOfPeriods)
-        expect(salaryInfo[0].tokenAddress).to.be.equal(tokenAddress)
-        expect(salaryInfo[0].totalTokenAmount).to.be.equal(totalTokenAmount)
-        expect(salaryInfo[0].tokensAmountPerPeriod).to.be.equal(tokensAmountPerPeriod)
-        expect(salaryInfo[0].employer).to.be.equal(adminAcc1.address)
-        expect(salaryInfo[0].employee).to.be.equal(clientAcc1.address)
-        expect(salaryInfo[0].lastWithdrawalTime).to.be.equal((await getTimestump()).toString())
+        let id = await salary.getSalariesIdByEmployee(clientAcc1.address)
+        let salaryInfo = await salary.getSalaryById(id[0].toString())
+        expect(salaryInfo.id).to.be.equal("1")
+        expect(salaryInfo.periodDuration).to.be.equal(periodDuration)
+        expect(salaryInfo.amountOfPeriods).to.be.equal(amountOfPeriods)
+        expect(salaryInfo.tokenAddress).to.be.equal(tokenAddress)
+        expect(salaryInfo.totalTokenAmount).to.be.equal(totalTokenAmount)
+        expect(salaryInfo.tokensAmountPerPeriod).to.be.equal(tokensAmountPerPeriod)
+        expect(salaryInfo.employer).to.be.equal(adminAcc1.address)
+        expect(salaryInfo.employee).to.be.equal(clientAcc1.address)
+        expect(salaryInfo.lastWithdrawalTime).to.be.equal((await getTimestump()).toString())
 
         periodDuration = 100
         amountOfPeriods = 20
@@ -263,18 +348,19 @@ describe("Salary", () => {
         tokensAmountPerPeriod = 10
         await salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
 
-        salaryInfo = await salary.getSalariesByEmployee(clientAcc1.address)
-        expect(salaryInfo[1].id).to.be.equal("2")
-        expect(salaryInfo[1].periodDuration).to.be.equal(periodDuration)
-        expect(salaryInfo[1].amountOfPeriods).to.be.equal(amountOfPeriods)
-        expect(salaryInfo[1].tokenAddress).to.be.equal(tokenAddress)
-        expect(salaryInfo[1].totalTokenAmount).to.be.equal(totalTokenAmount)
-        expect(salaryInfo[1].tokensAmountPerPeriod).to.be.equal(tokensAmountPerPeriod)
-        expect(salaryInfo[1].employer).to.be.equal(adminAcc1.address)
-        expect(salaryInfo[1].employee).to.be.equal(clientAcc1.address)
-        expect(salaryInfo[1].lastWithdrawalTime).to.be.equal((await getTimestump()).toString())
+        id = await salary.getSalariesIdByEmployee(clientAcc1.address)
+        salaryInfo = await salary.getSalaryById(id[1].toString())
+        expect(salaryInfo.id).to.be.equal("2")
+        expect(salaryInfo.periodDuration).to.be.equal(periodDuration)
+        expect(salaryInfo.amountOfPeriods).to.be.equal(amountOfPeriods)
+        expect(salaryInfo.tokenAddress).to.be.equal(tokenAddress)
+        expect(salaryInfo.totalTokenAmount).to.be.equal(totalTokenAmount)
+        expect(salaryInfo.tokensAmountPerPeriod).to.be.equal(tokensAmountPerPeriod)
+        expect(salaryInfo.employer).to.be.equal(adminAcc1.address)
+        expect(salaryInfo.employee).to.be.equal(clientAcc1.address)
+        expect(salaryInfo.lastWithdrawalTime).to.be.equal((await getTimestump()).toString())
 
-        expect(salaryInfo.length).to.be.equal(2)
+        expect((await salary.getSalariesIdByEmployee(clientAcc1.address)).length).to.be.equal(2)
     });
 
     it("Should add more than 1 salary to Employee from 1 admin and delete only one of them", async () => {
@@ -296,21 +382,23 @@ describe("Salary", () => {
       await salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
 
       await salary.removeSalaryFromEmployee("1")
-      let salaryInfo = await salary.getSalariesByEmployee(clientAcc1.address)
+      let salaryInfo = await salary.getSalariesIdByEmployee(clientAcc1.address)
+      
       expect(salaryInfo.length).to.be.equal(1)
 
       salaryInfo = await salary.getSalaryById("1")
       expect(salaryInfo.toString()).to.be.equal("0,0,0,0,0x0000000000000000000000000000000000000000,0,0,0,0x0000000000000000000000000000000000000000,0x0000000000000000000000000000000000000000")
     
-      salaryInfo = await salary.getSalariesByEmployee(clientAcc1.address)
-      expect(salaryInfo[0].id).to.be.equal("2")
-      expect(salaryInfo[0].periodDuration).to.be.equal(periodDuration)
-      expect(salaryInfo[0].amountOfPeriods).to.be.equal(amountOfPeriods)
-      expect(salaryInfo[0].tokenAddress).to.be.equal(tokenAddress)
-      expect(salaryInfo[0].totalTokenAmount).to.be.equal(totalTokenAmount)
-      expect(salaryInfo[0].tokensAmountPerPeriod).to.be.equal(tokensAmountPerPeriod)
-      expect(salaryInfo[0].employer).to.be.equal(adminAcc1.address)
-      expect(salaryInfo[0].employee).to.be.equal(clientAcc1.address)
+      salaryInfo = await salary.getSalaryById("2")
+
+      expect(salaryInfo.id).to.be.equal("2")
+      expect(salaryInfo.periodDuration).to.be.equal(periodDuration)
+      expect(salaryInfo.amountOfPeriods).to.be.equal(amountOfPeriods)
+      expect(salaryInfo.tokenAddress).to.be.equal(tokenAddress)
+      expect(salaryInfo.totalTokenAmount).to.be.equal(totalTokenAmount)
+      expect(salaryInfo.tokensAmountPerPeriod).to.be.equal(tokensAmountPerPeriod)
+      expect(salaryInfo.employer).to.be.equal(adminAcc1.address)
+      expect(salaryInfo.employee).to.be.equal(clientAcc1.address)
     });
 
     it("Should add more than 1 salary to Employee from 2 admins", async () => {
@@ -324,8 +412,9 @@ describe("Salary", () => {
       let tokensAmountPerPeriod = 10
       await salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
 
-      let salaryInfo = await salary.getSalariesByEmployee(clientAcc1.address)
-      expect(salaryInfo[0].employer).to.be.equal(adminAcc1.address)
+      let id = await salary.getSalariesIdByEmployee(clientAcc1.address)
+      let salaryInfo = await salary.getSalaryById(id[0].toString())
+      expect(salaryInfo.employer).to.be.equal(adminAcc1.address)
 
 
       await mockERC20.mint(adminAcc2.address, 200)
@@ -338,14 +427,15 @@ describe("Salary", () => {
       tokensAmountPerPeriod = 10
       await salary.connect(adminAcc2).addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
 
-      salaryInfo = await salary.getSalariesByEmployee(clientAcc1.address)
-      expect(salaryInfo[1].employer).to.be.equal(adminAcc2.address)
+      id = await salary.getSalariesIdByEmployee(clientAcc1.address)
+      salaryInfo = await salary.getSalaryById(id[1].toString())
+      expect(salaryInfo.employer).to.be.equal(adminAcc2.address)
 
       expect((await salary.getAdminsByEmployee(clientAcc1.address)).length).to.be.equal(2)
       expect((await salary.getEmployeesByAdmin(adminAcc1.address)).length).to.be.equal(1)
       expect((await salary.getEmployeesByAdmin(adminAcc2.address)).length).to.be.equal(1)
       
-      expect(salaryInfo.length).to.be.equal(2)
+      expect((await salary.getSalariesIdByEmployee(clientAcc1.address)).length).to.be.equal(2)
     });
 
     it("Should withdraw more than 1 salary", async () => {
@@ -443,13 +533,141 @@ describe("Salary", () => {
       await expect(salary.connect(adminAcc2).setNameToEmployee(clientAcc1.address, "Alice")).to.be.revertedWith("Salary: not allowed to set name!")
     });
 
-    xit("Should not let to withdraw more salary than total amount", async () => {
-
+    it("Should revert removeNameFromEmployee with BentureAdmin: user does not have an admin token!", async () => {
+      await salary.addEmployee(clientAcc1.address)
+      await expect(salary.connect(clientAcc1).removeNameFromEmployee(clientAcc1.address)).to.be.revertedWith("BentureAdmin: user does not have an admin token!")
     });
 
-    xit("Should not let to withdraw more salary than total amount", async () => {
+    it("Should revert removeNameFromEmployee with Salary: not allowed to set name!", async () => {
+      await salary.addEmployee(clientAcc1.address)
+      await expect(salary.connect(adminAcc2).removeNameFromEmployee(clientAcc1.address)).to.be.revertedWith("Salary: not allowed to remove name!")
+    });
 
+
+    it("Should return false when user is not Employee", async () => {
+      await salary.addEmployee(clientAcc1.address)
+      await salary.addEmployee(clientAcc2.address)
+      expect(await salary.checkIfUserIsEmployeeOfAdmin(adminAcc1.address, clientAcc3.address)).to.be.equal(false)
+    });
+
+    it("Should revert addEmployee with Salary: user already is employee!", async () => {
+      await salary.addEmployee(clientAcc1.address)
+      await expect(salary.addEmployee(clientAcc1.address)).to.be.revertedWith("Salary: user already is employee!")
+    });
+
+    it("Should revert addEmployee with BentureAdmin: user does not have an admin token!", async () => {
+      await expect( salary.connect(clientAcc1).addEmployee(clientAcc2.address)).to.be.revertedWith("BentureAdmin: user does not have an admin token!")
+    });
+
+    it("Should revert removeEmployee with Salary: already not an employee!", async () => {
+      await expect(salary.removeEmployee(clientAcc1.address)).to.be.revertedWith("Salary: already not an employee!")
+    });
+
+    it("Should removeEmployee without different admin salary removal", async () => {
+      await mockERC20.mint(adminAcc1.address, 600)
+      await mockERC20.approve(salary.address, 600)
+      await salary.connect(adminAcc1).addEmployee(clientAcc1.address)
+      await salary.connect(adminAcc2).addEmployee(clientAcc1.address)
+
+      let periodDuration = 60
+      let amountOfPeriods = 10
+      let tokenAddress = mockERC20.address
+      let totalTokenAmount = 600
+      let tokensAmountPerPeriod = 60
+      await salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
+
+      let salaries = await salary.getSalariesIdByEmployee(clientAcc1.address)
+      expect(salaries.length).to.be.equal(1)
+
+      await salary.connect(adminAcc2).removeEmployee(clientAcc1.address)
+
+      salaries = await salary.getSalariesIdByEmployee(clientAcc1.address)
+      expect(salaries.length).to.be.equal(1)
+    });
+
+    it("Should revert addSalaryToEmployee with Salary: not enough tokens allowed!", async () => {
+      await mockERC20.mint(adminAcc1.address, 600)
+      await mockERC20.approve(salary.address, 100)
+      await salary.connect(adminAcc1).addEmployee(clientAcc1.address)
+
+      let periodDuration = 60
+      let amountOfPeriods = 10
+      let tokenAddress = mockERC20.address
+      let totalTokenAmount = 600
+      let tokensAmountPerPeriod = 60
+      await expect(salary.addSalaryToEmployee(
+        clientAcc1.address, 
+        periodDuration, 
+        amountOfPeriods, 
+        tokenAddress, 
+        totalTokenAmount, 
+        tokensAmountPerPeriod
+      )).to.be.revertedWith("Salary: not enough tokens allowed!")
+    });
+
+    it("Should revert withdrawSalary with Salary: not employee for this salary!", async () => {
+      await mockERC20.mint(adminAcc1.address, 600)
+      await mockERC20.approve(salary.address, 600)
+      await salary.connect(adminAcc1).addEmployee(clientAcc1.address)
+
+      let periodDuration = 60
+      let amountOfPeriods = 10
+      let tokenAddress = mockERC20.address
+      let totalTokenAmount = 600
+      let tokensAmountPerPeriod = 60
+
+      await salary.addSalaryToEmployee(
+        clientAcc1.address, 
+        periodDuration, 
+        amountOfPeriods, 
+        tokenAddress, 
+        totalTokenAmount, 
+        tokensAmountPerPeriod
+      )
+
+      await increaseTime(59)
+
+      await expect(salary.connect(clientAcc2).withdrawSalary(1)).to.be.revertedWith("Salary: not employee for this salary!")
+    });
+
+    it("Should revert removeSalaryFromEmployee with Salary: not an admin for employee!", async () => {
+      let initOwnerBalance = 1200
+      await mockERC20.mint(adminAcc1.address, initOwnerBalance)
+      await mockERC20.approve(salary.address, initOwnerBalance)
+      await salary.addEmployee(clientAcc1.address)
+      let periodDuration = 60
+      let amountOfPeriods = 10
+      let tokenAddress = mockERC20.address
+      let totalTokenAmount = 600
+      let tokensAmountPerPeriod = 60
+      await salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
+
+      await expect(salary.connect(adminAcc2).removeSalaryFromEmployee("1")).to.be.revertedWith("Salary: not an admin for employee!")
+    });
+
+    it("Should revert removeSalaryFromEmployee with Salary: not an admin of salary!", async () => {
+      let initOwnerBalance = 1200
+      await mockERC20.mint(adminAcc1.address, initOwnerBalance)
+      await mockERC20.approve(salary.address, initOwnerBalance)
+      await salary.addEmployee(clientAcc1.address)
+      let periodDuration = 60
+      let amountOfPeriods = 10
+      let tokenAddress = mockERC20.address
+      let totalTokenAmount = 600
+      let tokensAmountPerPeriod = 60
+      await salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
+
+      await mockERC20.mint(adminAcc2.address, initOwnerBalance)
+      await mockERC20.connect(adminAcc2).approve(salary.address, initOwnerBalance)
+      await salary.connect(adminAcc2).addEmployee(clientAcc1.address)
+      periodDuration = 60
+      amountOfPeriods = 10
+      tokenAddress = mockERC20.address
+      totalTokenAmount = 600
+      tokensAmountPerPeriod = 60
+      await salary.connect(adminAcc2).addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
+
+      await expect(salary.connect(adminAcc2).removeSalaryFromEmployee("1")).to.be.revertedWith("Salary: not an admin of salary!")
     });
   })
-
 })

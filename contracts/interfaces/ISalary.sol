@@ -54,16 +54,16 @@ interface ISalary {
     /// @return admins The array of admins of employee.
     function getAdminsByEmployee(address employeeAddress) external returns(address[] memory admins);
 
-    /// @notice Returns true if user if admin for employee and False if not.
+    /// @notice Returns true if user is admin for employee and False if not.
     /// @param employeeAddress Address of employee.
     /// @param adminAddress Address of admin.
-    /// @return isAdmin True if user if admin for employee. False if not.
+    /// @return isAdmin True if user is admin for employee. False if not.
     function checkIfUserIsAdminOfEmployee(address employeeAddress, address adminAddress) external returns(bool isAdmin);
 
     /// @notice Returns array of salaries of employee.
     /// @param employeeAddress Address of employee.
     /// @return salaries Array of salaries of employee.
-    function getSalariesByEmployee(address employeeAddress) external returns(SalaryInfo[] memory salaries);
+    function getSalariesByEmployee(address employeeAddress) external returns(uint256[] memory salaries);
 
     /// @notice Returns employee by salary ID.
     /// @param salaryId Id of SalaryInfo.
@@ -85,7 +85,7 @@ interface ISalary {
     /// @dev Only admin can call this method.
     function removeEmployee(address employeeAddress) external;
 
-    /// @notice Adds new name to employee.
+    /// @notice Sets new or changes current name of the employee.
     /// @param employeeAddress Address of employee.
     /// @param name New name of employee.
     /// @dev Only admin can call this method.
@@ -109,7 +109,6 @@ interface ISalary {
     ) external;
 
     /// @notice Removes salary from employee.
-    /// @param employeeAddress Address of employee.
     /// @param salaryId ID of employee salary.
     /// @dev Only admin can call this method.
     function removeSalaryFromEmployee(uint256 salaryId) external;
