@@ -70,13 +70,16 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
             "BentureProducedToken: admin token address can not be a zero address!"
         );
         // In any case, maxTotalSupply can't be negative
-        require(maxTotalSupply_ >= 0, "BentureProducedToken: max total supply can not be a negative value!");
+        require(
+            maxTotalSupply_ >= 0,
+            "BentureProducedToken: max total supply can not be a negative value!"
+        );
         if (mintable_) {
-            // If token is mintable it could either have a fixed maxTotalSupply or 
+            // If token is mintable it could either have a fixed maxTotalSupply or
             // have an "infinite" supply
             // ("infinite" up to max value of `uint256` type)
             if (maxTotalSupply_ == 0) {
-                // If 0 value was provided by the user, that means he wants to create 
+                // If 0 value was provided by the user, that means he wants to create
                 // a token with an "infinite" max total supply
                 maxTotalSupply_ = type(uint256).max;
             }
@@ -277,12 +280,16 @@ contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
         delete _holdersIndexes[deletedHolder];
         // Then delete the holder from used holders
         delete _usedHolders[deletedHolder];
+        // If deleted holder is the last one, just pop him
+        if (index == length - 1) {
+            _holders.pop();
+            return;
+        }
         // Place the last element of the array instead of the deleted one
         _holders[index] = _holders[length - 1];
-        address replacingHolder = _holders[index];
-        // Update the index of the element that was placed instead of the deleted one
-        _holdersIndexes[replacingHolder] = index;
         // Delete a second copy of that element
         _holders.pop();
+        // Update the index of the element that was placed instead of the deleted one
+        _holdersIndexes[_holders[index]] = index;
     }
 }

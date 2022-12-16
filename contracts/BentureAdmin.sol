@@ -105,8 +105,15 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
 
     /// @notice Returns the list of all admin tokens of the user
     /// @param admin The address of the admin
-    function getAdminTokenIds(address admin) external view returns(uint256[] memory) {
-        require(admin != address(0), "BentureAdmin: admin address can not be a zero address!");
+    function getAdminTokenIds(address admin)
+        external
+        view
+        returns (uint256[] memory)
+    {
+        require(
+            admin != address(0),
+            "BentureAdmin: admin address can not be a zero address!"
+        );
         return _holderToIds[admin];
     }
 
