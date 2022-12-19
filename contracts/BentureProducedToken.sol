@@ -3,11 +3,10 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "./interfaces/IBentureProducedToken.sol";
 import "./interfaces/IBentureAdmin.sol";
 
-contract BentureProducedToken is ERC20, IBentureProducedToken, Initializable {
+contract BentureProducedToken is ERC20, IBentureProducedToken {
     string internal _tokenName;
     string internal _tokenSymbol;
     uint8 internal _decimals;
