@@ -211,12 +211,12 @@ contract Salary {
                 _salary.employer,
                 _salary.employee,
                 periodsToPay * _salary.tokensAmountPerPeriod
-            ) == true, "Salary: Transfer failed");
+            ), "Salary: Transfer failed");
 
-            salaryById[salaryId].amountOfWithdrawals =
+            _salary.amountOfWithdrawals =
                 _salary.amountOfWithdrawals +
                 periodsToPay;
-            salaryById[salaryId].lastWithdrawalTime = block.timestamp;
+            _salary.lastWithdrawalTime = block.timestamp;
 
             emit EmployeeSalaryClaimed(
                 _salary.employee,
@@ -347,7 +347,7 @@ contract Salary {
                 msg.sender,
                 _salary.employee,
                 amountToPay
-            ) == true, "Salary: Transfer failed");
+            ), "Salary: Transfer failed");
         }
 
         employeeToSalaryId[_salary.employee].remove(salaryId);
