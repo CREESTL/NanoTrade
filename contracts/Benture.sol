@@ -228,21 +228,22 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         );
     }
 
-    /// @notice Distributes one token as dividends for holders of another token _equally _
-    /// @param id The ID of the distribution that is being fulfilled
+    /// @dev Makes sanitary checks before token distribution
     /// @param origToken The address of the token that is held by receivers;
     ///        Can not be a zero address!
     ///        MUST be an address of a contract - not an address of EOA!
     /// @param distToken The address of the token that is to be distributed as dividends
     ///        Zero address for native token (ether, wei)
+    /// @param id The ID of the distribution that is being fulfilled
     /// @param amount The amount of distTokens to be distributed in total
-    ///        NOTE: This amount takes `decimals` into account. For example 4 USDT = 4 000 000 units
-    function distributeDividendsEqual(
-        uint256 id,
+    /// @param isEqual Indicates whether the distribution is equal or not
+    function preDistChecks(
         address origToken,
         address distToken,
-        uint256 amount
-    ) external payable nonReentrant {
+        uint256 id,
+        uint256 amount,
+        bool isEqual
+    ) internal {
         require(
             origToken != address(0),
             "Benture: original token can not have a zero address!"
@@ -257,7 +258,15 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // Check that caller is an admin of `origToken`
         IBentureProducedToken(origToken).checkAdmin(msg.sender);
         // Check that distribution can be fulfilled
-        canFulfill(id, origToken, distToken, amount, true);
+        canFulfill(id, origToken, distToken, amount, isEqual);
+    }
+
+    /// @dev Checks that `Benture` has enough tokens to distribute
+    ///      the required amount
+    /// @param distToken The address of the token that is to be distributed as dividends
+    ///        Zero address for native token (ether, wei)
+    /// @param amount The amount of distTokens to be distributed in total
+    function preDistTransfer(address distToken, uint256 amount) internal {
         if (distToken == address(0)) {
             // Check that enough native tokens were sent with the transaction
             require(
@@ -278,13 +287,67 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
                 "Benture: transfer of dividend tokens to the contract has failed!"
             );
         }
-        // The initial balance before distribution
-        uint256 startBalance;
-        if (distToken != address(0)) {
-            startBalance = IERC20(distToken).balanceOf(address(this));
-        } else {
-            startBalance = address(this).balance;
+    }
+
+    /// @dev Returns tokens that were not distributed back to the admin
+    /// @param distToken The address of the token that is to be distributed as dividends
+    ///        Zero address for native token (ether, wei)
+    /// @param amount The amount of distTokens to be distributed in total
+    /// @param startBalance The balance of the the `distToken` before distribution
+    /// @param endBalance The balance of the the `distToken` after distribution
+    function returnLeft(address distToken, uint256 amount, uint256 startBalance, uint256 endBalance) internal {
+        uint256 reallyDistributed = startBalance - endBalance;
+        if (reallyDistributed != amount) {
+            if (distToken != address(0)) {
+                IERC20(distToken).transfer(
+                    msg.sender,
+                    amount - reallyDistributed
+                );
+            } else {
+                msg.sender.call{value: amount - reallyDistributed};
+            }
         }
+    }
+
+    /// @dev Returns the current `distToken` address of this contract
+    /// @param distToken The address of the token to get the balance in
+    /// @return The `distToken` balance of this contract
+    function getCurrentBalance(address distToken) internal view returns(uint256) {
+        uint256 balance;
+        if (distToken != address(0)) {
+            balance = IERC20(distToken).balanceOf(address(this));
+        } else {
+            balance = address(this).balance;
+        }
+
+        return balance;
+
+    }
+
+    /// @notice Distributes one token as dividends for holders of another token _equally _
+    /// @param id The ID of the distribution that is being fulfilled
+    /// @param origToken The address of the token that is held by receivers;
+    ///        Can not be a zero address!
+    ///        MUST be an address of a contract - not an address of EOA!
+    /// @param distToken The address of the token that is to be distributed as dividends
+    ///        Zero address for native token (ether, wei)
+    /// @param amount The amount of distTokens to be distributed in total
+    ///        NOTE: This amount takes `decimals` into account. For example 4 USDT = 4 000 000 units
+    function distributeDividendsEqual(
+        uint256 id,
+        address origToken,
+        address distToken,
+        uint256 amount
+    ) external payable nonReentrant {
+
+        // Do all necessary checks before distributing dividends
+        preDistChecks(origToken, distToken, id, amount, true);
+        // Transfer tokens to the `Benture` contract before distributing dividends
+        preDistTransfer(distToken, amount);
+
+        // The initial balance before distribution
+        uint256 startBalance = getCurrentBalance(distToken);
+
         // Get all holders of the origToken
         address[] memory receivers = IBentureProducedToken(origToken).holders();
         uint256 length = receivers.length;
@@ -329,32 +392,18 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         }
 
         // The balance after the distribution
-        uint256 endBalance;
-        if (distToken != address(0)) {
-            endBalance = IERC20(distToken).balanceOf(address(this));
-        } else {
-            endBalance = address(this).balance;
-        }
+        uint256 endBalance = getCurrentBalance(distToken);
+
         // All distTokens that were for some reason not distributed are returned
         // to the admin
-        uint256 reallyDistributed = startBalance - endBalance;
-        if (reallyDistributed != amount) {
-            if (distToken != address(0)) {
-                IERC20(distToken).transfer(
-                    msg.sender,
-                    amount - reallyDistributed
-                );
-            } else {
-                msg.sender.call{value: amount - reallyDistributed};
-            }
-        }
+        returnLeft(distToken, amount, startBalance, endBalance);
 
         // Change distribution status to `fulfilled`
         Distribution storage distribution = distributions[idsToIndexes[id]];
         distribution.status = DistStatus.fulfilled;
 
         emit DividendsFulfilled(id);
-        emit DividendsDistributed(distToken, reallyDistributed);
+        emit DividendsDistributed(distToken, startBalance - endBalance);
     }
 
     /// @notice Distributes one token as dividends for holders of another token _according to each user's balance_
@@ -371,49 +420,16 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         address distToken,
         uint256 amount
     ) external payable nonReentrant {
-        // It is impossible to give distTokens for zero origTokens
-        require(
-            origToken != address(0),
-            "Benture: original token can not have a zero address!"
-        );
-        // Check if the contract with the provided address has `holders()` function
-        // NOTE: If `origToken` is not a contract address(e.g. EOA) this call will revert without a reason
-        (bool yes, ) = origToken.call(abi.encodeWithSignature("holders()"));
-        require(
-            yes,
-            "Benture: provided original token does not support required functions!"
-        );
-        // Check that caller is an admin of `origToken`
-        IBentureProducedToken(origToken).checkAdmin(msg.sender);
-        // Check that distribution can be fulfilled
-        canFulfill(id, origToken, distToken, amount, false);
-        if (distToken == address(0)) {
-            // Check that enough native tokens were sent with the transaction
-            require(
-                msg.value >= amount,
-                "Benture: not enough native dividend tokens were provided!"
-            );
-        } else {
-            // Transfer the `amount` of tokens to the contract
-            // NOTE This transfer should be approved by the owner of tokens before calling this function
-            bool transferred = IERC20(distToken).transferFrom(
-                msg.sender,
-                address(this),
-                amount
-            );
-            // In this case there can't be *not* enough tokens
-            require(
-                transferred,
-                "Benture: transfer of dividend tokens to the contract has failed!"
-            );
-        }
+
+        // Do all necessary checks before distributing dividends
+        preDistChecks(origToken, distToken, id, amount, false);
+        // Transfer tokens to the `Benture` contract before distributing dividends
+        preDistTransfer(distToken, amount);
+
         // The initial balance before distribution
-        uint256 startBalance;
-        if (distToken != address(0)) {
-            startBalance = IERC20(distToken).balanceOf(address(this));
-        } else {
-            startBalance = address(this).balance;
-        }
+        uint256 startBalance = getCurrentBalance(distToken);
+
+
         // Get all holders of the origToken
         address[] memory receivers = IBentureProducedToken(origToken).holders();
         uint256 length = receivers.length;
@@ -471,33 +487,18 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         }
 
         // The balance after the distribution
-        uint256 endBalance;
-        if (distToken != address(0)) {
-            endBalance = IERC20(distToken).balanceOf(address(this));
-        } else {
-            endBalance = address(this).balance;
-        }
+        uint256 endBalance = getCurrentBalance(distToken);
 
         // All distTokens that were for some reason not distributed are returned
         // to the admin
-        uint256 reallyDistributed = startBalance - endBalance;
-        if (reallyDistributed != amount) {
-            if (distToken != address(0)) {
-                IERC20(distToken).transfer(
-                    msg.sender,
-                    amount - reallyDistributed
-                );
-            } else {
-                msg.sender.call{value: amount - reallyDistributed};
-            }
-        }
+        returnLeft(distToken, amount, startBalance, endBalance);
 
         // Change distribution status to `fulfilled`
         Distribution storage distribution = distributions[idsToIndexes[id]];
         distribution.status = DistStatus.fulfilled;
 
         emit DividendsFulfilled(id);
-        emit DividendsDistributed(distToken, reallyDistributed);
+        emit DividendsDistributed(distToken, startBalance - endBalance);
     }
 
     /// @notice Returns the total users` balance of the given token
