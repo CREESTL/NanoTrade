@@ -27,6 +27,10 @@ interface IBentureAdmin {
         view
         returns (uint256[] memory);
 
+    /// @notice Returns the address of the factory that mints admin tokens
+    /// @return The address of the factory
+    function getFactory() external view returns(address);
+
     /// @notice Mints a new ERC721 token with the address of the controlled ERC20 token
     /// @param to The address of the receiver of the token
     /// @param ERC20Address The address of the controlled ERC20 token

@@ -117,6 +117,12 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
         return _holderToIds[admin];
     }
 
+    /// @notice Returns the address of the factory that mints admin tokens
+    /// @return The address of the factory
+    function getFactory() external view returns(address) {
+        return _factoryAddress;
+    }
+
     /// @notice Creates a relatioship between controlled ERC20 token address and an admin ERC721 token ID
     /// @param tokenId The ID of the admin ERC721 token
     /// @param ERC20Address The address of the controlled ERC20 token
@@ -142,7 +148,7 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
         uint256 length = allIds.length;
         for (uint256 i = 0; i < length; i++) {
             if (allIds[i] == tokenId) {
-                // Place the last ID instead of the deleted one and pop the second 
+                // Place the last ID instead of the deleted one and pop the second
                 // copy of it
                 allIds[i] = allIds[length - 1];
                 allIds.pop();

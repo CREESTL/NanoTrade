@@ -115,6 +115,10 @@ describe("Benture Admin Token", () => {
       );
     });
 
+    it("Should get the address of the factory", async () => {
+      expect(await adminToken.getFactory()).to.equal(factory.address);
+    });
+
     it("Should get the list of all admin tokens of the admin", async () => {
       // First, admin has only one admin token
       let tokenIds = await adminToken.getAdminTokenIds(ownerAcc.address);
