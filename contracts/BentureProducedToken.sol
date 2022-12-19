@@ -68,11 +68,6 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
             adminToken_ != address(0),
             "BentureProducedToken: admin token address can not be a zero address!"
         );
-        // In any case, maxTotalSupply can't be negative
-        require(
-            maxTotalSupply_ >= 0,
-            "BentureProducedToken: max total supply can not be a negative value!"
-        );
         if (mintable_) {
             // If token is mintable it could either have a fixed maxTotalSupply or
             // have an "infinite" supply
