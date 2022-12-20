@@ -7,20 +7,23 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IBentureProducedToken.sol";
 import "./interfaces/IBentureAdmin.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /// @title A custom ERC721 contract that allows to mint controlled ERC20 tokens
 contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
     using Counters for Counters.Counter;
-    Counters.Counter internal _tokenIds;
+    using EnumerableSet for EnumerableSet.UintSet;
     using Strings for uint256;
 
+    /// @dev Incrementing IDs of admin tokens
+    Counters.Counter internal _tokenIds;
     /// @dev Mapping from ERC721 token IDs to controlled ERC20 token addresses
     mapping(uint256 => address) private _adminToControlled;
     /// @dev Reverse mapping for `_adminToControlled`
     mapping(address => uint256) private _controlledToAdmin;
     /// @dev Mapping from admin address to IDs of admin tokens he owns
     /// @dev One admin can control several projects
-    mapping(address => uint256[]) private _holderToIds;
+    mapping(address => EnumerableSet.UintSet) private _holderToIds;
     /// @dev Reverse mapping for `_holderToIds`
     mapping(uint256 => address) private _idToHolder;
     /// @dev Mapping of used ERC20 tokens addresses
@@ -56,7 +59,7 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
             "BentureAdmin: zero address is an invalid user!"
         );
         require(
-            _holderToIds[user].length != 0,
+            _holderToIds[user].length() != 0,
             "BentureAdmin: user does not have an admin token!"
         );
     }
@@ -114,7 +117,7 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
             admin != address(0),
             "BentureAdmin: admin address can not be a zero address!"
         );
-        return _holderToIds[admin];
+        return _holderToIds[admin].values();
     }
 
     /// @notice Returns the address of the factory that mints admin tokens
@@ -143,17 +146,8 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
     /// @param admin The address of the admin of several projects
     /// @param tokenId The ID of the admin token to delete
     function deleteOneId(address admin, uint256 tokenId) internal {
-        // Get all current admin token IDs
-        uint256[] storage allIds = _holderToIds[admin];
-        uint256 length = allIds.length;
-        for (uint256 i = 0; i < length; i++) {
-            if (allIds[i] == tokenId) {
-                // Place the last ID instead of the deleted one and pop the second
-                // copy of it
-                allIds[i] = allIds[length - 1];
-                allIds.pop();
-            }
-        }
+        bool removed = _holderToIds[admin].remove(tokenId);
+        require(removed, "BentureAdmin: faild to delete token id!");
     }
 
     /// @notice Mints a new ERC721 token with the address of the controlled ERC20 token
@@ -181,7 +175,7 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
         // Mark that controlled token has been used once
         _usedControlled[ERC20Address] = true;
         // Mark that token with the current ID belongs to the user
-        _holderToIds[to].push(tokenId);
+        _holderToIds[to].add(tokenId);
         _idToHolder[tokenId] = to;
 
         emit AdminTokenCreated(tokenId, ERC20Address);
@@ -235,7 +229,7 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
         // in higher-level ERC721 functions such as `transferFrom` and `_safeTransfer`
         // The token moves to the other address
         _idToHolder[tokenId] = to;
-        _holderToIds[to].push(tokenId);
+        _holderToIds[to].add(tokenId);
         // Current holder loses one token
         deleteOneId(from, tokenId);
 
