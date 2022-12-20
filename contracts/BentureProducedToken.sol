@@ -5,8 +5,12 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./interfaces/IBentureProducedToken.sol";
 import "./interfaces/IBentureAdmin.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 contract BentureProducedToken is ERC20, IBentureProducedToken {
+
+    using EnumerableSet for EnumerableSet.AddressSet;
+
     string internal _tokenName;
     string internal _tokenSymbol;
     uint8 internal _decimals;
@@ -17,11 +21,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
     /// @dev The maximum number of tokens to be minted
     uint256 internal _maxTotalSupply;
     /// @dev A list of addresses of tokens holders
-    address[] internal _holders;
-    /// @dev A mapping of holder's address and his position in `_holders` array
-    mapping(address => uint256) internal _holdersIndexes;
-    /// @dev A mapping of holders addresses that have received tokens
-    mapping(address => bool) internal _usedHolders;
+    EnumerableSet.AddressSet internal _holders;
 
     /// @dev Checks if mintability is activated
     modifier WhenMintable() {
@@ -133,7 +133,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
     /// @notice Returns the array of addresses of all token holders
     /// @return The array of addresses of all token holders
     function holders() external view returns (address[] memory) {
-        return _holders;
+        return _holders.values();
     }
 
     /// @notice Returns the max total supply of the token
@@ -146,7 +146,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
     /// @param account The address to check
     /// @return True if address is a holder. False if it is not
     function isHolder(address account) public view returns (bool) {
-        return _usedHolders[account];
+        return _holders.contains(account);
     }
 
     /// @notice Checks if user is an admin of this token
@@ -176,23 +176,9 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
             "BentureProducedToken: supply exceeds maximum supply!"
         );
         emit ControlledTokenCreated(to, amount);
-        // If there are any holders then add address to holders only if it's not there already
-        if (_holders.length > 0) {
-            if (!_usedHolders[to]) {
-                // Push another address to the end of the array
-                _holders.push(to);
-                // Remember this address position
-                _holdersIndexes[to] = _holders.length - 1;
-                // Mark holder's address as used
-                _usedHolders[to] = true;
-            }
-            // If there are no holders then add the first one
-        } else {
-            _holders.push(to);
-            _holdersIndexes[to] = _holders.length - 1;
-            _usedHolders[to] = true;
-        }
-
+        // Add receiver of tokens to holders list if he isn't there already
+        _holders.add(to);
+        // Mint tokens to the receiver anyways
         _mint(to, amount);
     }
 
@@ -212,7 +198,8 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         _burn(caller, amount);
         // If caller does not have any tokens - remove the address from holders
         if (balanceOf(msg.sender) == 0) {
-            deleteHolder(_holdersIndexes[caller]);
+            bool removed = _holders.remove(caller);
+            require(removed, "BentureProducedToken: deleting holder with zero balance failed!");
         }
     }
 
@@ -245,45 +232,13 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         );
         emit ControlledTokenTransferred(from, to, amount);
         // If the receiver is not yet a holder, he becomes a holder
-        if (!_usedHolders[to]) {
-            // Push another address to the end of the array
-            _holders.push(to);
-            // Remember the position of this address
-            _holdersIndexes[to] = _holders.length - 1;
-            // Mark holder's address as used
-            _usedHolders[to] = true;
-        }
+        _holders.add(to);
         // If all tokens of the holder get transferred - he is no longer a holder
         uint256 fromBalance = balanceOf(from);
         if (amount >= fromBalance) {
-            deleteHolder(_holdersIndexes[from]);
+            bool removed = _holders.remove(from);
+            require(removed, "BentureProducedToken: deleting holder with zero balance failed!");
         }
         super._transfer(from, to, amount);
-    }
-
-    /// @notice Deletes a holder from holders list
-    /// @dev It does not preserve the order of elements!!!
-    function deleteHolder(uint256 index) internal {
-        uint256 length = _holders.length;
-        require(
-            index < length,
-            "BentureProducedToken: index to delete is out of range!"
-        );
-        address deletedHolder = _holders[index];
-        // First, delete the index of the deleted holder
-        delete _holdersIndexes[deletedHolder];
-        // Then delete the holder from used holders
-        delete _usedHolders[deletedHolder];
-        // If deleted holder is the last one, just pop him
-        if (index == length - 1) {
-            _holders.pop();
-            return;
-        }
-        // Place the last element of the array instead of the deleted one
-        _holders[index] = _holders[length - 1];
-        // Delete a second copy of that element
-        _holders.pop();
-        // Update the index of the element that was placed instead of the deleted one
-        _holdersIndexes[_holders[index]] = index;
     }
 }
