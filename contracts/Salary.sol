@@ -3,11 +3,12 @@
 pragma solidity ^0.8.9;
 
 import "./interfaces/IBentureAdmin.sol";
+import "./interfaces/ISalary.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /// @title Salary contract. A contract to manage salaries 
-contract Salary {
+contract Salary{
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
 
@@ -23,28 +24,6 @@ contract Salary {
         address employer;
         address employee;
     }
-
-    /// @dev Last added salary's ID
-    uint256 private lastSalaryId;
-
-    /// @dev Address of BentureAdmin Token
-    address private bentureAdminToken;
-
-    /// @dev Mapping from user address to his name
-    mapping(address => string) private names;
-
-    /// @dev Mapping from admins address to its array of employees
-    mapping(address => EnumerableSet.AddressSet) private adminToEmployees;
-
-    /// @dev Mapping from employee address to its array of admins
-    mapping(address => EnumerableSet.AddressSet) private employeeToAdmins;
-
-    /// @dev Mapping from salary ID to its info
-    mapping(uint256 => SalaryInfo) private salaryById;
-
-    /// @dev Mapping from Employee address to his Salaries
-    mapping(address => EnumerableSet.UintSet) private employeeToSalaryId;
-
 
     /// @notice Emits when user was added to Employees of Admin
     event EmployeeAdded(
@@ -88,6 +67,27 @@ contract Salary {
         SalaryInfo indexed salary
     );
 
+    /// @dev Last added salary's ID
+    uint256 private lastSalaryId;
+
+    /// @dev Address of BentureAdmin Token
+    address private bentureAdminToken;
+
+    /// @dev Mapping from user address to his name
+    mapping(address => string) private names;
+
+    /// @dev Mapping from admins address to its array of employees
+    mapping(address => EnumerableSet.AddressSet) private adminToEmployees;
+
+    /// @dev Mapping from employee address to its array of admins
+    mapping(address => EnumerableSet.AddressSet) private employeeToAdmins;
+
+    /// @dev Mapping from salary ID to its info
+    mapping(uint256 => SalaryInfo) private salaryById;
+
+    /// @dev Mapping from Employee address to his Salaries
+    mapping(address => EnumerableSet.UintSet) private employeeToSalaryId;
+
     /// @dev Uses to check if user is BentureAdmin tokens holder
     modifier onlyAdmin() {
         IBentureAdmin(bentureAdminToken).checkOwner(msg.sender);
@@ -99,7 +99,6 @@ contract Salary {
         require(adminTokenAddress != address(0), "Salary: Zero address!");
         bentureAdminToken = adminTokenAddress;
     }
-
 
     /// @notice Returns the name of employee.
     /// @param employeeAddress Address of employee.
@@ -326,34 +325,25 @@ contract Salary {
             "Salary: not an admin of salary!"
         );
 
+        employeeToSalaryId[_salary.employee].remove(salaryId);
+        delete salaryById[_salary.id];
+
         if (_salary.amountOfWithdrawals != _salary.amountOfPeriods) {
             uint256 amountToPay;
+            uint256 amountOfPeriodsToPay = _salary.amountOfPeriods - _salary.amountOfWithdrawals;
+            uint256 timePassedFromLastWithdrawal = block.timestamp - _salary.lastWithdrawalTime;
 
-            if (
-                (block.timestamp - _salary.lastWithdrawalTime) /
-                    _salary.periodDuration <
-                _salary.amountOfPeriods - _salary.amountOfWithdrawals
-            ) {
-                amountToPay = ((_salary.tokensAmountPerPeriod *
-                    (block.timestamp - _salary.lastWithdrawalTime)) /
-                    _salary.periodDuration);
+            if (timePassedFromLastWithdrawal / _salary.periodDuration < amountOfPeriodsToPay) {
+                amountToPay = ((_salary.tokensAmountPerPeriod * timePassedFromLastWithdrawal) / _salary.periodDuration);
             } else {
-                amountToPay =
-                    _salary.tokensAmountPerPeriod *
-                    (_salary.amountOfPeriods - _salary.amountOfWithdrawals);
+                amountToPay = _salary.tokensAmountPerPeriod * amountOfPeriodsToPay;
             }
-
-            employeeToSalaryId[_salary.employee].remove(salaryId);
-            delete salaryById[_salary.id];
 
             require(ERC20(_salary.tokenAddress).transferFrom(
                 msg.sender,
                 _salary.employee,
                 amountToPay
             ), "Salary: Transfer failed");
-        } else {
-            employeeToSalaryId[_salary.employee].remove(salaryId);
-            delete salaryById[_salary.id];
         }
     }
 }

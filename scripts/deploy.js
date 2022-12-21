@@ -130,7 +130,7 @@ async function main() {
   contractName = "Salary";
   console.log(`[${contractName}]: Start of Deployment...`);
   _contractProto = await ethers.getContractFactory(contractName);
-  contractDeployTx = await _contractProto.deploy();
+  contractDeployTx = await _contractProto.deploy(admin.address);
   console.log(
     `Deployment transaction hash: ${contractDeployTx.deployTransaction.hash}`
   );
@@ -154,6 +154,7 @@ async function main() {
   try {
     await hre.run("verify:verify", {
       address: salary.address,
+      constructorArguments: [admin.address],
     });
   } catch (error) {
     console.error(error);

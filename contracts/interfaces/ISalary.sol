@@ -15,23 +15,47 @@ interface ISalary {
         uint256 lastWithdrawalTime;
     }
 
-    /// @dev Indicates that a new employee was added.
-    event EmployeeAdded(uint256 indexed employeeAddress, uint256 indexed adminAddress);
+   /// @notice Emits when user was added to Employees of Admin
+    event EmployeeAdded(
+        address indexed employeeAddress,
+        address indexed adminAddress
+    );
 
-    /// @dev Indicates that an employee was removed.
-    event EmployeeRemoved(uint256 indexed employeeAddress, uint256 indexed adminAddress);
+    /// @notice Emits when user was removed from Employees of Admin
+    event EmployeeRemoved(
+        address indexed employeeAddress,
+        address indexed adminAddress
+    );
 
-    /// @dev Indicates that an employee's name was changed.
-    event EmployeeNameChanged(uint256 indexed employeeAddress, string indexed name);
+    /// @notice Emits when Employee's name was added or changed
+    event EmployeeNameChanged(
+        address indexed employeeAddress,
+        string indexed name
+    );
 
-    /// @dev Indicates that an employee's name was removed.
-    event EmployeeNameRemoved(uint256 indexed employeeAddress, string indexed name);
+    /// @notice Emits when name was removed from Employee
+    event EmployeeNameRemoved(address indexed employeeAddress);
 
-    /// @dev Indicates that an employee's salary was added.
-    event EmployeeSalaryAdded(uint256 indexed employeeAddress, SalaryInfo indexed salary);
+    /// @notice Emits when salary was added to Employee
+    event EmployeeSalaryAdded(
+        address indexed employeeAddress,
+        address indexed adminAddress,
+        SalaryInfo indexed salary
+    );
 
-    /// @dev Indicates that an employee's salary was removed.
-    event EmployeeSalaryRemoved(uint256 indexed employeeAddress, SalaryInfo indexed salary);
+    /// @notice Emits when salary was removed from Employee
+    event EmployeeSalaryRemoved(
+        address indexed employeeAddress,
+        address indexed adminAddress,
+        SalaryInfo indexed salary
+    );
+
+    /// @notice Emits when Employee withdraws salary
+    event EmployeeSalaryClaimed(
+        address indexed employeeAddress,
+        address indexed adminAddress,
+        SalaryInfo indexed salary
+    );
 
     /// @notice Returns the name of employee.
     /// @param employeeAddress Address of employee.
