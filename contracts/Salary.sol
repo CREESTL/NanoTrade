@@ -207,16 +207,16 @@ contract Salary {
 
         if (periodsToPay != 0) {
             
+            _salary.amountOfWithdrawals =
+                _salary.amountOfWithdrawals +
+                periodsToPay;
+            _salary.lastWithdrawalTime = block.timestamp;
+
             require(ERC20(_salary.tokenAddress).transferFrom(
                 _salary.employer,
                 _salary.employee,
                 periodsToPay * _salary.tokensAmountPerPeriod
             ), "Salary: Transfer failed");
-
-            _salary.amountOfWithdrawals =
-                _salary.amountOfWithdrawals +
-                periodsToPay;
-            _salary.lastWithdrawalTime = block.timestamp;
 
             emit EmployeeSalaryClaimed(
                 _salary.employee,
@@ -231,7 +231,7 @@ contract Salary {
     /// @return employees The array of employees of admin.
     function getEmployeesByAdmin(
         address adminAddress
-    ) public view returns (address[] memory employees) {
+    ) external view returns (address[] memory employees) {
         return adminToEmployees[adminAddress].values();
     }
 
@@ -262,7 +262,7 @@ contract Salary {
     /// @return salaries Array of salaries of employee.
     function getSalariesIdByEmployee(
         address employeeAddress
-    ) public view returns (uint256[] memory salaries) {
+    ) external view returns (uint256[] memory salaries) {
         return employeeToSalaryId[employeeAddress].values();
     }
 
@@ -271,7 +271,7 @@ contract Salary {
     /// @return salary SalaryInfo by ID.
     function getSalaryById(
         uint256 salaryId
-    ) public view returns (SalaryInfo memory salary) {
+    ) external view returns (SalaryInfo memory salary) {
         return salaryById[salaryId];
     }
 
@@ -343,14 +343,17 @@ contract Salary {
                     (_salary.amountOfPeriods - _salary.amountOfWithdrawals);
             }
 
+            employeeToSalaryId[_salary.employee].remove(salaryId);
+            delete salaryById[_salary.id];
+
             require(ERC20(_salary.tokenAddress).transferFrom(
                 msg.sender,
                 _salary.employee,
                 amountToPay
             ), "Salary: Transfer failed");
+        } else {
+            employeeToSalaryId[_salary.employee].remove(salaryId);
+            delete salaryById[_salary.id];
         }
-
-        employeeToSalaryId[_salary.employee].remove(salaryId);
-        delete salaryById[_salary.id];
     }
 }

@@ -124,6 +124,44 @@ async function main() {
 
   // ====================================================
 
+  // Contract #4: Salary
+
+  // Deploy
+  contractName = "Salary";
+  console.log(`[${contractName}]: Start of Deployment...`);
+  _contractProto = await ethers.getContractFactory(contractName);
+  contractDeployTx = await _contractProto.deploy();
+  console.log(
+    `Deployment transaction hash: ${contractDeployTx.deployTransaction.hash}`
+  );
+  salary = await contractDeployTx.deployed();
+  console.log(`[${contractName}]: Deployment Finished!`);
+  OUTPUT_DEPLOY[network.name][contractName].address = salary.address;
+
+  // Verify
+  console.log(`[${contractName}]: Start of Verification...`);
+
+  await delay(90000);
+
+  OUTPUT_DEPLOY[network.name][contractName].address = salary.address;
+  if (network.name === "ethereum") {
+    url = "https://etherscan.io/address/" + salary.address + "#code";
+  } else if (network.name === "mumbai") {
+    url = "https://mumbai.polygonscan.com/address/" + salary.address + "#code";
+  }
+  OUTPUT_DEPLOY[network.name][contractName].verification = url;
+
+  try {
+    await hre.run("verify:verify", {
+      address: salary.address,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+  console.log(`[${contractName}]: Verification Finished!`);
+
+  // ====================================================
+
   fs.writeFileSync(
     path.resolve(__dirname, "./deployOutput.json"),
     JSON.stringify(OUTPUT_DEPLOY, null, "  ")

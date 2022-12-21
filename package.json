@@ -16,6 +16,7 @@
     "chai": "^4.3.6",
     "delay": "^5.0.0",
     "dotenv": "^16.0.1",
-    "hardhat-gas-reporter": "^1.0.8"
+    "hardhat-gas-reporter": "^1.0.8",
+    "slither": "^0.2.2"
   }
 }
