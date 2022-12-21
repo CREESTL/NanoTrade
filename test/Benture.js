@@ -165,18 +165,6 @@ describe("Benture Dividend-Paying Token", () => {
 
         await expect(
           benture.announceDividends(
-            rummy.address,
-            distToken.address,
-            parseUnits("100", 6),
-            time,
-            true
-          )
-        ).to.be.revertedWith(
-          "Benture: provided original token does not support required functions!"
-        );
-
-        await expect(
-          benture.announceDividends(
             origToken.address,
             distToken.address,
             parseUnits("0", 6),
@@ -955,16 +943,6 @@ describe("Benture Dividend-Paying Token", () => {
           0,
           true
         );
-        await expect(
-          benture.distributeDividendsEqual(
-            1,
-            rummy.address,
-            distToken.address,
-            1000
-          )
-        ).to.be.revertedWith(
-          "Benture: provided original token does not support required functions!"
-        );
       });
 
       it("Should fail to distribute dividends to no receivers", async () => {
@@ -1374,16 +1352,6 @@ describe("Benture Dividend-Paying Token", () => {
           10,
           0,
           false
-        );
-        await expect(
-          benture.distributeDividendsWeighted(
-            1,
-            rummy.address,
-            distToken.address,
-            10
-          )
-        ).to.be.revertedWith(
-          "Benture: provided original token does not support required functions!"
         );
       });
 
@@ -1917,17 +1885,6 @@ describe("Benture Dividend-Paying Token", () => {
           parseEther("1"),
           0,
           true
-        );
-        await expect(
-          benture.distributeDividendsEqual(
-            1,
-            rummy.address,
-            zeroAddress,
-            parseEther("1"),
-            { value: parseEther("1") }
-          )
-        ).to.be.revertedWith(
-          "Benture: provided original token does not support required functions!"
         );
       });
 
