@@ -62,29 +62,29 @@ struct SalaryInfo {
     /// @notice Returns the name of employee.
     /// @param employeeAddress Address of employee.
     /// @return name The name of employee.
-    function getNameOfEmployee(address employeeAddress) external returns(string memory name);
+    function getNameOfEmployee(address employeeAddress) external view returns(string memory name);
 
     /// @notice Returns the array of employees of admin.
     /// @param adminAddress Address of admin.
     /// @return employees The array of employees of admin.
-    function getEmployeesByAdmin(address adminAddress) external returns(address[] memory employees);
+    function getEmployeesByAdmin(address adminAddress) external view returns(address[] memory employees);
 
     /// @notice Returns true if user if employee for admin and False if not.
     /// @param adminAddress Address of admin.
     /// @param employeeAddress Address of employee.
     /// @return isEmployee True if user if employee for admin. False if not.
-    function checkIfUserIsEmployeeOfAdmin(address adminAddress, address employeeAddress) external returns(bool isEmployee);
+    function checkIfUserIsEmployeeOfAdmin(address adminAddress, address employeeAddress) public view returns(bool isEmployee);
 
     /// @notice Returns the array of admins of employee.
     /// @param employeeAddress Address of employee.
     /// @return admins The array of admins of employee.
-    function getAdminsByEmployee(address employeeAddress) external returns(address[] memory admins);
+    function getAdminsByEmployee(address employeeAddress) external view returns(address[] memory admins);
 
     /// @notice Returns true if user is admin for employee and False if not.
     /// @param employeeAddress Address of employee.
     /// @param adminAddress Address of admin.
     /// @return isAdmin True if user is admin for employee. False if not.
-    function checkIfUserIsAdminOfEmployee(address employeeAddress, address adminAddress) external returns(bool isAdmin);
+    function checkIfUserIsAdminOfEmployee(address employeeAddress, address adminAddress) public view returns(bool isAdmin);
 
     /// @notice Returns array of salaries of employee.
     /// @param employeeAddress Address of employee.
@@ -132,7 +132,7 @@ struct SalaryInfo {
     /// @notice Removes salary from employee.
     /// @param salaryId ID of employee salary.
     /// @dev Only admin can call this method.
-    function removeSalaryFromEmployee(uint256 salaryId) external;
+    function removeSalaryFromEmployee(uint256 salaryId) public;
 
     /// @notice Withdraws employee's salary.
     /// @param salaryId IDs of employee salaries.
