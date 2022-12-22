@@ -144,8 +144,12 @@ describe("Salary", () => {
         let tokensAmountPerPeriod = 10
         await salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
         
-        let salaryInfo = await salary.getSalariesIdByEmployee(clientAcc1.address)
-        expect(salaryInfo.length).to.be.equal(1)
+        let admins = await salary.getAdminsByEmployee(clientAcc1.address)
+        let id = []
+        for (i = 0; i < admins.length; i++){ 
+          id.push(await salary.getSalariesIdByEmployeeAndAdmin(clientAcc1.address, admins[i]))
+        }
+        expect(id.length).to.be.equal(1)
 
         salaryInfo = await salary.getSalaryById("1")
         expect(salaryInfo.id).to.be.equal("1")
@@ -173,8 +177,12 @@ describe("Salary", () => {
 
       await salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
       
-      let id = (await salary.getSalariesIdByEmployee(clientAcc1.address)).toString()
-      let salaryInfo = await salary.getSalaryById(id)
+      let admins = await salary.getAdminsByEmployee(clientAcc1.address)
+        let id = []
+        for (i = 0; i < admins.length; i++){ 
+          id.push(await salary.getSalariesIdByEmployeeAndAdmin(clientAcc1.address, admins[i]))
+        }
+      let salaryInfo = await salary.getSalaryById(id[0].toString())
       expect(salaryInfo.id).to.be.equal("1")
       expect(salaryInfo.periodDuration).to.be.equal(periodDuration)
       expect(salaryInfo.amountOfPeriods).to.be.equal(amountOfPeriods)
@@ -186,8 +194,13 @@ describe("Salary", () => {
       expect(salaryInfo.employee).to.be.equal(clientAcc1.address)
 
       await salary.removeSalaryFromEmployee("1")
-      salaryInfo = await salary.getSalariesIdByEmployee(clientAcc1.address)
-      expect(salaryInfo.toString()).to.be.equal("")
+      
+      admins = await salary.getAdminsByEmployee(clientAcc1.address)
+        id = []
+        for (i = 0; i < admins.length; i++){ 
+          id.push(await salary.getSalariesIdByEmployeeAndAdmin(clientAcc1.address, admins[i]))
+        }
+      expect(id.toString()).to.be.equal("")
 
       salaryInfo = await salary.getSalaryById("1")
       expect(salaryInfo.toString()).to.be.equal("0,0,0,0,0x0000000000000000000000000000000000000000,0,0,0,0x0000000000000000000000000000000000000000,0x0000000000000000000000000000000000000000")
@@ -351,7 +364,12 @@ it("Should withdraw through withdrawSalary only for setted periods", async () =>
         let tokensAmountPerPeriod = 10
         await salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
 
-        let id = await salary.getSalariesIdByEmployee(clientAcc1.address)
+        let admins = await salary.getAdminsByEmployee(clientAcc1.address)
+        let id = []
+        for (i = 0; i < admins.length; i++){ 
+        id.push(await salary.getSalariesIdByEmployeeAndAdmin(clientAcc1.address, admins[i]))
+        }
+        
         let salaryInfo = await salary.getSalaryById(id[0].toString())
         expect(salaryInfo.id).to.be.equal("1")
         expect(salaryInfo.periodDuration).to.be.equal(periodDuration)
@@ -370,8 +388,7 @@ it("Should withdraw through withdrawSalary only for setted periods", async () =>
         tokensAmountPerPeriod = 10
         await salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
 
-        id = await salary.getSalariesIdByEmployee(clientAcc1.address)
-        salaryInfo = await salary.getSalaryById(id[1].toString())
+        salaryInfo = await salary.getSalaryById(2)
         expect(salaryInfo.id).to.be.equal("2")
         expect(salaryInfo.periodDuration).to.be.equal(periodDuration)
         expect(salaryInfo.amountOfPeriods).to.be.equal(amountOfPeriods)
@@ -381,8 +398,6 @@ it("Should withdraw through withdrawSalary only for setted periods", async () =>
         expect(salaryInfo.employer).to.be.equal(adminAcc1.address)
         expect(salaryInfo.employee).to.be.equal(clientAcc1.address)
         expect(salaryInfo.lastWithdrawalTime).to.be.equal((await getTimestump()).toString())
-
-        expect((await salary.getSalariesIdByEmployee(clientAcc1.address)).length).to.be.equal(2)
     });
 
     it("Should add more than 1 salary to Employee from 1 admin and delete only one of them", async () => {
@@ -404,9 +419,13 @@ it("Should withdraw through withdrawSalary only for setted periods", async () =>
       await salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
 
       await salary.removeSalaryFromEmployee("1")
-      let salaryInfo = await salary.getSalariesIdByEmployee(clientAcc1.address)
+      let admins = await salary.getAdminsByEmployee(clientAcc1.address)
+        let id = []
+        for (i = 0; i < admins.length; i++){ 
+          id.push(await salary.getSalariesIdByEmployeeAndAdmin(clientAcc1.address, admins[i]))
+        }
       
-      expect(salaryInfo.length).to.be.equal(1)
+      expect(id.length).to.be.equal(1)
 
       salaryInfo = await salary.getSalaryById("1")
       expect(salaryInfo.toString()).to.be.equal("0,0,0,0,0x0000000000000000000000000000000000000000,0,0,0,0x0000000000000000000000000000000000000000,0x0000000000000000000000000000000000000000")
@@ -434,7 +453,11 @@ it("Should withdraw through withdrawSalary only for setted periods", async () =>
       let tokensAmountPerPeriod = 10
       await salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
 
-      let id = await salary.getSalariesIdByEmployee(clientAcc1.address)
+      let admins = await salary.getAdminsByEmployee(clientAcc1.address)
+      let id = []
+      for (i = 0; i < admins.length; i++){ 
+        id.push(await salary.getSalariesIdByEmployeeAndAdmin(clientAcc1.address, admins[i]))
+      }
       let salaryInfo = await salary.getSalaryById(id[0].toString())
       expect(salaryInfo.employer).to.be.equal(adminAcc1.address)
 
@@ -449,7 +472,11 @@ it("Should withdraw through withdrawSalary only for setted periods", async () =>
       tokensAmountPerPeriod = 10
       await salary.connect(adminAcc2).addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
 
-      id = await salary.getSalariesIdByEmployee(clientAcc1.address)
+      admins = await salary.getAdminsByEmployee(clientAcc1.address)
+      id = []
+      for (i = 0; i < admins.length; i++){ 
+        id.push(await salary.getSalariesIdByEmployeeAndAdmin(clientAcc1.address, admins[i]))
+      }
       salaryInfo = await salary.getSalaryById(id[1].toString())
       expect(salaryInfo.employer).to.be.equal(adminAcc2.address)
 
@@ -457,7 +484,7 @@ it("Should withdraw through withdrawSalary only for setted periods", async () =>
       expect((await salary.getEmployeesByAdmin(adminAcc1.address)).length).to.be.equal(1)
       expect((await salary.getEmployeesByAdmin(adminAcc2.address)).length).to.be.equal(1)
       
-      expect((await salary.getSalariesIdByEmployee(clientAcc1.address)).length).to.be.equal(2)
+      expect(id.length).to.be.equal(2)
     });
 
     it("Should withdraw more than 1 salary", async () => {
@@ -598,13 +625,25 @@ it("Should withdraw through withdrawSalary only for setted periods", async () =>
       let tokensAmountPerPeriod = 60
       await salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
 
-      let salaries = await salary.getSalariesIdByEmployee(clientAcc1.address)
-      expect(salaries.length).to.be.equal(1)
+      let admins = await salary.getAdminsByEmployee(clientAcc1.address)
+        let id = []
+        for (i = 0; i < admins.length; i++){ 
+          id.push(await salary.getSalariesIdByEmployeeAndAdmin(clientAcc1.address, admins[i]))
+        }
+    
+      expect(id[0].toString()).to.be.equal("1")
+      expect(id[1].toString()).to.be.equal("")
+
 
       await salary.connect(adminAcc2).removeEmployee(clientAcc1.address)
 
-      salaries = await salary.getSalariesIdByEmployee(clientAcc1.address)
-      expect(salaries.length).to.be.equal(1)
+      admins = await salary.getAdminsByEmployee(clientAcc1.address)
+      id = []
+        for (i = 0; i < admins.length; i++){ 
+          id.push(await salary.getSalariesIdByEmployeeAndAdmin(clientAcc1.address, admins[i]))
+        }
+
+      expect(id.toString()).to.be.equal("1")
     });
 
     it("Should revert addSalaryToEmployee with Salary: not enough tokens allowed!", async () => {

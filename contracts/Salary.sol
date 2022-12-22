@@ -85,8 +85,18 @@ contract Salary{
     /// @dev Mapping from salary ID to its info
     mapping(uint256 => SalaryInfo) private salaryById;
 
+    mapping(address => mapping(address => EnumerableSet.UintSet)) private employeeToAdminToSalaryId;
+
+    /* address[] memory admins = employeeToAdmins[employeeAddress].values();
+        uint256[] memory ids;
+        for (uint256 i = 0; i < admins.length; i++) {
+            ids = employeeToAdminToSalaryId[employeeAddress][admins[i]].values();
+        }
+        return ids; */
     /// @dev Mapping from Employee address to his Salaries
-    mapping(address => EnumerableSet.UintSet) private employeeToSalaryId;
+    //mapping(address => EnumerableSet.UintSet) private employeeToSalaryId;
+
+
 
     /// @dev Uses to check if user is BentureAdmin tokens holder
     modifier onlyAdmin() {
@@ -171,9 +181,9 @@ contract Salary{
             "Salary: already not an employee!"
         );
         
-        if (employeeToSalaryId[employeeAddress].length() > 0) {
-        uint256[] memory id = employeeToSalaryId[employeeAddress].values();
-            for (uint256 i = 0; i < employeeToSalaryId[employeeAddress].length(); i++) {
+        if (employeeToAdminToSalaryId[employeeAddress][msg.sender].length() > 0) {
+        uint256[] memory id = employeeToAdminToSalaryId[employeeAddress][msg.sender].values();
+            for (uint256 i = 0; i < employeeToAdminToSalaryId[employeeAddress][msg.sender].length(); i++) {
                 if (salaryById[id[i]].employer == msg.sender) {
                     removeSalaryFromEmployee(id[i]);
                 }
@@ -258,11 +268,12 @@ contract Salary{
 
     /// @notice Returns array of salaries of employee.
     /// @param employeeAddress Address of employee.
-    /// @return salaries Array of salaries of employee.
-    function getSalariesIdByEmployee(
-        address employeeAddress
-    ) external view returns (uint256[] memory salaries) {
-        return employeeToSalaryId[employeeAddress].values();
+    /// @return ids Array of salaries id of employee.
+    function getSalariesIdByEmployeeAndAdmin(
+        address employeeAddress,
+        address admin
+    ) external view returns (uint256[] memory ids) {
+        return employeeToAdminToSalaryId[employeeAddress][admin].values();
     }
 
     /// @notice Returns salary by ID.
@@ -306,7 +317,7 @@ contract Salary{
         _salary.lastWithdrawalTime = block.timestamp;
         _salary.employer = msg.sender;
         _salary.employee = employeeAddress;
-        employeeToSalaryId[employeeAddress].add(_salary.id);
+        employeeToAdminToSalaryId[employeeAddress][msg.sender].add(_salary.id);
         salaryById[_salary.id] = _salary;
         emit EmployeeSalaryAdded(employeeAddress, msg.sender, _salary);
     }
@@ -325,7 +336,7 @@ contract Salary{
             "Salary: not an admin of salary!"
         );
 
-        employeeToSalaryId[_salary.employee].remove(salaryId);
+        employeeToAdminToSalaryId[_salary.employee][msg.sender].remove(salaryId);
         delete salaryById[_salary.id];
 
         if (_salary.amountOfWithdrawals != _salary.amountOfPeriods) {
