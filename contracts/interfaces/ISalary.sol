@@ -4,7 +4,7 @@ pragma solidity ^0.8.9;
 
 /// @title An interface of a Salary contract.
 interface ISalary {
-    struct SalaryInfo {
+struct SalaryInfo {
         uint256 id;
         uint256 periodDuration;
         uint256 amountOfPeriods;
@@ -13,6 +13,8 @@ interface ISalary {
         uint256 totalTokenAmount;
         uint256 tokensAmountPerPeriod;
         uint256 lastWithdrawalTime;
+        address employer;
+        address employee;
     }
 
    /// @notice Emits when user was added to Employees of Admin
@@ -87,17 +89,12 @@ interface ISalary {
     /// @notice Returns array of salaries of employee.
     /// @param employeeAddress Address of employee.
     /// @return salaries Array of salaries of employee.
-    function getSalariesByEmployee(address employeeAddress) external returns(uint256[] memory salaries);
-
-    /// @notice Returns employee by salary ID.
-    /// @param salaryId Id of SalaryInfo.
-    /// @return employee Employee address.
-    function getEmployeeBySalary(address salaryId) external returns(address employee);
+    function getSalariesIdByEmployeeAndAdmin(address employeeAddress, address adminAddress) external view returns(uint256[] memory salaries);
 
     /// @notice Returns salary by ID.
     /// @param salaryId Id of SalaryInfo.
     /// @return salary SalaryInfo by ID.
-    function getSalaryById(address salaryId) external returns(SalaryInfo memory salary);
+    function getSalaryById(uint256 salaryId) external view returns (SalaryInfo memory salary) ;
 
     /// @notice Adds new employee.
     /// @param employeeAddress Address of employee.

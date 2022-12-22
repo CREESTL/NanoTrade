@@ -8,64 +8,9 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /// @title Salary contract. A contract to manage salaries 
-contract Salary{
+contract Salary is ISalary{
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
-
-    struct SalaryInfo {
-        uint256 id;
-        uint256 periodDuration;
-        uint256 amountOfPeriods;
-        uint256 amountOfWithdrawals;
-        address tokenAddress;
-        uint256 totalTokenAmount;
-        uint256 tokensAmountPerPeriod;
-        uint256 lastWithdrawalTime;
-        address employer;
-        address employee;
-    }
-
-    /// @notice Emits when user was added to Employees of Admin
-    event EmployeeAdded(
-        address indexed employeeAddress,
-        address indexed adminAddress
-    );
-
-    /// @notice Emits when user was removed from Employees of Admin
-    event EmployeeRemoved(
-        address indexed employeeAddress,
-        address indexed adminAddress
-    );
-
-    /// @notice Emits when Employee's name was added or changed
-    event EmployeeNameChanged(
-        address indexed employeeAddress,
-        string indexed name
-    );
-
-    /// @notice Emits when name was removed from Employee
-    event EmployeeNameRemoved(address indexed employeeAddress);
-
-    /// @notice Emits when salary was added to Employee
-    event EmployeeSalaryAdded(
-        address indexed employeeAddress,
-        address indexed adminAddress,
-        SalaryInfo indexed salary
-    );
-
-    /// @notice Emits when salary was removed from Employee
-    event EmployeeSalaryRemoved(
-        address indexed employeeAddress,
-        address indexed adminAddress,
-        SalaryInfo indexed salary
-    );
-
-    /// @notice Emits when Employee withdraws salary
-    event EmployeeSalaryClaimed(
-        address indexed employeeAddress,
-        address indexed adminAddress,
-        SalaryInfo indexed salary
-    );
 
     /// @dev Last added salary's ID
     uint256 private lastSalaryId;
@@ -86,17 +31,6 @@ contract Salary{
     mapping(uint256 => SalaryInfo) private salaryById;
 
     mapping(address => mapping(address => EnumerableSet.UintSet)) private employeeToAdminToSalaryId;
-
-    /* address[] memory admins = employeeToAdmins[employeeAddress].values();
-        uint256[] memory ids;
-        for (uint256 i = 0; i < admins.length; i++) {
-            ids = employeeToAdminToSalaryId[employeeAddress][admins[i]].values();
-        }
-        return ids; */
-    /// @dev Mapping from Employee address to his Salaries
-    //mapping(address => EnumerableSet.UintSet) private employeeToSalaryId;
-
-
 
     /// @dev Uses to check if user is BentureAdmin tokens holder
     modifier onlyAdmin() {
@@ -127,7 +61,6 @@ contract Salary{
     ) external view returns (address[] memory admins) {
         return employeeToAdmins[employeeAddress].values();
     }
-
 
     /// @notice Sets new or changes current name of the employee.
     /// @param employeeAddress Address of employee.
@@ -271,9 +204,9 @@ contract Salary{
     /// @return ids Array of salaries id of employee.
     function getSalariesIdByEmployeeAndAdmin(
         address employeeAddress,
-        address admin
+        address adminAddress
     ) external view returns (uint256[] memory ids) {
-        return employeeToAdminToSalaryId[employeeAddress][admin].values();
+        return employeeToAdminToSalaryId[employeeAddress][adminAddress].values();
     }
 
     /// @notice Returns salary by ID.
