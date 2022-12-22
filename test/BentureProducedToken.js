@@ -78,10 +78,14 @@ describe("Benture Produced Token", () => {
 
       // Get the address of the last ERC20 token produced in the factory
       let newTokenAddress = await factory.lastProducedToken();
-      let newToken = await ethers.getContractAt("BentureProducedToken", newTokenAddress);
+      let newToken = await ethers.getContractAt(
+        "BentureProducedToken",
+        newTokenAddress
+      );
       // Actually it's not infinite. It's a max possible value in Solidity - type(uint256).max
-      expect(await newToken.maxTotalSupply()).to.equal(ethers.constants.MaxUint256);
-
+      expect(await newToken.maxTotalSupply()).to.equal(
+        ethers.constants.MaxUint256
+      );
     });
 
     it("Should check that user is an admin", async () => {
@@ -122,7 +126,6 @@ describe("Benture Produced Token", () => {
         "BentureProducedToken: supply exceeds maximum supply!"
       );
     });
-
 
     it("Should fail to mint to zero address", async () => {
       let amount = 1000;
@@ -340,7 +343,6 @@ describe("Benture Produced Token", () => {
   });
 
   describe("Constructor", () => {
-
     it("Should fail to initialize with wrong name", async () => {
       await expect(
         factory.createERC20Token(

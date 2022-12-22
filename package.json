@@ -1,9 +1,10 @@
 {
-  "name": "nano_trade",
+  "name": "Benture",
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.3",
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",
     "@nomiclabs/hardhat-ethers": "^2.2.0",
+    "@primitivefi/hardhat-dodoc": "^0.2.3",
     "ethers": "^5.7.1",
     "hardhat": "^2.10.1",
     "hardhat-deploy": "^0.11.18",
