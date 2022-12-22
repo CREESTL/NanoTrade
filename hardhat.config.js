@@ -8,10 +8,8 @@ require("hardhat-gas-reporter");
 require("@primitivefi/hardhat-dodoc");
 
 const {
-  ETHERSCAN_API_KEY,
   POLYGONSCAN_API_KEY,
   ACC_PRIVATE_KEY,
-  INFURA_API_KEY,
 } = process.env;
 
 module.exports = {
@@ -36,9 +34,9 @@ module.exports = {
       url: "https://rpc-mumbai.maticvigil.com",
       accounts: [ACC_PRIVATE_KEY],
     },
-    // Ethereum mainnet
+    // Polygon mainnet
     ethereum: {
-      url: `https://mainnet.infura.io/v3/${INFURA_API_KEY}`,
+      url: "https://polygon-rpc.com",
       accounts: [ACC_PRIVATE_KEY],
     },
   },
@@ -51,7 +49,6 @@ module.exports = {
   },
   etherscan: {
     apiKey: {
-      mainnet: ETHERSCAN_API_KEY,
       polygonMumbai: POLYGONSCAN_API_KEY,
     },
   },
@@ -62,7 +59,7 @@ module.exports = {
   },
   dodoc: {
     exclude: ["mocks"],
-    runOnCompile: true,
+    runOnCompile: false,
     freshOutput: true,
     outputDir: "./docs/contracts",
   },
