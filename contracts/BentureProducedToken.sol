@@ -8,7 +8,6 @@ import "./interfaces/IBentureAdmin.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 contract BentureProducedToken is ERC20, IBentureProducedToken {
-
     using EnumerableSet for EnumerableSet.AddressSet;
 
     string internal _tokenName;
@@ -161,12 +160,10 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
     /// @param amount The amount of tokens to mint
     /// @dev Can only be called by the owner of the admin NFT
     /// @dev Can only be called when token is mintable
-    function mint(address to, uint256 amount)
-        external
-        override
-        hasAdminToken
-        WhenMintable
-    {
+    function mint(
+        address to,
+        uint256 amount
+    ) external override hasAdminToken WhenMintable {
         require(
             to != address(0),
             "BentureProducedToken: can not mint to zero address!"
@@ -199,7 +196,10 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         // If caller does not have any tokens - remove the address from holders
         if (balanceOf(msg.sender) == 0) {
             bool removed = _holders.remove(caller);
-            require(removed, "BentureProducedToken: deleting holder with zero balance failed!");
+            require(
+                removed,
+                "BentureProducedToken: deleting holder with zero balance failed!"
+            );
         }
     }
 
@@ -237,7 +237,10 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         uint256 fromBalance = balanceOf(from);
         if (amount >= fromBalance) {
             bool removed = _holders.remove(from);
-            require(removed, "BentureProducedToken: deleting holder with zero balance failed!");
+            require(
+                removed,
+                "BentureProducedToken: deleting holder with zero balance failed!"
+            );
         }
         super._transfer(from, to, amount);
     }

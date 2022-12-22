@@ -43,7 +43,6 @@ The Benture is an investing marketplace, connecting entrepreneurs with investors
 
 ### 1. Test
 
-
 ```
 npx hardhat test
 ```
@@ -115,7 +114,9 @@ Wallet's address and private key should be pasted into the `.env` file (see [Pre
 <a name="logic"/>
 
 ### Smart-Contract Logic
+
 ---
+
 **For more details see `docs/` directory**
 
 ---
@@ -166,7 +167,9 @@ Let's assume that Alice created a new "ABC" token using BentureFactory contract.
 - If all holders of ABC tokens burn their tokens, Alice still remains the owner. She still can mint new ABC tokens
 
 #### Benture.sol
+
 ### !OUTDATED!
+
 This is a dividend-distributing contract. Dividends are distributed among [BentureProducedTokens](#erc20) holders.
 Let's assume that Alice is the entrepreneur and she wishes to pay dividends to all 100 users who bought the ABC tokens she created. First, Alice has to choose the address of the token to holders of which she would like to pay the dividends. She chooses the address of ABC token. Second, Alice has to provide Benture contract with enough tokens that will be distributed as dividends and choose the address of that token. Alice wants to pay dividends in another ERC20 token - GDG (suppose she has purchased it somewhere). She sends 700 GDGs to the Benture contract and chooses GDG's address. Now all she has to do is call a dividend-distributing function of the Benture contract and all ABC holders will receive their dividends.
 
@@ -188,9 +191,11 @@ Also it is worth mentioning that Benture contract is not necessarily a "dividend
 <a name="salary"/>
 
 #### Salary.sol
+
 **Entrepreneur side**
 After creating a project (i.e. [BentureProducedToken](#token)) an entrepreneur can hire employees to work on the project. This contract allows an entrepreneur to pay salaries to the employees for their services.
 An entrepreneur (admin of the project) can **add** a new employee to the list of all employees. He can use only the address of the employee or give him a nickname. After that, an admin can set an **individual schedule** of salary payments for him. Configurable parameters of the schedule are:
+
 - Period duration. The number of days that an employee should work to receive his salary (e.g. a week)
 - Number of periods. The number of periods an employee is supposed to work for (e.g. 12 weeks)
 - Salary token address. The token used to pay salaries
@@ -198,19 +203,18 @@ An entrepreneur (admin of the project) can **add** a new employee to the list of
 - Salary amount for each period. The number of values here should be the same as the number of periods. If an entrepreneur wishes to give an equal salary each period then he should explicitly provide the same amount for every period. If he wishes to pay different (increasing, decreasing, custom) amount each period, then he should explicitly provide a desired amount for each period.
   - Calculation of amount for each period is supposed to be handled by the frontend for a better user experience.
 
-It's important to notice, that the entrepreneur *does not transfer* tokens right after adding a new salary schedule for the employee. He *allows* the `Salary` contract to transfer his tokens to the employees when they ask for it.
-As well as adding a new salary schedule, an entrepreneur can **remove a schedule**. If he decides to do that when the employee has not claimed his salary, then the employee *automatically receives* the pending amount of salary tokens for the number of days he was working (even if it happens in the middle of the salary period).
-Each employee can have *multiple salary schedules with different parameters* simultaneously.
+It's important to notice, that the entrepreneur _does not transfer_ tokens right after adding a new salary schedule for the employee. He _allows_ the `Salary` contract to transfer his tokens to the employees when they ask for it.
+As well as adding a new salary schedule, an entrepreneur can **remove a schedule**. If he decides to do that when the employee has not claimed his salary, then the employee _automatically receives_ the pending amount of salary tokens for the number of days he was working (even if it happens in the middle of the salary period).
+Each employee can have _multiple salary schedules with different parameters_ simultaneously.
 There can be an employee with no schedules at all. He will not be able to claim any salaries.
-An entrepreneur is also able to **remove an employee** (fire him). If he decides to do that when the employee has not claimed his salary, then the employee *automatically receives* the pending amount of salary tokens for the number of days he was working (even if it happens in the middle of the salary period). That is, an entrepreneur can not fire an employee at the very end of the period and leave him with no salary paid at all.
-*An entrepreneur can remove (fire) an employee only if the employee has received (manually or automatically) all salaries appointed to him in the current project by all salary schedules for all days of work*
+An entrepreneur is also able to **remove an employee** (fire him). If he decides to do that when the employee has not claimed his salary, then the employee _automatically receives_ the pending amount of salary tokens for the number of days he was working (even if it happens in the middle of the salary period). That is, an entrepreneur can not fire an employee at the very end of the period and leave him with no salary paid at all.
+_An entrepreneur can remove (fire) an employee only if the employee has received (manually or automatically) all salaries appointed to him in the current project by all salary schedules for all days of work_
 
 **Employee side**
-Employee should **claim** salaries himself. He can do that whenever he wants (assuming that he has pending salaries). Notice, that he claims *all pending salaries*. So if he did not claim the salary for 3 months and does that on the 4-th month then he would receive the total sum of tokens for all 4 months at once. He *can not* claim salary in parts. An employee is free to *never* claim his salaries at all as well. If an employee regularly claims his salary (at the end of each period), then he is forbidden to claim the salary *during the period*. Only 3 cases may lead to an employee receiving salary during N-th period:
+Employee should **claim** salaries himself. He can do that whenever he wants (assuming that he has pending salaries). Notice, that he claims _all pending salaries_. So if he did not claim the salary for 3 months and does that on the 4-th month then he would receive the total sum of tokens for all 4 months at once. He _can not_ claim salary in parts. An employee is free to _never_ claim his salaries at all as well. If an employee regularly claims his salary (at the end of each period), then he is forbidden to claim the salary _during the period_. Only 3 cases may lead to an employee receiving salary during N-th period:
+
 - Entrepreneur fires him
 - Entrepreneur removes his salary
 - Employee has not claimed his salary for previous period(-s) and claims it during the current one
 
-As it was stated above, an entrepreneur allows the `Salary` contract to transfer tokens to employees when necessary. But if he allows to transfer E tokens from his balance to pay a salary and *then decreases* the allowance to E (E < S) - an employee *will not be able* to claim the salary he was expecting to receive. He will also fail to claim his salary if an entrepreneur *does not have enough tokens* (i.e. less then the total amount of tokens in salary schedule). So it is up to an entrepreneur to make sure that he owns enough tokens to pay his employees accoding to schedules.
-
-
+As it was stated above, an entrepreneur allows the `Salary` contract to transfer tokens to employees when necessary. But if he allows to transfer E tokens from his balance to pay a salary and _then decreases_ the allowance to E (E < S) - an employee _will not be able_ to claim the salary he was expecting to receive. He will also fail to claim his salary if an entrepreneur _does not have enough tokens_ (i.e. less then the total amount of tokens in salary schedule). So it is up to an entrepreneur to make sure that he owns enough tokens to pay his employees accoding to schedules.

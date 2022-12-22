@@ -1,12 +1,3 @@
 # Strings
 
-
-
-
-
-
-
-*String operations.*
-
-
-
+_String operations._

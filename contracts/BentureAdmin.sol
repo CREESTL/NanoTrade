@@ -42,9 +42,9 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
 
     /// @dev Creates an "empty" NFT
     /// @param factoryAddress_ The address of the factory minting admin tokens
-    constructor(address factoryAddress_)
-        ERC721("Benture Manager Token", "BMNG")
-    {
+    constructor(
+        address factoryAddress_
+    ) ERC721("Benture Manager Token", "BMNG") {
         require(
             factoryAddress_ != address(0),
             "BentureAdmin: factory address can not be zero address!"
@@ -67,10 +67,10 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
     /// @notice Checks if the provided user owns an admin token controlling the provided ERC20 token
     /// @param user The address of the user that potentially controls ERC20 token
     /// @param ERC20Address The address of the potentially controlled ERC20 token
-    function verifyAdminToken(address user, address ERC20Address)
-        external
-        view
-    {
+    function verifyAdminToken(
+        address user,
+        address ERC20Address
+    ) external view {
         require(
             user != address(0),
             "BentureAdmin: user can not have a zero address!"
@@ -92,11 +92,9 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
     /// @notice Returns the address of the controlled ERC20 token
     /// @param tokenId The ID of ERC721 token to check
     /// @return The address of the controlled ERC20 token
-    function getControlledAddressById(uint256 tokenId)
-        external
-        view
-        returns (address)
-    {
+    function getControlledAddressById(
+        uint256 tokenId
+    ) external view returns (address) {
         require(
             _adminToControlled[tokenId] != address(0),
             "BentureAdmin: no controlled token exists for this admin token!"
@@ -108,11 +106,9 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
 
     /// @notice Returns the list of all admin tokens of the user
     /// @param admin The address of the admin
-    function getAdminTokenIds(address admin)
-        external
-        view
-        returns (uint256[] memory)
-    {
+    function getAdminTokenIds(
+        address admin
+    ) external view returns (uint256[] memory) {
         require(
             admin != address(0),
             "BentureAdmin: admin address can not be a zero address!"
@@ -122,17 +118,17 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
 
     /// @notice Returns the address of the factory that mints admin tokens
     /// @return The address of the factory
-    function getFactory() external view returns(address) {
+    function getFactory() external view returns (address) {
         return _factoryAddress;
     }
 
     /// @notice Creates a relatioship between controlled ERC20 token address and an admin ERC721 token ID
     /// @param tokenId The ID of the admin ERC721 token
     /// @param ERC20Address The address of the controlled ERC20 token
-    function setControlledAddress(uint256 tokenId, address ERC20Address)
-        internal
-        onlyFactory
-    {
+    function setControlledAddress(
+        uint256 tokenId,
+        address ERC20Address
+    ) internal onlyFactory {
         require(
             ERC20Address != address(0),
             "BentureAdmin: controlled token can not have a zero address!"
@@ -153,10 +149,10 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
     /// @notice Mints a new ERC721 token with the address of the controlled ERC20 token
     /// @param to The address of the receiver of the token
     /// @param ERC20Address The address of the controlled ERC20 token
-    function mintWithERC20Address(address to, address ERC20Address)
-        external
-        onlyFactory
-    {
+    function mintWithERC20Address(
+        address to,
+        address ERC20Address
+    ) external onlyFactory {
         require(
             to != address(0),
             "BentureAdmin: admin token mint to zero address is not allowed!"

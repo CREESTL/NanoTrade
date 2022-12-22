@@ -1,12 +1,6 @@
 # ISalary
 
-
-
 > An interface of a Salary contract.
-
-
-
-
 
 ## Methods
 
@@ -18,12 +12,12 @@ function addEmployee(address employeeAddress) external nonpayable
 
 Adds new employee.
 
-*Only admin can call this method.*
+_Only admin can call this method._
 
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
+| Name            | Type    | Description          |
+| --------------- | ------- | -------------------- |
 | employeeAddress | address | Address of employee. |
 
 ### addSalaryToEmployee
@@ -34,18 +28,18 @@ function addSalaryToEmployee(address employeeAddress, uint256 periodDuration, ui
 
 Adds salary to employee.
 
-*Only admin can call this method.*
+_Only admin can call this method._
 
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| employeeAddress | address | Address of employee. |
-| periodDuration | uint256 | undefined |
-| amountOfPeriods | uint256 | undefined |
-| tokenAddress | address | undefined |
-| totalTokenAmount | uint256 | undefined |
-| tokensAmountPerPeriod | uint256 | undefined |
+| Name                  | Type    | Description          |
+| --------------------- | ------- | -------------------- |
+| employeeAddress       | address | Address of employee. |
+| periodDuration        | uint256 | undefined            |
+| amountOfPeriods       | uint256 | undefined            |
+| tokenAddress          | address | undefined            |
+| totalTokenAmount      | uint256 | undefined            |
+| tokensAmountPerPeriod | uint256 | undefined            |
 
 ### checkIfUserIsAdminOfEmployee
 
@@ -55,19 +49,17 @@ function checkIfUserIsAdminOfEmployee(address employeeAddress, address adminAddr
 
 Returns true if user is admin for employee and False if not.
 
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
+| Name            | Type    | Description          |
+| --------------- | ------- | -------------------- |
 | employeeAddress | address | Address of employee. |
-| adminAddress | address | Address of admin. |
+| adminAddress    | address | Address of admin.    |
 
 #### Returns
 
-| Name | Type | Description |
-|---|---|---|
+| Name    | Type | Description                                       |
+| ------- | ---- | ------------------------------------------------- |
 | isAdmin | bool | True if user is admin for employee. False if not. |
 
 ### checkIfUserIsEmployeeOfAdmin
@@ -78,19 +70,17 @@ function checkIfUserIsEmployeeOfAdmin(address adminAddress, address employeeAddr
 
 Returns true if user if employee for admin and False if not.
 
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| adminAddress | address | Address of admin. |
+| Name            | Type    | Description          |
+| --------------- | ------- | -------------------- |
+| adminAddress    | address | Address of admin.    |
 | employeeAddress | address | Address of employee. |
 
 #### Returns
 
-| Name | Type | Description |
-|---|---|---|
+| Name       | Type | Description                                       |
+| ---------- | ---- | ------------------------------------------------- |
 | isEmployee | bool | True if user if employee for admin. False if not. |
 
 ### getAdminsByEmployee
@@ -101,18 +91,16 @@ function getAdminsByEmployee(address employeeAddress) external view returns (add
 
 Returns the array of admins of employee.
 
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
+| Name            | Type    | Description          |
+| --------------- | ------- | -------------------- |
 | employeeAddress | address | Address of employee. |
 
 #### Returns
 
-| Name | Type | Description |
-|---|---|---|
+| Name   | Type      | Description                      |
+| ------ | --------- | -------------------------------- |
 | admins | address[] | The array of admins of employee. |
 
 ### getEmployeesByAdmin
@@ -123,18 +111,16 @@ function getEmployeesByAdmin(address adminAddress) external view returns (addres
 
 Returns the array of employees of admin.
 
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
+| Name         | Type    | Description       |
+| ------------ | ------- | ----------------- |
 | adminAddress | address | Address of admin. |
 
 #### Returns
 
-| Name | Type | Description |
-|---|---|---|
+| Name      | Type      | Description                      |
+| --------- | --------- | -------------------------------- |
 | employees | address[] | The array of employees of admin. |
 
 ### getNameOfEmployee
@@ -145,18 +131,16 @@ function getNameOfEmployee(address employeeAddress) external view returns (strin
 
 Returns the name of employee.
 
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
+| Name            | Type    | Description          |
+| --------------- | ------- | -------------------- |
 | employeeAddress | address | Address of employee. |
 
 #### Returns
 
-| Name | Type | Description |
-|---|---|---|
+| Name | Type   | Description           |
+| ---- | ------ | --------------------- |
 | name | string | The name of employee. |
 
 ### getSalariesIdByEmployeeAndAdmin
@@ -167,19 +151,17 @@ function getSalariesIdByEmployeeAndAdmin(address employeeAddress, address adminA
 
 Returns array of salaries of employee.
 
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
+| Name            | Type    | Description          |
+| --------------- | ------- | -------------------- |
 | employeeAddress | address | Address of employee. |
-| adminAddress | address | undefined |
+| adminAddress    | address | undefined            |
 
 #### Returns
 
-| Name | Type | Description |
-|---|---|---|
+| Name     | Type      | Description                    |
+| -------- | --------- | ------------------------------ |
 | salaries | uint256[] | Array of salaries of employee. |
 
 ### getSalaryById
@@ -190,18 +172,16 @@ function getSalaryById(uint256 salaryId) external view returns (struct ISalary.S
 
 Returns salary by ID.
 
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
+| Name     | Type    | Description       |
+| -------- | ------- | ----------------- |
 | salaryId | uint256 | Id of SalaryInfo. |
 
 #### Returns
 
-| Name | Type | Description |
-|---|---|---|
+| Name   | Type               | Description       |
+| ------ | ------------------ | ----------------- |
 | salary | ISalary.SalaryInfo | SalaryInfo by ID. |
 
 ### removeEmployee
@@ -212,12 +192,12 @@ function removeEmployee(address employeeAddress) external nonpayable
 
 Removes employee.
 
-*Only admin can call this method.*
+_Only admin can call this method._
 
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
+| Name            | Type    | Description          |
+| --------------- | ------- | -------------------- |
 | employeeAddress | address | Address of employee. |
 
 ### removeNameFromEmployee
@@ -228,12 +208,12 @@ function removeNameFromEmployee(address employeeAddress) external nonpayable
 
 Removes name from employee.
 
-*Only admin can call this method.*
+_Only admin can call this method._
 
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
+| Name            | Type    | Description          |
+| --------------- | ------- | -------------------- |
 | employeeAddress | address | Address of employee. |
 
 ### removeSalaryFromEmployee
@@ -244,12 +224,12 @@ function removeSalaryFromEmployee(uint256 salaryId) external nonpayable
 
 Removes salary from employee.
 
-*Only admin can call this method.*
+_Only admin can call this method._
 
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
+| Name     | Type    | Description            |
+| -------- | ------- | ---------------------- |
 | salaryId | uint256 | ID of employee salary. |
 
 ### setNameToEmployee
@@ -260,14 +240,14 @@ function setNameToEmployee(address employeeAddress, string name) external nonpay
 
 Sets new or changes current name of the employee.
 
-*Only admin can call this method.*
+_Only admin can call this method._
 
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| employeeAddress | address | Address of employee. |
-| name | string | New name of employee. |
+| Name            | Type    | Description           |
+| --------------- | ------- | --------------------- |
+| employeeAddress | address | Address of employee.  |
+| name            | string  | New name of employee. |
 
 ### withdrawSalary
 
@@ -277,15 +257,13 @@ function withdrawSalary(uint256 salaryId) external nonpayable
 
 Withdraws employee&#39;s salary.
 
-*Anyone can call this method. No restrictions.*
+_Anyone can call this method. No restrictions._
 
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
+| Name     | Type    | Description               |
+| -------- | ------- | ------------------------- |
 | salaryId | uint256 | IDs of employee salaries. |
-
-
 
 ## Events
 
@@ -297,14 +275,12 @@ event EmployeeAdded(address indexed employeeAddress, address indexed adminAddres
 
 Emits when user was added to Employees of Admin
 
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| employeeAddress `indexed` | address | undefined |
-| adminAddress `indexed` | address | undefined |
+| Name                      | Type    | Description |
+| ------------------------- | ------- | ----------- |
+| employeeAddress `indexed` | address | undefined   |
+| adminAddress `indexed`    | address | undefined   |
 
 ### EmployeeNameChanged
 
@@ -314,14 +290,12 @@ event EmployeeNameChanged(address indexed employeeAddress, string indexed name)
 
 Emits when Employee&#39;s name was added or changed
 
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| employeeAddress `indexed` | address | undefined |
-| name `indexed` | string | undefined |
+| Name                      | Type    | Description |
+| ------------------------- | ------- | ----------- |
+| employeeAddress `indexed` | address | undefined   |
+| name `indexed`            | string  | undefined   |
 
 ### EmployeeNameRemoved
 
@@ -331,13 +305,11 @@ event EmployeeNameRemoved(address indexed employeeAddress)
 
 Emits when name was removed from Employee
 
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| employeeAddress `indexed` | address | undefined |
+| Name                      | Type    | Description |
+| ------------------------- | ------- | ----------- |
+| employeeAddress `indexed` | address | undefined   |
 
 ### EmployeeRemoved
 
@@ -347,14 +319,12 @@ event EmployeeRemoved(address indexed employeeAddress, address indexed adminAddr
 
 Emits when user was removed from Employees of Admin
 
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| employeeAddress `indexed` | address | undefined |
-| adminAddress `indexed` | address | undefined |
+| Name                      | Type    | Description |
+| ------------------------- | ------- | ----------- |
+| employeeAddress `indexed` | address | undefined   |
+| adminAddress `indexed`    | address | undefined   |
 
 ### EmployeeSalaryAdded
 
@@ -364,15 +334,13 @@ event EmployeeSalaryAdded(address indexed employeeAddress, address indexed admin
 
 Emits when salary was added to Employee
 
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| employeeAddress `indexed` | address | undefined |
-| adminAddress `indexed` | address | undefined |
-| salary `indexed` | ISalary.SalaryInfo | undefined |
+| Name                      | Type               | Description |
+| ------------------------- | ------------------ | ----------- |
+| employeeAddress `indexed` | address            | undefined   |
+| adminAddress `indexed`    | address            | undefined   |
+| salary `indexed`          | ISalary.SalaryInfo | undefined   |
 
 ### EmployeeSalaryClaimed
 
@@ -382,15 +350,13 @@ event EmployeeSalaryClaimed(address indexed employeeAddress, address indexed adm
 
 Emits when Employee withdraws salary
 
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| employeeAddress `indexed` | address | undefined |
-| adminAddress `indexed` | address | undefined |
-| salary `indexed` | ISalary.SalaryInfo | undefined |
+| Name                      | Type               | Description |
+| ------------------------- | ------------------ | ----------- |
+| employeeAddress `indexed` | address            | undefined   |
+| adminAddress `indexed`    | address            | undefined   |
+| salary `indexed`          | ISalary.SalaryInfo | undefined   |
 
 ### EmployeeSalaryRemoved
 
@@ -400,15 +366,10 @@ event EmployeeSalaryRemoved(address indexed employeeAddress, address indexed adm
 
 Emits when salary was removed from Employee
 
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| employeeAddress `indexed` | address | undefined |
-| adminAddress `indexed` | address | undefined |
-| salary `indexed` | ISalary.SalaryInfo | undefined |
-
-
-
+| Name                      | Type               | Description |
+| ------------------------- | ------------------ | ----------- |
+| employeeAddress `indexed` | address            | undefined   |
+| adminAddress `indexed`    | address            | undefined   |
+| salary `indexed`          | ISalary.SalaryInfo | undefined   |

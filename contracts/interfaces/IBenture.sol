@@ -37,35 +37,28 @@ interface IBenture {
     /// @notice Returns the list of IDs of all active distributions the admin has announced
     /// @param admin The address of the admin
     /// @return The list of IDs of all active distributions the admin has announced
-    function getDistributions(address admin)
-        external
-        view
-        returns (uint256[] memory);
+    function getDistributions(
+        address admin
+    ) external view returns (uint256[] memory);
 
     /// @notice Returns the distribution with the given ID
     /// @param id The ID of the distribution to search for
     /// @return All information about the distribution
-    function getDistribution(uint256 id)
+    function getDistribution(
+        uint256 id
+    )
         external
         view
-        returns (
-            uint256,
-            address,
-            address,
-            uint256,
-            uint256,
-            bool,
-            DistStatus
-        );
+        returns (uint256, address, address, uint256, uint256, bool, DistStatus);
 
     /// @notice Checks if the distribution with the given ID was announced by the given admin
     /// @param id The ID of the distribution to check
     /// @param admin The address of the admin to check
     /// @return True if admin has announced the distribution with the given ID. Otherwise - false.
-    function checkAnnounced(uint256 id, address admin)
-        external
-        view
-        returns (bool);
+    function checkAnnounced(
+        uint256 id,
+        address admin
+    ) external view returns (bool);
 
     /// @notice Distributes one token as dividends for holders of another token _equally _
     /// @param id The ID of the distribution that is being fulfilled

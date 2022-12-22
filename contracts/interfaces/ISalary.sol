@@ -4,7 +4,7 @@ pragma solidity ^0.8.9;
 
 /// @title An interface of a Salary contract.
 interface ISalary {
-struct SalaryInfo {
+    struct SalaryInfo {
         uint256 id;
         uint256 periodDuration;
         uint256 amountOfPeriods;
@@ -17,7 +17,7 @@ struct SalaryInfo {
         address employee;
     }
 
-   /// @notice Emits when user was added to Employees of Admin
+    /// @notice Emits when user was added to Employees of Admin
     event EmployeeAdded(
         address indexed employeeAddress,
         address indexed adminAddress
@@ -62,39 +62,56 @@ struct SalaryInfo {
     /// @notice Returns the name of employee.
     /// @param employeeAddress Address of employee.
     /// @return name The name of employee.
-    function getNameOfEmployee(address employeeAddress) external view returns(string memory name);
+    function getNameOfEmployee(
+        address employeeAddress
+    ) external view returns (string memory name);
 
     /// @notice Returns the array of employees of admin.
     /// @param adminAddress Address of admin.
     /// @return employees The array of employees of admin.
-    function getEmployeesByAdmin(address adminAddress) external view returns(address[] memory employees);
+    function getEmployeesByAdmin(
+        address adminAddress
+    ) external view returns (address[] memory employees);
 
     /// @notice Returns true if user if employee for admin and False if not.
     /// @param adminAddress Address of admin.
     /// @param employeeAddress Address of employee.
     /// @return isEmployee True if user if employee for admin. False if not.
-    function checkIfUserIsEmployeeOfAdmin(address adminAddress, address employeeAddress) external view returns(bool isEmployee);
+    function checkIfUserIsEmployeeOfAdmin(
+        address adminAddress,
+        address employeeAddress
+    ) external view returns (bool isEmployee);
 
     /// @notice Returns the array of admins of employee.
     /// @param employeeAddress Address of employee.
     /// @return admins The array of admins of employee.
-    function getAdminsByEmployee(address employeeAddress) external view returns(address[] memory admins);
+    function getAdminsByEmployee(
+        address employeeAddress
+    ) external view returns (address[] memory admins);
 
     /// @notice Returns true if user is admin for employee and False if not.
     /// @param employeeAddress Address of employee.
     /// @param adminAddress Address of admin.
     /// @return isAdmin True if user is admin for employee. False if not.
-    function checkIfUserIsAdminOfEmployee(address employeeAddress, address adminAddress) external view returns(bool isAdmin);
+    function checkIfUserIsAdminOfEmployee(
+        address employeeAddress,
+        address adminAddress
+    ) external view returns (bool isAdmin);
 
     /// @notice Returns array of salaries of employee.
     /// @param employeeAddress Address of employee.
     /// @return salaries Array of salaries of employee.
-    function getSalariesIdByEmployeeAndAdmin(address employeeAddress, address adminAddress) external view returns(uint256[] memory salaries);
+    function getSalariesIdByEmployeeAndAdmin(
+        address employeeAddress,
+        address adminAddress
+    ) external view returns (uint256[] memory salaries);
 
     /// @notice Returns salary by ID.
     /// @param salaryId Id of SalaryInfo.
     /// @return salary SalaryInfo by ID.
-    function getSalaryById(uint256 salaryId) external view returns (SalaryInfo memory salary) ;
+    function getSalaryById(
+        uint256 salaryId
+    ) external view returns (SalaryInfo memory salary);
 
     /// @notice Adds new employee.
     /// @param employeeAddress Address of employee.
@@ -110,7 +127,10 @@ struct SalaryInfo {
     /// @param employeeAddress Address of employee.
     /// @param name New name of employee.
     /// @dev Only admin can call this method.
-    function setNameToEmployee(address employeeAddress, string memory name) external;
+    function setNameToEmployee(
+        address employeeAddress,
+        string memory name
+    ) external;
 
     /// @notice Removes name from employee.
     /// @param employeeAddress Address of employee.
@@ -121,7 +141,7 @@ struct SalaryInfo {
     /// @param employeeAddress Address of employee.
     /// @dev Only admin can call this method.
     function addSalaryToEmployee(
-        address employeeAddress, 
+        address employeeAddress,
         uint256 periodDuration,
         uint256 amountOfPeriods,
         address tokenAddress,

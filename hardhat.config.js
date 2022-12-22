@@ -5,7 +5,7 @@ require("@nomiclabs/hardhat-etherscan");
 require("@nomicfoundation/hardhat-chai-matchers");
 require("solidity-coverage");
 require("hardhat-gas-reporter");
-require('@primitivefi/hardhat-dodoc');
+require("@primitivefi/hardhat-dodoc");
 
 const {
   ETHERSCAN_API_KEY,
@@ -61,9 +61,9 @@ module.exports = {
     url: "http://localhost:8545",
   },
   dodoc: {
-    include: [],
+    exclude: ["mocks"],
     runOnCompile: true,
     freshOutput: true,
     outputDir: "./docs/contracts",
-  }
+  },
 };
