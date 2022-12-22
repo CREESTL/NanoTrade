@@ -5,7 +5,6 @@ const delay = require("delay");
 
 // JSON file to keep information about previous deployments
 const OUTPUT_DEPLOY = require("./deployOutput.json");
-let zeroAddress = ethers.constants.AddressZero;
 
 let contractName;
 let factory;
@@ -31,9 +30,8 @@ async function main() {
 
   await delay(90000);
 
-  OUTPUT_DEPLOY[network.name][contractName].address = factory.address;
-  if (network.name === "ethereum") {
-    url = "https://etherscan.io/address/" + factory.address + "#code";
+  if (network.name === "polygon") {
+    url = "https://polygonscan.com/address/" + factory.address + "#code";
   } else if (network.name === "mumbai") {
     url = "https://mumbai.polygonscan.com/address/" + factory.address + "#code";
   }
@@ -66,9 +64,8 @@ async function main() {
 
   await delay(90000);
 
-  OUTPUT_DEPLOY[network.name][contractName].address = admin.address;
-  if (network.name === "ethereum") {
-    url = "https://etherscan.io/address/" + admin.address + "#code";
+  if (network.name === "polygon") {
+    url = "https://polygonscan.com/address/" + admin.address + "#code";
   } else if (network.name === "mumbai") {
     url = "https://mumbai.polygonscan.com/address/" + admin.address + "#code";
   }
@@ -93,9 +90,6 @@ async function main() {
   console.log(`[${contractName}]: Start of Deployment...`);
   _contractProto = await ethers.getContractFactory(contractName);
   contractDeployTx = await _contractProto.deploy();
-  console.log(
-    `Deployment transaction hash: ${contractDeployTx.deployTransaction.hash}`
-  );
   benture = await contractDeployTx.deployed();
   console.log(`[${contractName}]: Deployment Finished!`);
   OUTPUT_DEPLOY[network.name][contractName].address = benture.address;
@@ -105,9 +99,8 @@ async function main() {
 
   await delay(90000);
 
-  OUTPUT_DEPLOY[network.name][contractName].address = benture.address;
-  if (network.name === "ethereum") {
-    url = "https://etherscan.io/address/" + benture.address + "#code";
+  if (network.name === "polygon") {
+    url = "https://polygonscan.com/address/" + benture.address + "#code";
   } else if (network.name === "mumbai") {
     url = "https://mumbai.polygonscan.com/address/" + benture.address + "#code";
   }
@@ -131,9 +124,6 @@ async function main() {
   console.log(`[${contractName}]: Start of Deployment...`);
   _contractProto = await ethers.getContractFactory(contractName);
   contractDeployTx = await _contractProto.deploy(admin.address);
-  console.log(
-    `Deployment transaction hash: ${contractDeployTx.deployTransaction.hash}`
-  );
   salary = await contractDeployTx.deployed();
   console.log(`[${contractName}]: Deployment Finished!`);
   OUTPUT_DEPLOY[network.name][contractName].address = salary.address;
@@ -143,9 +133,8 @@ async function main() {
 
   await delay(90000);
 
-  OUTPUT_DEPLOY[network.name][contractName].address = salary.address;
-  if (network.name === "ethereum") {
-    url = "https://etherscan.io/address/" + salary.address + "#code";
+  if (network.name === "polygon") {
+    url = "https://polygonscan.com/address/" + salary.address + "#code";
   } else if (network.name === "mumbai") {
     url = "https://mumbai.polygonscan.com/address/" + salary.address + "#code";
   }

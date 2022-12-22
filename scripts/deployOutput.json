@@ -1,16 +1,20 @@
 {
   "mumbai": {
     "Benture": {
-      "address": "0xFa69a9D10041FCfF7985451Bb72C6dd191E9a160",
-      "verification": "https://mumbai.polygonscan.com/address/0xFa69a9D10041FCfF7985451Bb72C6dd191E9a160#code"
+      "address": "0x4Bf0a608e1f910AcBeF19d9d7E875FdB421fEF0b",
+      "verification": "https://mumbai.polygonscan.com/address/0x4Bf0a608e1f910AcBeF19d9d7E875FdB421fEF0b#code"
     },
     "BentureAdmin": {
-      "address": "0x24f6fDE1eB8Cb97A46DcBC50cF54C5A99930E9c4",
-      "verification": "https://mumbai.polygonscan.com/address/0x24f6fDE1eB8Cb97A46DcBC50cF54C5A99930E9c4#code"
+      "address": "0x4E5fa26f26E892b2c3B3d86Cda3Aec3CD444D6f5",
+      "verification": "https://mumbai.polygonscan.com/address/0x4E5fa26f26E892b2c3B3d86Cda3Aec3CD444D6f5#code"
     },
     "BentureFactory": {
-      "address": "0xD40c37FeE3a1AD13426F82E2B8A71a162994f8dC",
-      "verification": "https://mumbai.polygonscan.com/address/0xD40c37FeE3a1AD13426F82E2B8A71a162994f8dC#code"
+      "address": "0x566d42C0336B90B5Aa80f2903bf6087d2DB9c207",
+      "verification": "https://mumbai.polygonscan.com/address/0x566d42C0336B90B5Aa80f2903bf6087d2DB9c207#code"
+    },
+    "Salary": {
+      "address": "0x4419F811e49dE7849e4292668bD7761c32B1C882",
+      "verification": "https://mumbai.polygonscan.com/address/0x4419F811e49dE7849e4292668bD7761c32B1C882#code"
     }
   },
   "ethereum": {
@@ -23,6 +27,10 @@
       "verification": ""
     },
     "BentureFactory": {
+      "address": "",
+      "verification": ""
+    },
+    "Salary": {
       "address": "",
       "verification": ""
     }
