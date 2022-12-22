@@ -73,7 +73,7 @@ struct SalaryInfo {
     /// @param adminAddress Address of admin.
     /// @param employeeAddress Address of employee.
     /// @return isEmployee True if user if employee for admin. False if not.
-    function checkIfUserIsEmployeeOfAdmin(address adminAddress, address employeeAddress) public view returns(bool isEmployee);
+    function checkIfUserIsEmployeeOfAdmin(address adminAddress, address employeeAddress) external view returns(bool isEmployee);
 
     /// @notice Returns the array of admins of employee.
     /// @param employeeAddress Address of employee.
@@ -84,7 +84,7 @@ struct SalaryInfo {
     /// @param employeeAddress Address of employee.
     /// @param adminAddress Address of admin.
     /// @return isAdmin True if user is admin for employee. False if not.
-    function checkIfUserIsAdminOfEmployee(address employeeAddress, address adminAddress) public view returns(bool isAdmin);
+    function checkIfUserIsAdminOfEmployee(address employeeAddress, address adminAddress) external view returns(bool isAdmin);
 
     /// @notice Returns array of salaries of employee.
     /// @param employeeAddress Address of employee.
@@ -132,7 +132,7 @@ struct SalaryInfo {
     /// @notice Removes salary from employee.
     /// @param salaryId ID of employee salary.
     /// @dev Only admin can call this method.
-    function removeSalaryFromEmployee(uint256 salaryId) public;
+    function removeSalaryFromEmployee(uint256 salaryId) external;
 
     /// @notice Withdraws employee's salary.
     /// @param salaryId IDs of employee salaries.
