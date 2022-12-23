@@ -87,7 +87,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         });
         // Add this distribution to the list of all distributions of all admins
         distributions.push(distribution);
-        // Get the index of the added distribution
+        // Get the index of the added distributionBenture.sol
         uint256 lastIndex = distributions.length - 1;
         // Mark that a new distribution has this index in the global array
         idsToIndexes[distributionId] = lastIndex;
@@ -429,8 +429,9 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             amount >= length,
             "Benture: amount should be greater than the number of dividends receivers!"
         );
-        // Get total holders` balance of origTokens
-        uint256 totalBalance = _getTotalBalance(receivers, origToken);
+        // NOTE: That's correct only if *all minted* origTokens get transfered to some account
+        // i.e. total balance of all origToken holders is equal to `totalSupply`
+        uint256 totalBalance = IERC20(origToken).totalSupply() - IERC20(origToken).balanceOf(address(this));
         // Distribute dividends to each of the holders
         for (uint256 i = 0; i < length; i++) {
             // No dividends should be distributed to a zero address
@@ -472,25 +473,5 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // All distTokens that were for some reason not distributed are returned
         // to the admin
         returnLeft(distToken, amount, startBalance, endBalance);
-    }
-
-    /// @notice Returns the total users` balance of the given token
-    /// @param users The list of users to calculate the total balance of
-    /// @param token The token which balance must be calculated
-    /// @return The total users' balance of the given token
-    function _getTotalBalance(
-        address[] memory users,
-        address token
-    ) internal view returns (uint256) {
-        uint256 totalBalance;
-        for (uint256 i = 0; i < users.length; i++) {
-            // If this contract is holder - ignore its balance
-            // It should not affect amount of tokens distributed to real holders
-            if (users[i] != address(this)) {
-                uint256 singleBalance = IERC20(token).balanceOf(users[i]);
-                totalBalance += singleBalance;
-            }
-        }
-        return totalBalance;
     }
 }
