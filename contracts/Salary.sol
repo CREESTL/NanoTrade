@@ -162,7 +162,7 @@ contract Salary is ISalary{
 
             
 
-            IERC20(_salary.tokenAddress).transferFrom(
+            IERC20(_salary.tokenAddress).safeTransferFrom(
                 _salary.employer,
                 _salary.employee,
                 toPay
@@ -284,25 +284,28 @@ contract Salary is ISalary{
             uint256 amountToPay;
             uint256 amountOfRemainingPeriods = _salary.amountOfPeriods - _salary.amountOfWithdrawals;
             uint256 timePassedFromLastWithdrawal = block.timestamp - _salary.lastWithdrawalTime;
+            uint256 periodsPassed = timePassedFromLastWithdrawal / _salary.periodDuration;
 
-            if (timePassedFromLastWithdrawal / _salary.periodDuration < amountOfRemainingPeriods) {
+            if (periodsPassed < amountOfRemainingPeriods) {
+                ///@dev The case when an employee withdraw salary before the end of all periods
                 uint256 period;
-                for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + (timePassedFromLastWithdrawal / _salary.periodDuration); i++) {
+                for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + (periodsPassed); i++) {
                     amountToPay = amountToPay + _salary.tokensAmountPerPeriod[i];
                     period = i;
                 }
 
-                if (timePassedFromLastWithdrawal - (_salary.periodDuration * (timePassedFromLastWithdrawal / _salary.periodDuration)) > 0) {
-                    amountToPay = amountToPay + (_salary.tokensAmountPerPeriod[period + 1] * (timePassedFromLastWithdrawal - (timePassedFromLastWithdrawal / _salary.periodDuration) * _salary.periodDuration)) / _salary.periodDuration;
+                if (timePassedFromLastWithdrawal - (_salary.periodDuration * (periodsPassed)) > 0) {
+                    amountToPay = amountToPay + (_salary.tokensAmountPerPeriod[period + 1] * (timePassedFromLastWithdrawal - (periodsPassed) * _salary.periodDuration)) / _salary.periodDuration;
                 }
-
+                
             } else {
+                ///@dev The case when an employee withdraw salary after the end of all periods
                 for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + amountOfRemainingPeriods; i++) {
                     amountToPay = amountToPay + _salary.tokensAmountPerPeriod[i];
                 }
             }
 
-            IERC20(_salary.tokenAddress).transferFrom(
+            IERC20(_salary.tokenAddress).safeTransferFrom(
                 msg.sender,
                 _salary.employee,
                 amountToPay
