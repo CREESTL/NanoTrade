@@ -1,6 +1,12 @@
 # IBentureAdmin
 
+
+
 > An interface of a factory of custom ERC20 tokens
+
+
+
+
 
 ## Methods
 
@@ -12,10 +18,12 @@ function burn(uint256 tokenId) external nonpayable
 
 Burns the token with the provided ID
 
+
+
 #### Parameters
 
-| Name    | Type    | Description                 |
-| ------- | ------- | --------------------------- |
+| Name | Type | Description |
+|---|---|---|
 | tokenId | uint256 | The ID of the token to burn |
 
 ### checkOwner
@@ -26,11 +34,13 @@ function checkOwner(address user) external view
 
 Checks it the provided address owns any admin token
 
+
+
 #### Parameters
 
-| Name | Type    | Description |
-| ---- | ------- | ----------- |
-| user | address | undefined   |
+| Name | Type | Description |
+|---|---|---|
+| user | address | undefined |
 
 ### getAdminTokenIds
 
@@ -40,17 +50,19 @@ function getAdminTokenIds(address admin) external view returns (uint256[])
 
 Returns the list of all admin tokens of the user
 
+
+
 #### Parameters
 
-| Name  | Type    | Description              |
-| ----- | ------- | ------------------------ |
+| Name | Type | Description |
+|---|---|---|
 | admin | address | The address of the admin |
 
 #### Returns
 
-| Name | Type      | Description |
-| ---- | --------- | ----------- |
-| \_0  | uint256[] | undefined   |
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256[] | undefined |
 
 ### getControlledAddressById
 
@@ -60,17 +72,19 @@ function getControlledAddressById(uint256 tokenId) external view returns (addres
 
 Returns the address of the controlled ERC20 token
 
+
+
 #### Parameters
 
-| Name    | Type    | Description                     |
-| ------- | ------- | ------------------------------- |
+| Name | Type | Description |
+|---|---|---|
 | tokenId | uint256 | The ID of ERC721 token to check |
 
 #### Returns
 
-| Name | Type    | Description                               |
-| ---- | ------- | ----------------------------------------- |
-| \_0  | address | The address of the controlled ERC20 token |
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | The address of the controlled ERC20 token |
 
 ### getFactory
 
@@ -80,11 +94,14 @@ function getFactory() external view returns (address)
 
 Returns the address of the factory that mints admin tokens
 
+
+
+
 #### Returns
 
-| Name | Type    | Description                |
-| ---- | ------- | -------------------------- |
-| \_0  | address | The address of the factory |
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | The address of the factory |
 
 ### mintWithERC20Address
 
@@ -94,11 +111,13 @@ function mintWithERC20Address(address to, address ERC20Address) external nonpaya
 
 Mints a new ERC721 token with the address of the controlled ERC20 token
 
+
+
 #### Parameters
 
-| Name         | Type    | Description                               |
-| ------------ | ------- | ----------------------------------------- |
-| to           | address | The address of the receiver of the token  |
+| Name | Type | Description |
+|---|---|---|
+| to | address | The address of the receiver of the token |
 | ERC20Address | address | The address of the controlled ERC20 token |
 
 ### verifyAdminToken
@@ -109,12 +128,16 @@ function verifyAdminToken(address user, address ERC20Address) external view
 
 Checks if the provided user owns an admin token controlling the provided ERC20 token
 
+
+
 #### Parameters
 
-| Name         | Type    | Description                                                   |
-| ------------ | ------- | ------------------------------------------------------------- |
-| user         | address | The address of the user that potentially controls ERC20 token |
-| ERC20Address | address | The address of the potentially controlled ERC20 token         |
+| Name | Type | Description |
+|---|---|---|
+| user | address | The address of the user that potentially controls ERC20 token |
+| ERC20Address | address | The address of the potentially controlled ERC20 token |
+
+
 
 ## Events
 
@@ -124,13 +147,15 @@ Checks if the provided user owns an admin token controlling the provided ERC20 t
 event AdminTokenBurnt(uint256 indexed tokenId)
 ```
 
-_Indicates that an ERC721 token got burnt_
+
+
+*Indicates that an ERC721 token got burnt*
 
 #### Parameters
 
-| Name              | Type    | Description |
-| ----------------- | ------- | ----------- |
-| tokenId `indexed` | uint256 | undefined   |
+| Name | Type | Description |
+|---|---|---|
+| tokenId `indexed` | uint256 | undefined |
 
 ### AdminTokenCreated
 
@@ -138,14 +163,16 @@ _Indicates that an ERC721 token got burnt_
 event AdminTokenCreated(uint256 indexed tokenId, address indexed ERC20Address)
 ```
 
-_Indicates that a new ERC721 token got minted_
+
+
+*Indicates that a new ERC721 token got minted*
 
 #### Parameters
 
-| Name                   | Type    | Description |
-| ---------------------- | ------- | ----------- |
-| tokenId `indexed`      | uint256 | undefined   |
-| ERC20Address `indexed` | address | undefined   |
+| Name | Type | Description |
+|---|---|---|
+| tokenId `indexed` | uint256 | undefined |
+| ERC20Address `indexed` | address | undefined |
 
 ### AdminTokenTransferred
 
@@ -153,12 +180,17 @@ _Indicates that a new ERC721 token got minted_
 event AdminTokenTransferred(address indexed from, address indexed to, uint256 tokenId)
 ```
 
-_Indicates that an ERC721 token got transferred_
+
+
+*Indicates that an ERC721 token got transferred*
 
 #### Parameters
 
-| Name           | Type    | Description |
-| -------------- | ------- | ----------- |
-| from `indexed` | address | undefined   |
-| to `indexed`   | address | undefined   |
-| tokenId        | uint256 | undefined   |
+| Name | Type | Description |
+|---|---|---|
+| from `indexed` | address | undefined |
+| to `indexed` | address | undefined |
+| tokenId  | uint256 | undefined |
+
+
+

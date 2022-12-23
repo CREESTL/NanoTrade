@@ -1,6 +1,12 @@
 # Benture
 
+
+
 > Dividends distributing contract
+
+
+
+
 
 ## Methods
 
@@ -12,17 +18,17 @@ function announceDividends(address origToken, address distToken, uint256 amount,
 
 Allows admin to annouce the next distribution of dividends
 
-_Announcement does not guarantee that dividends will be distributed. It just shows that the admin is willing to do that_
+*Announcement does not guarantee that dividends will be distributed. It just shows      that the admin is willing to do that*
 
 #### Parameters
 
-| Name      | Type    | Description                                                                                                                      |
-| --------- | ------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| origToken | address | The tokens to the holders of which the dividends will be paid                                                                    |
-| distToken | address | The token that will be paid                                                                                                      |
-| amount    | uint256 | The amount of tokens that will be paid                                                                                           |
-| dueDate   | uint256 | The number of seconds in which the dividends will be paid _after the announcement_ Use `0` to announce an immediate distribution |
-| isEqual   | bool    | Indicates whether distribution will be equal                                                                                     |
+| Name | Type | Description |
+|---|---|---|
+| origToken | address | The tokens to the holders of which the dividends will be paid |
+| distToken | address | The token that will be paid |
+| amount | uint256 | The amount of tokens that will be paid |
+| dueDate | uint256 | The number of seconds in which the dividends will be paid        *after the announcement*         Use `0` to announce an immediate distribution |
+| isEqual | bool | Indicates whether distribution will be equal |
 
 ### cancelDividends
 
@@ -32,11 +38,13 @@ function cancelDividends(uint256 id) external nonpayable
 
 Cancels previously announced distribution
 
+
+
 #### Parameters
 
-| Name | Type    | Description                          |
-| ---- | ------- | ------------------------------------ |
-| id   | uint256 | The ID of the distribution to cancel |
+| Name | Type | Description |
+|---|---|---|
+| id | uint256 | The ID of the distribution to cancel |
 
 ### checkAnnounced
 
@@ -46,18 +54,20 @@ function checkAnnounced(uint256 id, address admin) external view returns (bool)
 
 Checks if the distribution with the given ID was announced by the given admin
 
+
+
 #### Parameters
 
-| Name  | Type    | Description                         |
-| ----- | ------- | ----------------------------------- |
-| id    | uint256 | The ID of the distribution to check |
-| admin | address | The address of the admin to check   |
+| Name | Type | Description |
+|---|---|---|
+| id | uint256 | The ID of the distribution to check |
+| admin | address | The address of the admin to check |
 
 #### Returns
 
-| Name | Type | Description                                                                        |
-| ---- | ---- | ---------------------------------------------------------------------------------- |
-| \_0  | bool | True if admin has announced the distribution with the given ID. Otherwise - false. |
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | True if admin has announced the distribution with the given ID. Otherwise - false. |
 
 ### distributeDividendsEqual
 
@@ -67,14 +77,16 @@ function distributeDividendsEqual(uint256 id, address origToken, address distTok
 
 Distributes one token as dividends for holders of another token _equally _
 
+
+
 #### Parameters
 
-| Name      | Type    | Description                                                                                                                               |
-| --------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| id        | uint256 | The ID of the distribution that is being fulfilled                                                                                        |
-| origToken | address | The address of the token that is held by receivers; Can not be a zero address! MUST be an address of a contract - not an address of EOA!  |
-| distToken | address | The address of the token that is to be distributed as dividends Zero address for native token (ether, wei)                                |
-| amount    | uint256 | The amount of distTokens to be distributed in total NOTE: This amount takes `decimals` into account. For example 4 USDT = 4 000 000 units |
+| Name | Type | Description |
+|---|---|---|
+| id | uint256 | The ID of the distribution that is being fulfilled |
+| origToken | address | The address of the token that is held by receivers;        Can not be a zero address!        MUST be an address of a contract - not an address of EOA! |
+| distToken | address | The address of the token that is to be distributed as dividends        Zero address for native token (ether, wei) |
+| amount | uint256 | The amount of distTokens to be distributed in total        NOTE: This amount takes `decimals` into account. For example 4 USDT = 4 000 000 units |
 
 ### distributeDividendsWeighted
 
@@ -84,14 +96,16 @@ function distributeDividendsWeighted(uint256 id, address origToken, address dist
 
 Distributes one token as dividends for holders of another token _according to each user&#39;s balance_
 
+
+
 #### Parameters
 
-| Name      | Type    | Description                                                                                                                               |
-| --------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| id        | uint256 | The ID of the distribution that is being fulfilled                                                                                        |
-| origToken | address | The address of the token that is held by receivers Can not be a zero address!                                                             |
-| distToken | address | The address of the token that is to be distributed as dividends Zero address for native token (ether, wei)                                |
-| amount    | uint256 | The amount of distTokens to be distributed in total NOTE: This amount takes `decimals` into account. For example 4 USDT = 4 000 000 units |
+| Name | Type | Description |
+|---|---|---|
+| id | uint256 | The ID of the distribution that is being fulfilled |
+| origToken | address | The address of the token that is held by receivers        Can not be a zero address! |
+| distToken | address | The address of the token that is to be distributed as dividends        Zero address for native token (ether, wei) |
+| amount | uint256 | The amount of distTokens to be distributed in total        NOTE: This amount takes `decimals` into account. For example 4 USDT = 4 000 000 units |
 
 ### getDistribution
 
@@ -101,23 +115,25 @@ function getDistribution(uint256 id) external view returns (uint256, address, ad
 
 Returns the distribution with the given ID
 
+
+
 #### Parameters
 
-| Name | Type    | Description                              |
-| ---- | ------- | ---------------------------------------- |
-| id   | uint256 | The ID of the distribution to search for |
+| Name | Type | Description |
+|---|---|---|
+| id | uint256 | The ID of the distribution to search for |
 
 #### Returns
 
-| Name | Type                     | Description                            |
-| ---- | ------------------------ | -------------------------------------- |
-| \_0  | uint256                  | All information about the distribution |
-| \_1  | address                  | undefined                              |
-| \_2  | address                  | undefined                              |
-| \_3  | uint256                  | undefined                              |
-| \_4  | uint256                  | undefined                              |
-| \_5  | bool                     | undefined                              |
-| \_6  | enum IBenture.DistStatus | undefined                              |
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | All information about the distribution |
+| _1 | address | undefined |
+| _2 | address | undefined |
+| _3 | uint256 | undefined |
+| _4 | uint256 | undefined |
+| _5 | bool | undefined |
+| _6 | enum IBenture.DistStatus | undefined |
 
 ### getDistributions
 
@@ -127,17 +143,19 @@ function getDistributions(address admin) external view returns (uint256[])
 
 Returns the list of IDs of all distributions the admin has ever announced
 
+
+
 #### Parameters
 
-| Name  | Type    | Description              |
-| ----- | ------- | ------------------------ |
+| Name | Type | Description |
+|---|---|---|
 | admin | address | The address of the admin |
 
 #### Returns
 
-| Name | Type      | Description                                                       |
-| ---- | --------- | ----------------------------------------------------------------- |
-| \_0  | uint256[] | The list of IDs of all distributions the admin has ever announced |
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256[] | The list of IDs of all distributions the admin has ever announced |
 
 ### owner
 
@@ -145,13 +163,16 @@ Returns the list of IDs of all distributions the admin has ever announced
 function owner() external view returns (address)
 ```
 
-_Returns the address of the current owner._
+
+
+*Returns the address of the current owner.*
+
 
 #### Returns
 
-| Name | Type    | Description |
-| ---- | ------- | ----------- |
-| \_0  | address | undefined   |
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
 
 ### renounceOwnership
 
@@ -159,7 +180,10 @@ _Returns the address of the current owner._
 function renounceOwnership() external nonpayable
 ```
 
-_Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner._
+
+
+*Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.*
+
 
 ### transferOwnership
 
@@ -167,13 +191,17 @@ _Leaves the contract without owner. It will not be possible to call `onlyOwner` 
 function transferOwnership(address newOwner) external nonpayable
 ```
 
-_Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner._
+
+
+*Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.*
 
 #### Parameters
 
-| Name     | Type    | Description |
-| -------- | ------- | ----------- |
-| newOwner | address | undefined   |
+| Name | Type | Description |
+|---|---|---|
+| newOwner | address | undefined |
+
+
 
 ## Events
 
@@ -183,15 +211,19 @@ _Transfers ownership of the contract to a new account (`newOwner`). Can only be 
 event DividendsAnnounced(address indexed origToken, address indexed distToken, uint256 indexed amount, uint256 dueDate, bool isEqual)
 ```
 
+
+
+
+
 #### Parameters
 
-| Name                | Type    | Description |
-| ------------------- | ------- | ----------- |
-| origToken `indexed` | address | undefined   |
-| distToken `indexed` | address | undefined   |
-| amount `indexed`    | uint256 | undefined   |
-| dueDate             | uint256 | undefined   |
-| isEqual             | bool    | undefined   |
+| Name | Type | Description |
+|---|---|---|
+| origToken `indexed` | address | undefined |
+| distToken `indexed` | address | undefined |
+| amount `indexed` | uint256 | undefined |
+| dueDate  | uint256 | undefined |
+| isEqual  | bool | undefined |
 
 ### DividendsCancelled
 
@@ -199,11 +231,15 @@ event DividendsAnnounced(address indexed origToken, address indexed distToken, u
 event DividendsCancelled(uint256 indexed id)
 ```
 
+
+
+
+
 #### Parameters
 
-| Name         | Type    | Description |
-| ------------ | ------- | ----------- |
-| id `indexed` | uint256 | undefined   |
+| Name | Type | Description |
+|---|---|---|
+| id `indexed` | uint256 | undefined |
 
 ### DividendsDistributed
 
@@ -211,12 +247,16 @@ event DividendsCancelled(uint256 indexed id)
 event DividendsDistributed(address indexed distToken, uint256 indexed amount)
 ```
 
+
+
+
+
 #### Parameters
 
-| Name                | Type    | Description |
-| ------------------- | ------- | ----------- |
-| distToken `indexed` | address | undefined   |
-| amount `indexed`    | uint256 | undefined   |
+| Name | Type | Description |
+|---|---|---|
+| distToken `indexed` | address | undefined |
+| amount `indexed` | uint256 | undefined |
 
 ### DividendsFulfilled
 
@@ -224,11 +264,15 @@ event DividendsDistributed(address indexed distToken, uint256 indexed amount)
 event DividendsFulfilled(uint256 indexed id)
 ```
 
+
+
+
+
 #### Parameters
 
-| Name         | Type    | Description |
-| ------------ | ------- | ----------- |
-| id `indexed` | uint256 | undefined   |
+| Name | Type | Description |
+|---|---|---|
+| id `indexed` | uint256 | undefined |
 
 ### OwnershipTransferred
 
@@ -236,9 +280,16 @@ event DividendsFulfilled(uint256 indexed id)
 event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
 ```
 
+
+
+
+
 #### Parameters
 
-| Name                    | Type    | Description |
-| ----------------------- | ------- | ----------- |
-| previousOwner `indexed` | address | undefined   |
-| newOwner `indexed`      | address | undefined   |
+| Name | Type | Description |
+|---|---|---|
+| previousOwner `indexed` | address | undefined |
+| newOwner `indexed` | address | undefined |
+
+
+
