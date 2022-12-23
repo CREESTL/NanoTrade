@@ -8,9 +8,14 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
+<<<<<<< HEAD
 /// @title Salary contract. A contract to manage salaries 
 contract Salary is ISalary{
     using SafeERC20 for IERC20;
+=======
+/// @title Salary contract. A contract to manage salaries
+contract Salary is ISalary {
+>>>>>>> dev
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
 
@@ -32,7 +37,8 @@ contract Salary is ISalary{
     /// @dev Mapping from salary ID to its info
     mapping(uint256 => SalaryInfo) private salaryById;
 
-    mapping(address => mapping(address => EnumerableSet.UintSet)) private employeeToAdminToSalaryId;
+    mapping(address => mapping(address => EnumerableSet.UintSet))
+        private employeeToAdminToSalaryId;
 
     /// @dev Uses to check if user is BentureAdmin tokens holder
     modifier onlyAdmin() {
@@ -115,10 +121,19 @@ contract Salary is ISalary{
             checkIfUserIsEmployeeOfAdmin(msg.sender, employeeAddress),
             "Salary: already not an employee!"
         );
-        
-        if (employeeToAdminToSalaryId[employeeAddress][msg.sender].length() > 0) {
-        uint256[] memory id = employeeToAdminToSalaryId[employeeAddress][msg.sender].values();
-            for (uint256 i = 0; i < employeeToAdminToSalaryId[employeeAddress][msg.sender].length(); i++) {
+
+        if (
+            employeeToAdminToSalaryId[employeeAddress][msg.sender].length() > 0
+        ) {
+            uint256[] memory id = employeeToAdminToSalaryId[employeeAddress][
+                msg.sender
+            ].values();
+            for (
+                uint256 i = 0;
+                i <
+                employeeToAdminToSalaryId[employeeAddress][msg.sender].length();
+                i++
+            ) {
                 if (salaryById[id[i]].employer == msg.sender) {
                     removeSalaryFromEmployee(id[i]);
                 }
@@ -150,22 +165,35 @@ contract Salary is ISalary{
         }
 
         if (periodsToPay != 0) {
+<<<<<<< HEAD
             uint256 toPay;
             for(uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + periodsToPay; i++) {
                 toPay = toPay + _salary.tokensAmountPerPeriod[i];
             }
 
+=======
+>>>>>>> dev
             _salary.amountOfWithdrawals =
                 _salary.amountOfWithdrawals +
                 periodsToPay;
             _salary.lastWithdrawalTime = block.timestamp;
 
+<<<<<<< HEAD
             
 
             IERC20(_salary.tokenAddress).safeTransferFrom(
                 _salary.employer,
                 _salary.employee,
                 toPay
+=======
+            require(
+                ERC20(_salary.tokenAddress).transferFrom(
+                    _salary.employer,
+                    _salary.employee,
+                    periodsToPay * _salary.tokensAmountPerPeriod
+                ),
+                "Salary: Transfer failed"
+>>>>>>> dev
             );
 
             emit EmployeeSalaryClaimed(
@@ -214,7 +242,8 @@ contract Salary is ISalary{
         address employeeAddress,
         address adminAddress
     ) external view returns (uint256[] memory ids) {
-        return employeeToAdminToSalaryId[employeeAddress][adminAddress].values();
+        return
+            employeeToAdminToSalaryId[employeeAddress][adminAddress].values();
     }
 
     /// @notice Returns salary by ID.
@@ -277,11 +306,14 @@ contract Salary is ISalary{
             "Salary: not an admin of salary!"
         );
 
-        employeeToAdminToSalaryId[_salary.employee][msg.sender].remove(salaryId);
+        employeeToAdminToSalaryId[_salary.employee][msg.sender].remove(
+            salaryId
+        );
         delete salaryById[_salary.id];
 
         if (_salary.amountOfWithdrawals != _salary.amountOfPeriods) {
             uint256 amountToPay;
+<<<<<<< HEAD
             uint256 amountOfRemainingPeriods = _salary.amountOfPeriods - _salary.amountOfWithdrawals;
             uint256 timePassedFromLastWithdrawal = block.timestamp - _salary.lastWithdrawalTime;
             uint256 periodsPassed = timePassedFromLastWithdrawal / _salary.periodDuration;
@@ -309,6 +341,32 @@ contract Salary is ISalary{
                 msg.sender,
                 _salary.employee,
                 amountToPay
+=======
+            uint256 amountOfPeriodsToPay = _salary.amountOfPeriods -
+                _salary.amountOfWithdrawals;
+            uint256 timePassedFromLastWithdrawal = block.timestamp -
+                _salary.lastWithdrawalTime;
+
+            if (
+                timePassedFromLastWithdrawal / _salary.periodDuration <
+                amountOfPeriodsToPay
+            ) {
+                amountToPay = ((_salary.tokensAmountPerPeriod *
+                    timePassedFromLastWithdrawal) / _salary.periodDuration);
+            } else {
+                amountToPay =
+                    _salary.tokensAmountPerPeriod *
+                    amountOfPeriodsToPay;
+            }
+
+            require(
+                ERC20(_salary.tokenAddress).transferFrom(
+                    msg.sender,
+                    _salary.employee,
+                    amountToPay
+                ),
+                "Salary: Transfer failed"
+>>>>>>> dev
             );
         }
     }

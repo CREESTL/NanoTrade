@@ -1,12 +1,6 @@
 # BentureAdmin
 
-
-
 > A custom ERC721 contract that allows to mint controlled ERC20 tokens
-
-
-
-
 
 ## Methods
 
@@ -16,16 +10,14 @@
 function approve(address to, uint256 tokenId) external nonpayable
 ```
 
-
-
-*See {IERC721-approve}.*
+_See {IERC721-approve}._
 
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| to | address | undefined |
-| tokenId | uint256 | undefined |
+| Name    | Type    | Description |
+| ------- | ------- | ----------- |
+| to      | address | undefined   |
+| tokenId | uint256 | undefined   |
 
 ### balanceOf
 
@@ -33,21 +25,19 @@ function approve(address to, uint256 tokenId) external nonpayable
 function balanceOf(address owner) external view returns (uint256)
 ```
 
-
-
-*See {IERC721-balanceOf}.*
+_See {IERC721-balanceOf}._
 
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| owner | address | undefined |
+| Name  | Type    | Description |
+| ----- | ------- | ----------- |
+| owner | address | undefined   |
 
 #### Returns
 
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
+| Name | Type    | Description |
+| ---- | ------- | ----------- |
+| \_0  | uint256 | undefined   |
 
 ### burn
 
@@ -57,12 +47,10 @@ function burn(uint256 tokenId) external nonpayable
 
 Burns the token with the provided ID
 
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
+| Name    | Type    | Description                 |
+| ------- | ------- | --------------------------- |
 | tokenId | uint256 | The ID of the token to burn |
 
 ### checkOwner
@@ -73,13 +61,11 @@ function checkOwner(address user) external view
 
 Checks it the provided address owns any admin token
 
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| user | address | undefined |
+| Name | Type    | Description |
+| ---- | ------- | ----------- |
+| user | address | undefined   |
 
 ### getAdminTokenIds
 
@@ -89,19 +75,17 @@ function getAdminTokenIds(address admin) external view returns (uint256[])
 
 Returns the list of all admin tokens of the user
 
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
+| Name  | Type    | Description              |
+| ----- | ------- | ------------------------ |
 | admin | address | The address of the admin |
 
 #### Returns
 
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256[] | undefined |
+| Name | Type      | Description |
+| ---- | --------- | ----------- |
+| \_0  | uint256[] | undefined   |
 
 ### getApproved
 
@@ -109,21 +93,19 @@ Returns the list of all admin tokens of the user
 function getApproved(uint256 tokenId) external view returns (address)
 ```
 
-
-
-*See {IERC721-getApproved}.*
+_See {IERC721-getApproved}._
 
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| tokenId | uint256 | undefined |
+| Name    | Type    | Description |
+| ------- | ------- | ----------- |
+| tokenId | uint256 | undefined   |
 
 #### Returns
 
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined |
+| Name | Type    | Description |
+| ---- | ------- | ----------- |
+| \_0  | address | undefined   |
 
 ### getControlledAddressById
 
@@ -133,19 +115,17 @@ function getControlledAddressById(uint256 tokenId) external view returns (addres
 
 Returns the address of the controlled ERC20 token
 
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
+| Name    | Type    | Description                     |
+| ------- | ------- | ------------------------------- |
 | tokenId | uint256 | The ID of ERC721 token to check |
 
 #### Returns
 
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | The address of the controlled ERC20 token |
+| Name | Type    | Description                               |
+| ---- | ------- | ----------------------------------------- |
+| \_0  | address | The address of the controlled ERC20 token |
 
 ### getFactory
 
@@ -155,14 +135,11 @@ function getFactory() external view returns (address)
 
 Returns the address of the factory that mints admin tokens
 
-
-
-
 #### Returns
 
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | The address of the factory |
+| Name | Type    | Description                |
+| ---- | ------- | -------------------------- |
+| \_0  | address | The address of the factory |
 
 ### isApprovedForAll
 
@@ -170,22 +147,20 @@ Returns the address of the factory that mints admin tokens
 function isApprovedForAll(address owner, address operator) external view returns (bool)
 ```
 
-
-
-*See {IERC721-isApprovedForAll}.*
+_See {IERC721-isApprovedForAll}._
 
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| owner | address | undefined |
-| operator | address | undefined |
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| owner    | address | undefined   |
+| operator | address | undefined   |
 
 #### Returns
 
 | Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
+| ---- | ---- | ----------- |
+| \_0  | bool | undefined   |
 
 ### mintWithERC20Address
 
@@ -195,13 +170,11 @@ function mintWithERC20Address(address to, address ERC20Address) external nonpaya
 
 Mints a new ERC721 token with the address of the controlled ERC20 token
 
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| to | address | The address of the receiver of the token |
+| Name         | Type    | Description                               |
+| ------------ | ------- | ----------------------------------------- |
+| to           | address | The address of the receiver of the token  |
 | ERC20Address | address | The address of the controlled ERC20 token |
 
 ### name
@@ -210,16 +183,13 @@ Mints a new ERC721 token with the address of the controlled ERC20 token
 function name() external view returns (string)
 ```
 
-
-
-*See {IERC721Metadata-name}.*
-
+_See {IERC721Metadata-name}._
 
 #### Returns
 
-| Name | Type | Description |
-|---|---|---|
-| _0 | string | undefined |
+| Name | Type   | Description |
+| ---- | ------ | ----------- |
+| \_0  | string | undefined   |
 
 ### owner
 
@@ -227,16 +197,13 @@ function name() external view returns (string)
 function owner() external view returns (address)
 ```
 
-
-
-*Returns the address of the current owner.*
-
+_Returns the address of the current owner._
 
 #### Returns
 
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined |
+| Name | Type    | Description |
+| ---- | ------- | ----------- |
+| \_0  | address | undefined   |
 
 ### ownerOf
 
@@ -244,21 +211,19 @@ function owner() external view returns (address)
 function ownerOf(uint256 tokenId) external view returns (address)
 ```
 
-
-
-*See {IERC721-ownerOf}.*
+_See {IERC721-ownerOf}._
 
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| tokenId | uint256 | undefined |
+| Name    | Type    | Description |
+| ------- | ------- | ----------- |
+| tokenId | uint256 | undefined   |
 
 #### Returns
 
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined |
+| Name | Type    | Description |
+| ---- | ------- | ----------- |
+| \_0  | address | undefined   |
 
 ### renounceOwnership
 
@@ -266,10 +231,7 @@ function ownerOf(uint256 tokenId) external view returns (address)
 function renounceOwnership() external nonpayable
 ```
 
-
-
-*Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.*
-
+_Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner._
 
 ### safeTransferFrom
 
@@ -277,17 +239,15 @@ function renounceOwnership() external nonpayable
 function safeTransferFrom(address from, address to, uint256 tokenId) external nonpayable
 ```
 
-
-
-*See {IERC721-safeTransferFrom}.*
+_See {IERC721-safeTransferFrom}._
 
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| from | address | undefined |
-| to | address | undefined |
-| tokenId | uint256 | undefined |
+| Name    | Type    | Description |
+| ------- | ------- | ----------- |
+| from    | address | undefined   |
+| to      | address | undefined   |
+| tokenId | uint256 | undefined   |
 
 ### safeTransferFrom
 
@@ -295,18 +255,16 @@ function safeTransferFrom(address from, address to, uint256 tokenId) external no
 function safeTransferFrom(address from, address to, uint256 tokenId, bytes data) external nonpayable
 ```
 
-
-
-*See {IERC721-safeTransferFrom}.*
+_See {IERC721-safeTransferFrom}._
 
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| from | address | undefined |
-| to | address | undefined |
-| tokenId | uint256 | undefined |
-| data | bytes | undefined |
+| Name    | Type    | Description |
+| ------- | ------- | ----------- |
+| from    | address | undefined   |
+| to      | address | undefined   |
+| tokenId | uint256 | undefined   |
+| data    | bytes   | undefined   |
 
 ### setApprovalForAll
 
@@ -314,16 +272,14 @@ function safeTransferFrom(address from, address to, uint256 tokenId, bytes data)
 function setApprovalForAll(address operator, bool approved) external nonpayable
 ```
 
-
-
-*See {IERC721-setApprovalForAll}.*
+_See {IERC721-setApprovalForAll}._
 
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| operator | address | undefined |
-| approved | bool | undefined |
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| operator | address | undefined   |
+| approved | bool    | undefined   |
 
 ### supportsInterface
 
@@ -331,21 +287,19 @@ function setApprovalForAll(address operator, bool approved) external nonpayable
 function supportsInterface(bytes4 interfaceId) external view returns (bool)
 ```
 
-
-
-*See {IERC165-supportsInterface}.*
+_See {IERC165-supportsInterface}._
 
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| interfaceId | bytes4 | undefined |
+| Name        | Type   | Description |
+| ----------- | ------ | ----------- |
+| interfaceId | bytes4 | undefined   |
 
 #### Returns
 
 | Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
+| ---- | ---- | ----------- |
+| \_0  | bool | undefined   |
 
 ### symbol
 
@@ -353,16 +307,13 @@ function supportsInterface(bytes4 interfaceId) external view returns (bool)
 function symbol() external view returns (string)
 ```
 
-
-
-*See {IERC721Metadata-symbol}.*
-
+_See {IERC721Metadata-symbol}._
 
 #### Returns
 
-| Name | Type | Description |
-|---|---|---|
-| _0 | string | undefined |
+| Name | Type   | Description |
+| ---- | ------ | ----------- |
+| \_0  | string | undefined   |
 
 ### tokenURI
 
@@ -370,21 +321,19 @@ function symbol() external view returns (string)
 function tokenURI(uint256 tokenId) external view returns (string)
 ```
 
-
-
-*See {IERC721Metadata-tokenURI}.*
+_See {IERC721Metadata-tokenURI}._
 
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| tokenId | uint256 | undefined |
+| Name    | Type    | Description |
+| ------- | ------- | ----------- |
+| tokenId | uint256 | undefined   |
 
 #### Returns
 
-| Name | Type | Description |
-|---|---|---|
-| _0 | string | undefined |
+| Name | Type   | Description |
+| ---- | ------ | ----------- |
+| \_0  | string | undefined   |
 
 ### transferFrom
 
@@ -392,17 +341,15 @@ function tokenURI(uint256 tokenId) external view returns (string)
 function transferFrom(address from, address to, uint256 tokenId) external nonpayable
 ```
 
-
-
-*See {IERC721-transferFrom}.*
+_See {IERC721-transferFrom}._
 
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| from | address | undefined |
-| to | address | undefined |
-| tokenId | uint256 | undefined |
+| Name    | Type    | Description |
+| ------- | ------- | ----------- |
+| from    | address | undefined   |
+| to      | address | undefined   |
+| tokenId | uint256 | undefined   |
 
 ### transferOwnership
 
@@ -410,15 +357,13 @@ function transferFrom(address from, address to, uint256 tokenId) external nonpay
 function transferOwnership(address newOwner) external nonpayable
 ```
 
-
-
-*Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.*
+_Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner._
 
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| newOwner | address | undefined |
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| newOwner | address | undefined   |
 
 ### verifyAdminToken
 
@@ -428,16 +373,12 @@ function verifyAdminToken(address user, address ERC20Address) external view
 
 Checks if the provided user owns an admin token controlling the provided ERC20 token
 
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| user | address | The address of the user that potentially controls ERC20 token |
-| ERC20Address | address | The address of the potentially controlled ERC20 token |
-
-
+| Name         | Type    | Description                                                   |
+| ------------ | ------- | ------------------------------------------------------------- |
+| user         | address | The address of the user that potentially controls ERC20 token |
+| ERC20Address | address | The address of the potentially controlled ERC20 token         |
 
 ## Events
 
@@ -447,15 +388,11 @@ Checks if the provided user owns an admin token controlling the provided ERC20 t
 event AdminTokenBurnt(uint256 indexed tokenId)
 ```
 
-
-
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| tokenId `indexed` | uint256 | undefined |
+| Name              | Type    | Description |
+| ----------------- | ------- | ----------- |
+| tokenId `indexed` | uint256 | undefined   |
 
 ### AdminTokenCreated
 
@@ -463,16 +400,12 @@ event AdminTokenBurnt(uint256 indexed tokenId)
 event AdminTokenCreated(uint256 indexed tokenId, address indexed ERC20Address)
 ```
 
-
-
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| tokenId `indexed` | uint256 | undefined |
-| ERC20Address `indexed` | address | undefined |
+| Name                   | Type    | Description |
+| ---------------------- | ------- | ----------- |
+| tokenId `indexed`      | uint256 | undefined   |
+| ERC20Address `indexed` | address | undefined   |
 
 ### AdminTokenTransferred
 
@@ -480,17 +413,13 @@ event AdminTokenCreated(uint256 indexed tokenId, address indexed ERC20Address)
 event AdminTokenTransferred(address indexed from, address indexed to, uint256 tokenId)
 ```
 
-
-
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| from `indexed` | address | undefined |
-| to `indexed` | address | undefined |
-| tokenId  | uint256 | undefined |
+| Name           | Type    | Description |
+| -------------- | ------- | ----------- |
+| from `indexed` | address | undefined   |
+| to `indexed`   | address | undefined   |
+| tokenId        | uint256 | undefined   |
 
 ### Approval
 
@@ -498,17 +427,13 @@ event AdminTokenTransferred(address indexed from, address indexed to, uint256 to
 event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId)
 ```
 
-
-
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| owner `indexed` | address | undefined |
-| approved `indexed` | address | undefined |
-| tokenId `indexed` | uint256 | undefined |
+| Name               | Type    | Description |
+| ------------------ | ------- | ----------- |
+| owner `indexed`    | address | undefined   |
+| approved `indexed` | address | undefined   |
+| tokenId `indexed`  | uint256 | undefined   |
 
 ### ApprovalForAll
 
@@ -516,17 +441,13 @@ event Approval(address indexed owner, address indexed approved, uint256 indexed 
 event ApprovalForAll(address indexed owner, address indexed operator, bool approved)
 ```
 
-
-
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| owner `indexed` | address | undefined |
-| operator `indexed` | address | undefined |
-| approved  | bool | undefined |
+| Name               | Type    | Description |
+| ------------------ | ------- | ----------- |
+| owner `indexed`    | address | undefined   |
+| operator `indexed` | address | undefined   |
+| approved           | bool    | undefined   |
 
 ### OwnershipTransferred
 
@@ -534,16 +455,12 @@ event ApprovalForAll(address indexed owner, address indexed operator, bool appro
 event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
 ```
 
-
-
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| previousOwner `indexed` | address | undefined |
-| newOwner `indexed` | address | undefined |
+| Name                    | Type    | Description |
+| ----------------------- | ------- | ----------- |
+| previousOwner `indexed` | address | undefined   |
+| newOwner `indexed`      | address | undefined   |
 
 ### Transfer
 
@@ -551,17 +468,10 @@ event OwnershipTransferred(address indexed previousOwner, address indexed newOwn
 event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)
 ```
 
-
-
-
-
 #### Parameters
 
-| Name | Type | Description |
-|---|---|---|
-| from `indexed` | address | undefined |
-| to `indexed` | address | undefined |
-| tokenId `indexed` | uint256 | undefined |
-
-
-
+| Name              | Type    | Description |
+| ----------------- | ------- | ----------- |
+| from `indexed`    | address | undefined   |
+| to `indexed`      | address | undefined   |
+| tokenId `indexed` | uint256 | undefined   |

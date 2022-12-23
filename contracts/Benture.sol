@@ -116,11 +116,9 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @notice Returns the list of IDs of all distributions the admin has ever announced
     /// @param admin The address of the admin
     /// @return The list of IDs of all distributions the admin has ever announced
-    function getDistributions(address admin)
-        public
-        view
-        returns (uint256[] memory)
-    {
+    function getDistributions(
+        address admin
+    ) public view returns (uint256[] memory) {
         // Do not check wheter the given address is actually an admin
         require(
             admin != address(0),
@@ -132,18 +130,12 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @notice Returns the distribution with the given ID
     /// @param id The ID of the distribution to search for
     /// @return All information about the distribution
-    function getDistribution(uint256 id)
+    function getDistribution(
+        uint256 id
+    )
         public
         view
-        returns (
-            uint256,
-            address,
-            address,
-            uint256,
-            uint256,
-            bool,
-            DistStatus
-        )
+        returns (uint256, address, address, uint256, uint256, bool, DistStatus)
     {
         require(id >= 1, "Benture: ID of distribution must be greater than 1!");
         require(
@@ -166,11 +158,10 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @param id The ID of the distribution to check
     /// @param admin The address of the admin to check
     /// @return True if admin has announced the distribution with the given ID. Otherwise - false.
-    function checkAnnounced(uint256 id, address admin)
-        public
-        view
-        returns (bool)
-    {
+    function checkAnnounced(
+        uint256 id,
+        address admin
+    ) public view returns (bool) {
         require(id >= 1, "Benture: ID of distribution must be greater than 1!");
         require(
             distributionsToAdmins[id] != address(0),
@@ -278,7 +269,12 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @param amount The amount of distTokens to be distributed in total
     /// @param startBalance The balance of the the `distToken` before distribution
     /// @param endBalance The balance of the the `distToken` after distribution
-    function returnLeft(address distToken, uint256 amount, uint256 startBalance, uint256 endBalance) internal {
+    function returnLeft(
+        address distToken,
+        uint256 amount,
+        uint256 startBalance,
+        uint256 endBalance
+    ) internal {
         uint256 reallyDistributed = startBalance - endBalance;
         if (reallyDistributed != amount) {
             if (distToken != address(0)) {
@@ -295,7 +291,9 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @dev Returns the current `distToken` address of this contract
     /// @param distToken The address of the token to get the balance in
     /// @return The `distToken` balance of this contract
-    function getCurrentBalance(address distToken) internal view returns(uint256) {
+    function getCurrentBalance(
+        address distToken
+    ) internal view returns (uint256) {
         uint256 balance;
         if (distToken != address(0)) {
             balance = IERC20(distToken).balanceOf(address(this));
@@ -304,7 +302,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         }
 
         return balance;
-
     }
 
     /// @notice Distributes one token as dividends for holders of another token _equally _
@@ -322,7 +319,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         address distToken,
         uint256 amount
     ) external payable nonReentrant {
-
         // Do all necessary checks before distributing dividends
         preDistChecks(origToken, distToken, id, amount, true);
         // Transfer tokens to the `Benture` contract before distributing dividends
@@ -364,8 +360,10 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
                     require(transferred, "Benture: dividends transfer failed!");
                 } else {
                     // ERC20 tokens
-                    IERC20(distToken)
-                        .safeTransfer(receivers[i], amount / parts);
+                    IERC20(distToken).safeTransfer(
+                        receivers[i],
+                        amount / parts
+                    );
                 }
             }
         }
@@ -383,7 +381,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // All distTokens that were for some reason not distributed are returned
         // to the admin
         returnLeft(distToken, amount, startBalance, endBalance);
-
     }
 
     /// @notice Distributes one token as dividends for holders of another token _according to each user's balance_
@@ -400,7 +397,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         address distToken,
         uint256 amount
     ) external payable nonReentrant {
-
         // Do all necessary checks before distributing dividends
         preDistChecks(origToken, distToken, id, amount, false);
         // Transfer tokens to the `Benture` contract before distributing dividends
@@ -408,7 +404,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
 
         // The initial balance before distribution
         uint256 startBalance = getCurrentBalance(distToken);
-
 
         // Get all holders of the origToken
         address[] memory receivers = IBentureProducedToken(origToken).holders();
@@ -445,13 +440,12 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             );
             // If `Benture` contract is a receiver, just ignore it and move to the next one
             if (receivers[i] != address(this)) {
-                uint256 userBalance = IERC20(origToken)
-                    .balanceOf(receivers[i]);
+                uint256 userBalance = IERC20(origToken).balanceOf(receivers[i]);
                 // Native tokens
                 if (distToken == address(0)) {
-                    (bool success, ) = receivers[i]
-                        .call{// Some of the holders might receive no dividends // Formulas [A] and [B] can be used here
-                    value: (userBalance * amount) / totalBalance}("");
+                    (bool success, ) = receivers[i].call{ // Some of the holders might receive no dividends // Formulas [A] and [B] can be used here
+                        value: (userBalance * amount) / totalBalance
+                    }("");
                     require(success, "Benture: dividends transfer failed!");
                     // Other ERC20 tokens
                 } else {
@@ -478,18 +472,16 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // All distTokens that were for some reason not distributed are returned
         // to the admin
         returnLeft(distToken, amount, startBalance, endBalance);
-
     }
 
     /// @notice Returns the total users` balance of the given token
     /// @param users The list of users to calculate the total balance of
     /// @param token The token which balance must be calculated
     /// @return The total users' balance of the given token
-    function _getTotalBalance(address[] memory users, address token)
-        internal
-        view
-        returns (uint256)
-    {
+    function _getTotalBalance(
+        address[] memory users,
+        address token
+    ) internal view returns (uint256) {
         uint256 totalBalance;
         for (uint256 i = 0; i < users.length; i++) {
             // If this contract is holder - ignore its balance
