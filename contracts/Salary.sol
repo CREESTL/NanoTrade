@@ -4,11 +4,13 @@ pragma solidity ^0.8.9;
 
 import "./interfaces/IBentureAdmin.sol";
 import "./interfaces/ISalary.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /// @title Salary contract. A contract to manage salaries 
 contract Salary is ISalary{
+    using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
 
@@ -148,17 +150,23 @@ contract Salary is ISalary{
         }
 
         if (periodsToPay != 0) {
-            
+            uint256 toPay;
+            for(uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + periodsToPay; i++) {
+                toPay = toPay + _salary.tokensAmountPerPeriod[i];
+            }
+
             _salary.amountOfWithdrawals =
                 _salary.amountOfWithdrawals +
                 periodsToPay;
             _salary.lastWithdrawalTime = block.timestamp;
 
-            require(ERC20(_salary.tokenAddress).transferFrom(
+            
+
+            IERC20(_salary.tokenAddress).transferFrom(
                 _salary.employer,
                 _salary.employee,
-                periodsToPay * _salary.tokensAmountPerPeriod
-            ), "Salary: Transfer failed");
+                toPay
+            );
 
             emit EmployeeSalaryClaimed(
                 _salary.employee,
@@ -227,14 +235,14 @@ contract Salary is ISalary{
         uint256 amountOfPeriods,
         address tokenAddress,
         uint256 totalTokenAmount,
-        uint256 tokensAmountPerPeriod
+        uint256[] memory tokensAmountPerPeriod
     ) external onlyAdmin {
         require(
             checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender),
             "Salary: not an admin for employee!"
         );
         require(
-            ERC20(tokenAddress).allowance(msg.sender, address(this)) >=
+            IERC20(tokenAddress).allowance(msg.sender, address(this)) >=
                 totalTokenAmount,
             "Salary: not enough tokens allowed!"
         );
@@ -274,20 +282,31 @@ contract Salary is ISalary{
 
         if (_salary.amountOfWithdrawals != _salary.amountOfPeriods) {
             uint256 amountToPay;
-            uint256 amountOfPeriodsToPay = _salary.amountOfPeriods - _salary.amountOfWithdrawals;
+            uint256 amountOfRemainingPeriods = _salary.amountOfPeriods - _salary.amountOfWithdrawals;
             uint256 timePassedFromLastWithdrawal = block.timestamp - _salary.lastWithdrawalTime;
 
-            if (timePassedFromLastWithdrawal / _salary.periodDuration < amountOfPeriodsToPay) {
-                amountToPay = ((_salary.tokensAmountPerPeriod * timePassedFromLastWithdrawal) / _salary.periodDuration);
+            if (timePassedFromLastWithdrawal / _salary.periodDuration < amountOfRemainingPeriods) {
+                uint256 period;
+                for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + (timePassedFromLastWithdrawal / _salary.periodDuration); i++) {
+                    amountToPay = amountToPay + _salary.tokensAmountPerPeriod[i];
+                    period = i;
+                }
+
+                if (timePassedFromLastWithdrawal - (_salary.periodDuration * (timePassedFromLastWithdrawal / _salary.periodDuration)) > 0) {
+                    amountToPay = amountToPay + (_salary.tokensAmountPerPeriod[period + 1] * (timePassedFromLastWithdrawal - (timePassedFromLastWithdrawal / _salary.periodDuration) * _salary.periodDuration)) / _salary.periodDuration;
+                }
+
             } else {
-                amountToPay = _salary.tokensAmountPerPeriod * amountOfPeriodsToPay;
+                for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + amountOfRemainingPeriods; i++) {
+                    amountToPay = amountToPay + _salary.tokensAmountPerPeriod[i];
+                }
             }
 
-            require(ERC20(_salary.tokenAddress).transferFrom(
+            IERC20(_salary.tokenAddress).transferFrom(
                 msg.sender,
                 _salary.employee,
                 amountToPay
-            ), "Salary: Transfer failed");
+            );
         }
     }
 }
