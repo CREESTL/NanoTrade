@@ -1,6 +1,16 @@
 # Salary
 
+<<<<<<< HEAD
 > Salary contract. A contract to manage salaries
+=======
+
+
+> Salary contract. A contract to manage salaries 
+
+
+
+
+>>>>>>> c1f5079 (various salary amount of token per period added)
 
 ## Methods
 
@@ -12,22 +22,36 @@ function addEmployee(address employeeAddress) external nonpayable
 
 Adds new employee.
 
+<<<<<<< HEAD
 _Only admin can call this method._
 
 #### Parameters
 
 | Name            | Type    | Description          |
 | --------------- | ------- | -------------------- |
+=======
+*Only admin can call this method.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+>>>>>>> c1f5079 (various salary amount of token per period added)
 | employeeAddress | address | Address of employee. |
 
 ### addSalaryToEmployee
 
 ```solidity
+<<<<<<< HEAD
 function addSalaryToEmployee(address employeeAddress, uint256 periodDuration, uint256 amountOfPeriods, address tokenAddress, uint256 totalTokenAmount, uint256 tokensAmountPerPeriod) external nonpayable
+=======
+function addSalaryToEmployee(address employeeAddress, uint256 periodDuration, uint256 amountOfPeriods, address tokenAddress, uint256 totalTokenAmount, uint256[] tokensAmountPerPeriod) external nonpayable
+>>>>>>> c1f5079 (various salary amount of token per period added)
 ```
 
 Adds salary to employee.
 
+<<<<<<< HEAD
 _Only admin can call this method._
 
 #### Parameters
@@ -40,6 +64,20 @@ _Only admin can call this method._
 | tokenAddress          | address | undefined            |
 | totalTokenAmount      | uint256 | undefined            |
 | tokensAmountPerPeriod | uint256 | undefined            |
+=======
+*Only admin can call this method.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| employeeAddress | address | Address of employee. |
+| periodDuration | uint256 | undefined |
+| amountOfPeriods | uint256 | undefined |
+| tokenAddress | address | undefined |
+| totalTokenAmount | uint256 | undefined |
+| tokensAmountPerPeriod | uint256[] | undefined |
+>>>>>>> c1f5079 (various salary amount of token per period added)
 
 ### checkIfUserIsAdminOfEmployee
 
@@ -49,6 +87,7 @@ function checkIfUserIsAdminOfEmployee(address employeeAddress, address adminAddr
 
 Returns true if user is admin for employee and False if not.
 
+<<<<<<< HEAD
 #### Parameters
 
 | Name            | Type    | Description          |
@@ -60,6 +99,21 @@ Returns true if user is admin for employee and False if not.
 
 | Name    | Type | Description                                       |
 | ------- | ---- | ------------------------------------------------- |
+=======
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| employeeAddress | address | Address of employee. |
+| adminAddress | address | Address of admin. |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+>>>>>>> c1f5079 (various salary amount of token per period added)
 | isAdmin | bool | True if user is admin for employee. False if not. |
 
 ### checkIfUserIsEmployeeOfAdmin
@@ -70,17 +124,32 @@ function checkIfUserIsEmployeeOfAdmin(address adminAddress, address employeeAddr
 
 Returns true if user is employee for admin and False if not.
 
+<<<<<<< HEAD
 #### Parameters
 
 | Name            | Type    | Description          |
 | --------------- | ------- | -------------------- |
 | adminAddress    | address | Address of admin.    |
+=======
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| adminAddress | address | Address of admin. |
+>>>>>>> c1f5079 (various salary amount of token per period added)
 | employeeAddress | address | Address of employee. |
 
 #### Returns
 
+<<<<<<< HEAD
 | Name       | Type | Description                                       |
 | ---------- | ---- | ------------------------------------------------- |
+=======
+| Name | Type | Description |
+|---|---|---|
+>>>>>>> c1f5079 (various salary amount of token per period added)
 | isEmployee | bool | True if user is employee for admin. False if not. |
 
 ### getAdminsByEmployee
@@ -91,16 +160,30 @@ function getAdminsByEmployee(address employeeAddress) external view returns (add
 
 Returns the array of admins of employee.
 
+<<<<<<< HEAD
 #### Parameters
 
 | Name            | Type    | Description          |
 | --------------- | ------- | -------------------- |
+=======
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+>>>>>>> c1f5079 (various salary amount of token per period added)
 | employeeAddress | address | Address of employee. |
 
 #### Returns
 
+<<<<<<< HEAD
 | Name   | Type      | Description                      |
 | ------ | --------- | -------------------------------- |
+=======
+| Name | Type | Description |
+|---|---|---|
+>>>>>>> c1f5079 (various salary amount of token per period added)
 | admins | address[] | The array of admins of employee. |
 
 ### getEmployeesByAdmin
@@ -111,16 +194,30 @@ function getEmployeesByAdmin(address adminAddress) external view returns (addres
 
 Returns the array of employees of admin.
 
+<<<<<<< HEAD
 #### Parameters
 
 | Name         | Type    | Description       |
 | ------------ | ------- | ----------------- |
+=======
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+>>>>>>> c1f5079 (various salary amount of token per period added)
 | adminAddress | address | Address of admin. |
 
 #### Returns
 
+<<<<<<< HEAD
 | Name      | Type      | Description                      |
 | --------- | --------- | -------------------------------- |
+=======
+| Name | Type | Description |
+|---|---|---|
+>>>>>>> c1f5079 (various salary amount of token per period added)
 | employees | address[] | The array of employees of admin. |
 
 ### getNameOfEmployee
@@ -131,16 +228,30 @@ function getNameOfEmployee(address employeeAddress) external view returns (strin
 
 Returns the name of employee.
 
+<<<<<<< HEAD
 #### Parameters
 
 | Name            | Type    | Description          |
 | --------------- | ------- | -------------------- |
+=======
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+>>>>>>> c1f5079 (various salary amount of token per period added)
 | employeeAddress | address | Address of employee. |
 
 #### Returns
 
+<<<<<<< HEAD
 | Name | Type   | Description           |
 | ---- | ------ | --------------------- |
+=======
+| Name | Type | Description |
+|---|---|---|
+>>>>>>> c1f5079 (various salary amount of token per period added)
 | name | string | The name of employee. |
 
 ### getSalariesIdByEmployeeAndAdmin
@@ -151,6 +262,7 @@ function getSalariesIdByEmployeeAndAdmin(address employeeAddress, address adminA
 
 Returns array of salaries of employee.
 
+<<<<<<< HEAD
 #### Parameters
 
 | Name            | Type    | Description          |
@@ -163,6 +275,22 @@ Returns array of salaries of employee.
 | Name | Type      | Description                       |
 | ---- | --------- | --------------------------------- |
 | ids  | uint256[] | Array of salaries id of employee. |
+=======
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| employeeAddress | address | Address of employee. |
+| adminAddress | address | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| ids | uint256[] | Array of salaries id of employee. |
+>>>>>>> c1f5079 (various salary amount of token per period added)
 
 ### getSalaryById
 
@@ -172,16 +300,30 @@ function getSalaryById(uint256 salaryId) external view returns (struct ISalary.S
 
 Returns salary by ID.
 
+<<<<<<< HEAD
 #### Parameters
 
 | Name     | Type    | Description       |
 | -------- | ------- | ----------------- |
+=======
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+>>>>>>> c1f5079 (various salary amount of token per period added)
 | salaryId | uint256 | Id of SalaryInfo. |
 
 #### Returns
 
+<<<<<<< HEAD
 | Name   | Type               | Description       |
 | ------ | ------------------ | ----------------- |
+=======
+| Name | Type | Description |
+|---|---|---|
+>>>>>>> c1f5079 (various salary amount of token per period added)
 | salary | ISalary.SalaryInfo | SalaryInfo by ID. |
 
 ### removeEmployee
@@ -192,12 +334,21 @@ function removeEmployee(address employeeAddress) external nonpayable
 
 Removes employee.
 
+<<<<<<< HEAD
 _Only admin can call this method._
 
 #### Parameters
 
 | Name            | Type    | Description          |
 | --------------- | ------- | -------------------- |
+=======
+*Only admin can call this method.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+>>>>>>> c1f5079 (various salary amount of token per period added)
 | employeeAddress | address | Address of employee. |
 
 ### removeNameFromEmployee
@@ -208,12 +359,21 @@ function removeNameFromEmployee(address employeeAddress) external nonpayable
 
 Removes name from employee.
 
+<<<<<<< HEAD
 _Only admin can call this method._
 
 #### Parameters
 
 | Name            | Type    | Description          |
 | --------------- | ------- | -------------------- |
+=======
+*Only admin can call this method.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+>>>>>>> c1f5079 (various salary amount of token per period added)
 | employeeAddress | address | Address of employee. |
 
 ### removeSalaryFromEmployee
@@ -224,12 +384,21 @@ function removeSalaryFromEmployee(uint256 salaryId) external nonpayable
 
 Removes salary from employee.
 
+<<<<<<< HEAD
 _Only admin can call this method._
 
 #### Parameters
 
 | Name     | Type    | Description            |
 | -------- | ------- | ---------------------- |
+=======
+*Only admin can call this method.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+>>>>>>> c1f5079 (various salary amount of token per period added)
 | salaryId | uint256 | ID of employee salary. |
 
 ### setNameToEmployee
@@ -240,6 +409,7 @@ function setNameToEmployee(address employeeAddress, string name) external nonpay
 
 Sets new or changes current name of the employee.
 
+<<<<<<< HEAD
 _Only admin can call this method._
 
 #### Parameters
@@ -248,6 +418,16 @@ _Only admin can call this method._
 | --------------- | ------- | --------------------- |
 | employeeAddress | address | Address of employee.  |
 | name            | string  | New name of employee. |
+=======
+*Only admin can call this method.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| employeeAddress | address | Address of employee. |
+| name | string | New name of employee. |
+>>>>>>> c1f5079 (various salary amount of token per period added)
 
 ### withdrawSalary
 
@@ -257,6 +437,7 @@ function withdrawSalary(uint256 salaryId) external nonpayable
 
 Withdraws employee&#39;s salary.
 
+<<<<<<< HEAD
 _Anyone can call this method. No restrictions._
 
 #### Parameters
@@ -265,6 +446,18 @@ _Anyone can call this method. No restrictions._
 | -------- | ------- | ------------------------- |
 | salaryId | uint256 | IDs of employee salaries. |
 
+=======
+*Anyone can call this method. No restrictions.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| salaryId | uint256 | IDs of employee salaries. |
+
+
+
+>>>>>>> c1f5079 (various salary amount of token per period added)
 ## Events
 
 ### EmployeeAdded
@@ -275,12 +468,23 @@ event EmployeeAdded(address indexed employeeAddress, address indexed adminAddres
 
 Emits when user was added to Employees of Admin
 
+<<<<<<< HEAD
 #### Parameters
 
 | Name                      | Type    | Description |
 | ------------------------- | ------- | ----------- |
 | employeeAddress `indexed` | address | undefined   |
 | adminAddress `indexed`    | address | undefined   |
+=======
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| employeeAddress `indexed` | address | undefined |
+| adminAddress `indexed` | address | undefined |
+>>>>>>> c1f5079 (various salary amount of token per period added)
 
 ### EmployeeNameChanged
 
@@ -290,12 +494,23 @@ event EmployeeNameChanged(address indexed employeeAddress, string indexed name)
 
 Emits when Employee&#39;s name was added or changed
 
+<<<<<<< HEAD
 #### Parameters
 
 | Name                      | Type    | Description |
 | ------------------------- | ------- | ----------- |
 | employeeAddress `indexed` | address | undefined   |
 | name `indexed`            | string  | undefined   |
+=======
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| employeeAddress `indexed` | address | undefined |
+| name `indexed` | string | undefined |
+>>>>>>> c1f5079 (various salary amount of token per period added)
 
 ### EmployeeNameRemoved
 
@@ -305,11 +520,21 @@ event EmployeeNameRemoved(address indexed employeeAddress)
 
 Emits when name was removed from Employee
 
+<<<<<<< HEAD
 #### Parameters
 
 | Name                      | Type    | Description |
 | ------------------------- | ------- | ----------- |
 | employeeAddress `indexed` | address | undefined   |
+=======
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| employeeAddress `indexed` | address | undefined |
+>>>>>>> c1f5079 (various salary amount of token per period added)
 
 ### EmployeeRemoved
 
@@ -319,12 +544,23 @@ event EmployeeRemoved(address indexed employeeAddress, address indexed adminAddr
 
 Emits when user was removed from Employees of Admin
 
+<<<<<<< HEAD
 #### Parameters
 
 | Name                      | Type    | Description |
 | ------------------------- | ------- | ----------- |
 | employeeAddress `indexed` | address | undefined   |
 | adminAddress `indexed`    | address | undefined   |
+=======
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| employeeAddress `indexed` | address | undefined |
+| adminAddress `indexed` | address | undefined |
+>>>>>>> c1f5079 (various salary amount of token per period added)
 
 ### EmployeeSalaryAdded
 
@@ -334,6 +570,7 @@ event EmployeeSalaryAdded(address indexed employeeAddress, address indexed admin
 
 Emits when salary was added to Employee
 
+<<<<<<< HEAD
 #### Parameters
 
 | Name                      | Type               | Description |
@@ -341,6 +578,17 @@ Emits when salary was added to Employee
 | employeeAddress `indexed` | address            | undefined   |
 | adminAddress `indexed`    | address            | undefined   |
 | salary `indexed`          | ISalary.SalaryInfo | undefined   |
+=======
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| employeeAddress `indexed` | address | undefined |
+| adminAddress `indexed` | address | undefined |
+| salary `indexed` | ISalary.SalaryInfo | undefined |
+>>>>>>> c1f5079 (various salary amount of token per period added)
 
 ### EmployeeSalaryClaimed
 
@@ -350,6 +598,7 @@ event EmployeeSalaryClaimed(address indexed employeeAddress, address indexed adm
 
 Emits when Employee withdraws salary
 
+<<<<<<< HEAD
 #### Parameters
 
 | Name                      | Type               | Description |
@@ -357,6 +606,17 @@ Emits when Employee withdraws salary
 | employeeAddress `indexed` | address            | undefined   |
 | adminAddress `indexed`    | address            | undefined   |
 | salary `indexed`          | ISalary.SalaryInfo | undefined   |
+=======
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| employeeAddress `indexed` | address | undefined |
+| adminAddress `indexed` | address | undefined |
+| salary `indexed` | ISalary.SalaryInfo | undefined |
+>>>>>>> c1f5079 (various salary amount of token per period added)
 
 ### EmployeeSalaryRemoved
 
@@ -366,6 +626,7 @@ event EmployeeSalaryRemoved(address indexed employeeAddress, address indexed adm
 
 Emits when salary was removed from Employee
 
+<<<<<<< HEAD
 #### Parameters
 
 | Name                      | Type               | Description |
@@ -373,3 +634,17 @@ Emits when salary was removed from Employee
 | employeeAddress `indexed` | address            | undefined   |
 | adminAddress `indexed`    | address            | undefined   |
 | salary `indexed`          | ISalary.SalaryInfo | undefined   |
+=======
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| employeeAddress `indexed` | address | undefined |
+| adminAddress `indexed` | address | undefined |
+| salary `indexed` | ISalary.SalaryInfo | undefined |
+
+
+
+>>>>>>> c1f5079 (various salary amount of token per period added)

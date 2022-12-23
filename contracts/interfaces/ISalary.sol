@@ -11,7 +11,7 @@ interface ISalary {
         uint256 amountOfWithdrawals;
         address tokenAddress;
         uint256 totalTokenAmount;
-        uint256 tokensAmountPerPeriod;
+        uint256[] tokensAmountPerPeriod;
         uint256 lastWithdrawalTime;
         address employer;
         address employee;
@@ -146,7 +146,7 @@ interface ISalary {
         uint256 amountOfPeriods,
         address tokenAddress,
         uint256 totalTokenAmount,
-        uint256 tokensAmountPerPeriod
+        uint256[] memory tokensAmountPerPeriod
     ) external;
 
     /// @notice Removes salary from employee.

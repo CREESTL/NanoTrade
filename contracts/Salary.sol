@@ -4,7 +4,8 @@ pragma solidity ^0.8.9;
 
 import "./interfaces/IBentureAdmin.sol";
 import "./interfaces/ISalary.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /// @title Salary contract. A contract to manage salaries
@@ -240,14 +241,14 @@ contract Salary is ISalary {
         uint256 amountOfPeriods,
         address tokenAddress,
         uint256 totalTokenAmount,
-        uint256 tokensAmountPerPeriod
+        uint256[] memory tokensAmountPerPeriod
     ) external onlyAdmin {
         require(
             checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender),
             "Salary: not an admin for employee!"
         );
         require(
-            ERC20(tokenAddress).allowance(msg.sender, address(this)) >=
+            IERC20(tokenAddress).allowance(msg.sender, address(this)) >=
                 totalTokenAmount,
             "Salary: not enough tokens allowed!"
         );

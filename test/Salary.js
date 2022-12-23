@@ -866,6 +866,7 @@ describe("Salary", () => {
     });
   });
 
+
   describe("Salary reverts", () => {
     it("Should revert setNameToEmployee with BentureAdmin: user does not have an admin token!", async () => {
       await salary.addEmployee(clientAcc1.address);
