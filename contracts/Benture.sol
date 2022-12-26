@@ -45,7 +45,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @notice Allows admin to annouce the next distribution of dividends
     /// @param origToken The tokens to the holders of which the dividends will be paid
     /// @param distToken The token that will be paid
-    /// @param amount The amount of tokens that will be paid
+    ///        Use zero address for native tokens
+    /// @param amount The amount of ERC20 tokens that will be paid
     /// @param dueDate The number of seconds in which the dividends will be paid
     ///        *after the announcement*
     ///         Use `0` to announce an immediate distribution
@@ -58,15 +59,24 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         uint256 amount,
         uint256 dueDate,
         bool isEqual
-    ) external {
+    ) external payable {
         require(
             origToken != address(0),
             "Benture: original token can not have a zero address!"
         );
-        // Check that amount is not zero
-        require(amount > 0, "Benture: dividends amount can not be zero!");
         // Check that caller is an admin of `origToken`
         IBentureProducedToken(origToken).checkAdmin(msg.sender);
+        // Amount can not be zero
+        require(amount > 0, "Benture: dividends amount can not be zero!");
+        if (distToken != address(0)) {
+            // NOTE: Caller should approve transfer of at least `amount` of tokens with `ERC20.approve()`
+            // before calling this function
+            // Transfer tokens from caller to the contract
+            IERC20(distToken).safeTransferFrom(msg.sender, address(this), amount);
+        } else {
+            // Check that enough native tokens were provided
+            require(msg.value >= amount, "Benture: not enough native tokens were provided!");
+        }
         distributionIds.increment();
         // NOTE The lowest distribution ID is 1
         uint256 distributionId = distributionIds.current();

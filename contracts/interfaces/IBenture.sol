@@ -16,7 +16,8 @@ interface IBenture {
     /// @notice Allows admin to annouce the next distribution of dividends
     /// @param origToken The tokens to the holders of which the dividends will be paid
     /// @param distToken The token that will be paid
-    /// @param amount The amount of tokens that will be paid
+    ///        Use zero address for native tokens
+    /// @param amount The amount of ERC20 tokens that will be paid
     /// @param dueDate The number of seconds in which the dividends will be paid
     ///        *after the announcement*
     /// @param isEqual Indicates whether distribution will be equal
@@ -28,7 +29,7 @@ interface IBenture {
         uint256 amount,
         uint256 dueDate,
         bool isEqual
-    ) external;
+    ) external payable;
 
     /// @notice Cancels previously announced distribution
     /// @param id The ID of the distribution to cancel
