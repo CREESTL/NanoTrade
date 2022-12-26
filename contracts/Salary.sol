@@ -230,6 +230,10 @@ contract Salary is ISalary{
 
     /// @notice Adds salary to employee.
     /// @param employeeAddress Address of employee.
+    /// @param periodDuration Duration of one period.
+    /// @param amountOfPeriods Amount of periods.
+    /// @param totalTokenAmount Total amount of tokens.
+    /// @param tokensAmountPerPeriod Amount of tokens per period.
     /// @dev Only admin can call this method.
     function addSalaryToEmployee(
         address employeeAddress,
