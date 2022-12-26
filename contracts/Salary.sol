@@ -144,12 +144,14 @@ contract Salary is ISalary{
             periodsToPay + _salary.amountOfWithdrawals >=
             _salary.amountOfPeriods
         ) {
+            /// @dev The case when an employee withdraw salary after the end of all periods
             periodsToPay =
                 _salary.amountOfPeriods -
                 _salary.amountOfWithdrawals;
         }
 
         if (periodsToPay != 0) {
+            /// @dev The case when there are periods for payment
             uint256 toPay;
             for(uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + periodsToPay; i++) {
                 toPay = toPay + _salary.tokensAmountPerPeriod[i];
@@ -161,7 +163,7 @@ contract Salary is ISalary{
             _salary.lastWithdrawalTime = block.timestamp;
 
             
-
+            /// @dev Transfer tokens from the employer's wallet to the employee's wallet
             IERC20(_salary.tokenAddress).safeTransferFrom(
                 _salary.employer,
                 _salary.employee,
@@ -287,7 +289,7 @@ contract Salary is ISalary{
             uint256 periodsPassed = timePassedFromLastWithdrawal / _salary.periodDuration;
 
             if (periodsPassed < amountOfRemainingPeriods) {
-                ///@dev The case when an employee withdraw salary before the end of all periods
+                /// @dev The case when an employee withdraw salary before the end of all periods
                 uint256 period;
                 for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + (periodsPassed); i++) {
                     amountToPay = amountToPay + _salary.tokensAmountPerPeriod[i];
@@ -299,12 +301,12 @@ contract Salary is ISalary{
                 }
                 
             } else {
-                ///@dev The case when an employee withdraw salary after the end of all periods
+                /// @dev The case when an employee withdraw salary after the end of all periods
                 for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + amountOfRemainingPeriods; i++) {
                     amountToPay = amountToPay + _salary.tokensAmountPerPeriod[i];
                 }
             }
-
+            /// @dev Transfer tokens from the employer's wallet to the employee's wallet
             IERC20(_salary.tokenAddress).safeTransferFrom(
                 msg.sender,
                 _salary.employee,
