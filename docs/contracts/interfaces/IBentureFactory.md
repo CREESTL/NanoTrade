@@ -1,6 +1,12 @@
 # IBentureFactory
 
+
+
 > An interface of a factory of custom ERC20 tokens
+
+
+
+
 
 ## Methods
 
@@ -12,18 +18,18 @@ function createERC20Token(string name, string symbol, uint8 decimals, bool minta
 
 Creates a new ERC20 token and mints an admin token proving ownership
 
-_Anyone can call this method. No restrictions._
+*Anyone can call this method. No restrictions.*
 
 #### Parameters
 
-| Name           | Type    | Description                                                |
-| -------------- | ------- | ---------------------------------------------------------- |
-| name           | string  | The name of the token                                      |
-| symbol         | string  | The symbol of the token                                    |
-| decimals       | uint8   | Number of decimals of the token                            |
-| mintable       | bool    | Token may be either mintable or not. Can be changed later. |
-| maxTotalSupply | uint256 | Maximum amount of tokens to be minted                      |
-| adminToken\_   | address | Address of the admin token for controlled token            |
+| Name | Type | Description |
+|---|---|---|
+| name | string | The name of the token |
+| symbol | string | The symbol of the token |
+| decimals | uint8 | Number of decimals of the token |
+| mintable | bool | Token may be either mintable or not. Can be changed later. |
+| maxTotalSupply | uint256 | Maximum amount of tokens to be minted |
+| adminToken_ | address | Address of the admin token for controlled token |
 
 ### lastProducedToken
 
@@ -33,11 +39,16 @@ function lastProducedToken() external view returns (address)
 
 Returns the address of the produced ERC20 token
 
+
+
+
 #### Returns
 
-| Name | Type    | Description                             |
-| ---- | ------- | --------------------------------------- |
-| \_0  | address | The address of the produced ERC20 token |
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | The address of the produced ERC20 token |
+
+
 
 ## Events
 
@@ -47,14 +58,19 @@ Returns the address of the produced ERC20 token
 event CreateERC20Token(string indexed name, string indexed symbol, address indexed tokenAddress, uint8 decimals, bool mintable)
 ```
 
-_Indicates that a new ERC20 token was created_
+
+
+*Indicates that a new ERC20 token was created*
 
 #### Parameters
 
-| Name                   | Type    | Description |
-| ---------------------- | ------- | ----------- |
-| name `indexed`         | string  | undefined   |
-| symbol `indexed`       | string  | undefined   |
-| tokenAddress `indexed` | address | undefined   |
-| decimals               | uint8   | undefined   |
-| mintable               | bool    | undefined   |
+| Name | Type | Description |
+|---|---|---|
+| name `indexed` | string | undefined |
+| symbol `indexed` | string | undefined |
+| tokenAddress `indexed` | address | undefined |
+| decimals  | uint8 | undefined |
+| mintable  | bool | undefined |
+
+
+
