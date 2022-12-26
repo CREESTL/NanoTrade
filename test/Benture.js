@@ -10,11 +10,14 @@ describe("Benture Dividend-Paying Token", () => {
     let adminToken;
     let factory;
     let zeroAddress = ethers.constants.AddressZero;
+    let provider;
     let parseEther = ethers.utils.parseEther;
 
     // Deploy all contracts before each test suite
     beforeEach(async () => {
         [ownerAcc, clientAcc1, clientAcc2, clientAcc3] = await ethers.getSigners();
+
+        provider = ethers.provider;
 
         // Deploy a factory contract
         let factoryTx = await ethers.getContractFactory("BentureFactory");
@@ -394,6 +397,43 @@ describe("Benture Dividend-Paying Token", () => {
                 expect(await benture.checkAnnounced(3, ownerAcc.address)).to.equal(
                     true
                 );
+            });
+
+            it("Should return tokens back to admin after cancelling the distribution", async () => {
+                let time = Date.now() + 3600 * 24 * 31;
+
+                // Announce 2 distributions: 1 with ERC20 token and 1 with native token
+                await benture.announceDividends(
+                    origToken.address,
+                    distToken.address,
+                    parseUnits("100", 6),
+                    time,
+                    true
+                );
+
+                await benture.announceDividends(
+                    origToken.address,
+                    zeroAddress,
+                    parseEther("1"),
+                    time,
+                    true,
+                    {value: parseEther("1")}
+                );
+
+                expect((await benture.getDistributions(ownerAcc.address)).length).to.equal(2);
+
+                // Return ERC20 tokens
+                let startBalance = await distToken.balanceOf(ownerAcc.address);
+                await benture.cancelDividends(1);
+                let endBalance = await distToken.balanceOf(ownerAcc.address);
+                expect(endBalance.sub(startBalance)).to.equal(parseUnits("100", 6));
+
+                // Return native tokens
+                let startNativeBalance = await provider.getBalance(ownerAcc.address);
+                await benture.cancelDividends(2);
+                let endNativeBalance = await provider.getBalance(ownerAcc.address);
+                expect(endNativeBalance.sub(startNativeBalance)).to.be.lt(parseEther("1"));
+                expect(endNativeBalance.sub(startNativeBalance)).to.be.gt(parseEther("0.98"));
             });
 
             it("Should fail to cancel distribution if caller is not admin", async () => {

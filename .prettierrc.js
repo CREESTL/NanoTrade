@@ -18,7 +18,7 @@ module.exports = {
       options: {
         printWidth: 80,
         semi: true,
-        tabWidth: 2,
+        tabWidth: 4,
         singleQuote: false,
         trailingComma: "es5",
       },

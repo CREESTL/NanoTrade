@@ -119,6 +119,16 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         IBentureProducedToken(distribution.origToken).checkAdmin(msg.sender);
         // All we need is to change distribution's status to `cancelled`
         distribution.status = DistStatus.cancelled;
+        // Return tokens to the admin
+        address distToken = distribution.distToken;
+        if (distToken != address(0)) {
+            IERC20(distribution.distToken).safeTransfer(msg.sender, distribution.amount);
+        } else {
+            (bool success, ) = msg.sender.call{value: distribution.amount}("");
+            require(success, "Benture: return of tokens failed!");
+        }
+        // Do not reset amount here. It's saved in storage to be able to get this distribution
+        // in the future and see what the amount was.
 
         emit DividendsCancelled(id);
     }
@@ -293,7 +303,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
                     amount - reallyDistributed
                 );
             } else {
-                msg.sender.call{value: amount - reallyDistributed};
+                (bool success, ) = msg.sender.call{value: amount - reallyDistributed}("");
+                require(success, "Benture: return of tokens failed!");
             }
         }
     }
