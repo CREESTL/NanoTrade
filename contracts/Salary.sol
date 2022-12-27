@@ -273,6 +273,9 @@ contract Salary is ISalary{
         emit EmployeeSalaryAdded(employeeAddress, msg.sender, _salary);
     }
 
+    /// @notice Returns amount of pending salary.
+    /// @param salaryId Salary ID.
+    /// @return salaryAmount Amount of pending salary.
     function getSalaryAmount(uint256 salaryId) public view returns(uint256 salaryAmount) {
         SalaryInfo memory _salary = salaryById[salaryId];
         if (_salary.amountOfWithdrawals != _salary.amountOfPeriods) {

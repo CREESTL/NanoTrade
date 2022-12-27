@@ -137,6 +137,11 @@ interface ISalary {
     /// @dev Only admin can call this method.
     function removeNameFromEmployee(address employeeAddress) external;
 
+        /// @notice Returns amount of pending salary.
+    /// @param salaryId Salary ID.
+    /// @return salaryAmount Amount of pending salary.
+    function getSalaryAmount(uint256 salaryId) external view returns(uint256 salaryAmount);
+
     /// @notice Adds salary to employee.
     /// @param employeeAddress Address of employee.
     /// @param periodDuration Duration of one period.
