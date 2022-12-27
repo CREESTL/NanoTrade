@@ -139,13 +139,15 @@ interface ISalary {
 
     /// @notice Adds salary to employee.
     /// @param employeeAddress Address of employee.
+    /// @param periodDuration Duration of one period.
+    /// @param amountOfPeriods Amount of periods.
+    /// @param tokensAmountPerPeriod Amount of tokens per period.
     /// @dev Only admin can call this method.
     function addSalaryToEmployee(
         address employeeAddress,
         uint256 periodDuration,
         uint256 amountOfPeriods,
         address tokenAddress,
-        uint256 totalTokenAmount,
         uint256[] memory tokensAmountPerPeriod
     ) external;
 

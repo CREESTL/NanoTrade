@@ -233,7 +233,6 @@ contract Salary is ISalary{
     /// @param employeeAddress Address of employee.
     /// @param periodDuration Duration of one period.
     /// @param amountOfPeriods Amount of periods.
-    /// @param totalTokenAmount Total amount of tokens.
     /// @param tokensAmountPerPeriod Amount of tokens per period.
     /// @dev Only admin can call this method.
     function addSalaryToEmployee(
@@ -241,13 +240,18 @@ contract Salary is ISalary{
         uint256 periodDuration,
         uint256 amountOfPeriods,
         address tokenAddress,
-        uint256 totalTokenAmount,
         uint256[] memory tokensAmountPerPeriod
     ) external onlyAdmin {
         require(
             checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender),
             "Salary: not an admin for employee!"
         );
+
+        uint256 totalTokenAmount;
+        for (uint256 i = 0; i < amountOfPeriods; i++) {
+            totalTokenAmount = totalTokenAmount + tokensAmountPerPeriod[i];
+        }
+
         require(
             IERC20(tokenAddress).allowance(msg.sender, address(this)) >=
                 totalTokenAmount,
@@ -260,7 +264,6 @@ contract Salary is ISalary{
         _salary.amountOfPeriods = amountOfPeriods;
         _salary.amountOfWithdrawals = 0;
         _salary.tokenAddress = tokenAddress;
-        _salary.totalTokenAmount = totalTokenAmount;
         _salary.tokensAmountPerPeriod = tokensAmountPerPeriod;
         _salary.lastWithdrawalTime = block.timestamp;
         _salary.employer = msg.sender;
@@ -268,6 +271,37 @@ contract Salary is ISalary{
         employeeToAdminToSalaryId[employeeAddress][msg.sender].add(_salary.id);
         salaryById[_salary.id] = _salary;
         emit EmployeeSalaryAdded(employeeAddress, msg.sender, _salary);
+    }
+
+    function getSalaryAmount(uint256 salaryId) public view returns(uint256 salaryAmount) {
+        SalaryInfo memory _salary = salaryById[salaryId];
+        if (_salary.amountOfWithdrawals != _salary.amountOfPeriods) {
+            uint256 amountToPay;
+            uint256 amountOfRemainingPeriods = _salary.amountOfPeriods - _salary.amountOfWithdrawals;
+            uint256 timePassedFromLastWithdrawal = block.timestamp - _salary.lastWithdrawalTime;
+            uint256 periodsPassed = timePassedFromLastWithdrawal / _salary.periodDuration;
+
+            if (periodsPassed < amountOfRemainingPeriods) {
+                /// @dev The case when an employee withdraw salary before the end of all periods
+                uint256 period;
+                for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + (periodsPassed); i++) {
+                    amountToPay = amountToPay + _salary.tokensAmountPerPeriod[i];
+                    period = i;
+                }
+
+                if (timePassedFromLastWithdrawal - (_salary.periodDuration * (periodsPassed)) > 0) {
+                    amountToPay = amountToPay + (_salary.tokensAmountPerPeriod[period + 1] * (timePassedFromLastWithdrawal - (periodsPassed) * _salary.periodDuration)) / _salary.periodDuration;
+                }
+                
+            } else {
+                /// @dev The case when an employee withdraw salary after the end of all periods
+                for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + amountOfRemainingPeriods; i++) {
+                    amountToPay = amountToPay + _salary.tokensAmountPerPeriod[i];
+                }
+            }
+            return amountToPay;
+        }
+        return 0;
     }
 
     /// @notice Removes salary from employee.
