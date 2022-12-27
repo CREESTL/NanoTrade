@@ -262,6 +262,45 @@ describe("Salary", () => {
       expect(await mockERC20.balanceOf(adminAcc1.address)).to.be.equal(initOwnerBalance - expectedBalance)
   });
 
+  it("Should delete both salaries through Employee removal", async () => {
+        await mockERC20.mint(adminAcc1.address, 800)
+        await mockERC20.approve(salary.address, 800)
+        await salary.addEmployee(clientAcc1.address)
+        let periodDuration = 60
+        let amountOfPeriods = 10
+        let tokenAddress = mockERC20.address
+        let totalTokenAmount = 600
+        let tokensAmountPerPeriod = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
+        await salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
+
+        let admins = await salary.getAdminsByEmployee(clientAcc1.address)
+        let id = []
+        for (i = 0; i < admins.length; i++){ 
+        id.push(await salary.getSalariesIdByEmployeeAndAdmin(clientAcc1.address, admins[i]))
+        }
+
+        periodDuration = 100
+        amountOfPeriods = 20
+        tokenAddress = mockERC20.address
+        totalTokenAmount = 200
+        tokensAmountPerPeriod = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
+        await salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, totalTokenAmount, tokensAmountPerPeriod)
+
+      await increaseTime(59)
+      await salary.removeEmployee(clientAcc1.address)
+
+      let isAdmin = await salary.checkIfUserIsEmployeeOfAdmin(clientAcc1.address, adminAcc1.address)
+      console.log("User Is Employee Of Admin: ", isAdmin)
+
+      let salaryInfo = await salary.getSalaryById('1')
+
+      console.log(salaryInfo)
+
+      salaryInfo = await salary.getSalaryById('2')
+
+      console.log(salaryInfo)
+});
+
   it("Should not let withdraw any salary to Employee through removeSalaryFromEmployee when all tokens already withdrawed", async () => {
       let initOwnerBalance = 1200
       await mockERC20.mint(adminAcc1.address, initOwnerBalance)

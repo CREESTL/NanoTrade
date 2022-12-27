@@ -118,7 +118,8 @@ contract Salary is ISalary{
         
         if (employeeToAdminToSalaryId[employeeAddress][msg.sender].length() > 0) {
         uint256[] memory id = employeeToAdminToSalaryId[employeeAddress][msg.sender].values();
-            for (uint256 i = 0; i < employeeToAdminToSalaryId[employeeAddress][msg.sender].length(); i++) {
+        uint256 arrayLength = employeeToAdminToSalaryId[employeeAddress][msg.sender].length();
+            for (uint256 i = 0; i < arrayLength; i++) {
                 if (salaryById[id[i]].employer == msg.sender) {
                     removeSalaryFromEmployee(id[i]);
                 }
