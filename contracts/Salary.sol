@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-import "hardhat/console.sol";
 
 /// @title Salary contract. A contract to manage salaries 
 contract Salary is ISalary{
@@ -241,14 +240,15 @@ contract Salary is ISalary{
             checkIfUserIsAdminOfEmployee(_salary.employee, msg.sender),
             "Salary: not an admin for employee!"
         );
-        if (block.timestamp - _salary.salaryStartTime >= _salary.periodDuration * _salary.amountOfPeriods - amountOfPeriodsToDelete * _salary.periodDuration) { // || _salary.amountOfPeriods - amountOfPeriodsToDelete < _salary.amountOfWithdrawals 
+        uint256 remainingTime = _salary.periodDuration * _salary.amountOfPeriods - amountOfPeriodsToDelete * _salary.periodDuration;
+        if (block.timestamp - _salary.salaryStartTime >= remainingTime) { 
             removeSalaryFromEmployee(salaryId);
         } else {
             for (uint256 i = 0; i < amountOfPeriodsToDelete; i++) {
                 _salary.tokensAmountPerPeriod.pop();
             }
             _salary.amountOfPeriods = _salary.amountOfPeriods - amountOfPeriodsToDelete;
-            salaryById[_salary.id] = _salary;
+            //salaryById[_salary.id] = _salary;
         }
     }
 
@@ -288,7 +288,7 @@ contract Salary is ISalary{
         }
 
         _salary.amountOfPeriods = _salary.amountOfPeriods + tokensAmountPerPeriod.length;
-        salaryById[_salary.id] = _salary;
+        //salaryById[_salary.id] = _salary;
         emit SalaryPeriodsAdded(_salary.employee, msg.sender, _salary);
     }
 
@@ -345,7 +345,7 @@ contract Salary is ISalary{
         if (_salary.amountOfWithdrawals != _salary.amountOfPeriods) {
             uint256 amountToPay;
             uint256 amountOfRemainingPeriods = _salary.amountOfPeriods - _salary.amountOfWithdrawals;
-            uint256 timePassedFromLastWithdrawal = block.timestamp - (_salary.amountOfWithdrawals * _salary.periodDuration + _salary.salaryStartTime); //(_salary.lastWithdrawalTime + (_salary.amountOfWithdrawals * _salary.periodDuration + _salary.salaryStartTime)
+            uint256 timePassedFromLastWithdrawal = block.timestamp - (_salary.amountOfWithdrawals * _salary.periodDuration + _salary.salaryStartTime);
             uint256 periodsPassed = timePassedFromLastWithdrawal / _salary.periodDuration;
 
             if (periodsPassed < amountOfRemainingPeriods) {
@@ -388,43 +388,17 @@ contract Salary is ISalary{
             "Salary: not an admin of salary!"
         );
 
+        uint256 amountToPay = getSalaryAmount(salaryId);
+
         employeeToAdminToSalaryId[_salary.employee][msg.sender].remove(salaryId);
         delete salaryById[_salary.id];
-
-        if (_salary.amountOfWithdrawals != _salary.amountOfPeriods) {
-            uint256 amountToPay;
-            uint256 amountOfRemainingPeriods = _salary.amountOfPeriods - _salary.amountOfWithdrawals;
-            uint256 timePassedFromLastWithdrawal = block.timestamp - (_salary.amountOfWithdrawals * _salary.periodDuration + _salary.salaryStartTime);
-            uint256 periodsPassed = timePassedFromLastWithdrawal / _salary.periodDuration;
-
-            if (periodsPassed < amountOfRemainingPeriods) {
-                /// @dev The case when an employee withdraw salary before the end of all periods
-                uint256 period = 0;
-                if (_salary.amountOfWithdrawals != 0) {
-                    period = _salary.amountOfWithdrawals - 1;
-                }
-                for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + (periodsPassed); i++) {
-                    amountToPay = amountToPay + _salary.tokensAmountPerPeriod[i];
-                    period = i;
-                }
-
-                if (timePassedFromLastWithdrawal - (_salary.periodDuration * (periodsPassed)) > 0) {
-                    amountToPay = amountToPay + (_salary.tokensAmountPerPeriod[period + 1] * (timePassedFromLastWithdrawal - (periodsPassed) * _salary.periodDuration)) / _salary.periodDuration;
-                }
-   
-            } else {
-                /// @dev The case when an employee withdraw salary after the end of all periods
-                for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + amountOfRemainingPeriods; i++) {
-                    amountToPay = amountToPay + _salary.tokensAmountPerPeriod[i];
-                }
-            }
-
-            /// @dev Transfer tokens from the employer's wallet to the employee's wallet
-            IERC20(_salary.tokenAddress).safeTransferFrom(
-                msg.sender,
-                _salary.employee,
-                amountToPay
-            );
-        }
+  
+        /// @dev Transfer tokens from the employer's wallet to the employee's wallet
+        IERC20(_salary.tokenAddress).safeTransferFrom(
+            msg.sender,
+            _salary.employee,
+            amountToPay
+        );
+        
     }
 }
