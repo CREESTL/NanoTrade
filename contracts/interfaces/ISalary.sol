@@ -10,9 +10,9 @@ interface ISalary {
         uint256 amountOfPeriods;
         uint256 amountOfWithdrawals;
         address tokenAddress;
-        uint256 totalTokenAmount;
         uint256[] tokensAmountPerPeriod;
         uint256 lastWithdrawalTime;
+        uint256 salaryStartTime;
         address employer;
         address employee;
     }
@@ -54,6 +54,12 @@ interface ISalary {
 
     /// @notice Emits when Employee withdraws salary
     event EmployeeSalaryClaimed(
+        address indexed employeeAddress,
+        address indexed adminAddress,
+        SalaryInfo indexed salary
+    );
+
+    event SalaryPeriodsAdded(
         address indexed employeeAddress,
         address indexed adminAddress,
         SalaryInfo indexed salary

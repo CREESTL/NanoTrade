@@ -8,6 +8,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
+import "hardhat/console.sol";
+
 /// @title Salary contract. A contract to manage salaries 
 contract Salary is ISalary{
     using SafeERC20 for IERC20;
@@ -139,7 +141,7 @@ contract Salary is ISalary{
             _salary.employee == msg.sender,
             "Salary: not employee for this salary!"
         );
-        uint256 periodsToPay = (block.timestamp - _salary.lastWithdrawalTime) /
+        uint256 periodsToPay = (block.timestamp - (_salary.amountOfWithdrawals * _salary.periodDuration + _salary.salaryStartTime)) /
             _salary.periodDuration;
         if (
             periodsToPay + _salary.amountOfWithdrawals >=
@@ -161,7 +163,7 @@ contract Salary is ISalary{
             _salary.amountOfWithdrawals =
                 _salary.amountOfWithdrawals +
                 periodsToPay;
-            _salary.lastWithdrawalTime = block.timestamp;
+           // _salary.lastWithdrawalTime = block.timestamp;
 
             
             /// @dev Transfer tokens from the employer's wallet to the employee's wallet
@@ -229,6 +231,67 @@ contract Salary is ISalary{
         return salaryById[salaryId];
     }
 
+    function removePeriodsFromSalary(
+        uint256 salaryId,
+        uint256 amountOfPeriodsToDelete
+    ) external onlyAdmin {
+        SalaryInfo storage _salary = salaryById[salaryId];
+        require(block.timestamp - _salary.salaryStartTime <= _salary.periodDuration * _salary.amountOfPeriods, "Salary: salary ended!");
+        require(
+            checkIfUserIsAdminOfEmployee(_salary.employee, msg.sender),
+            "Salary: not an admin for employee!"
+        );
+        if (block.timestamp - _salary.salaryStartTime >= _salary.periodDuration * _salary.amountOfPeriods - amountOfPeriodsToDelete * _salary.periodDuration) { // || _salary.amountOfPeriods - amountOfPeriodsToDelete < _salary.amountOfWithdrawals 
+            removeSalaryFromEmployee(salaryId);
+        } else {
+            for (uint256 i = 0; i < amountOfPeriodsToDelete; i++) {
+                _salary.tokensAmountPerPeriod.pop();
+            }
+            _salary.amountOfPeriods = _salary.amountOfPeriods - amountOfPeriodsToDelete;
+            salaryById[_salary.id] = _salary;
+        }
+    }
+
+    function addPeriodsToSalary(
+        uint256 salaryId,
+        uint256[] memory tokensAmountPerPeriod
+    ) external onlyAdmin {
+        SalaryInfo storage _salary = salaryById[salaryId];
+        require(block.timestamp - _salary.salaryStartTime <= _salary.periodDuration * _salary.amountOfPeriods, "Salary: salary ended!");
+        require(
+            checkIfUserIsAdminOfEmployee(_salary.employee, msg.sender),
+            "Salary: not an admin for employee!"
+        );
+
+        uint256 alreadyPayed;
+        for (uint256 i = 0; i < _salary.amountOfWithdrawals; i++) {
+            alreadyPayed = alreadyPayed + _salary.tokensAmountPerPeriod[i];
+        }
+
+        uint256 totalTokenAmount;
+        for (uint256 i = 0; i < _salary.tokensAmountPerPeriod.length; i++) {
+            totalTokenAmount = totalTokenAmount + _salary.tokensAmountPerPeriod[i];
+        }
+        
+        for (uint256 i = 0; i < tokensAmountPerPeriod.length; i++) {
+            totalTokenAmount = totalTokenAmount + tokensAmountPerPeriod[i];
+        }
+
+        require(
+            IERC20(_salary.tokenAddress).allowance(msg.sender, address(this)) >=
+                totalTokenAmount - alreadyPayed,
+            "Salary: not enough tokens allowed!"
+        );
+
+        for (uint i = 0; i < tokensAmountPerPeriod.length; i++) {
+                _salary.tokensAmountPerPeriod.push(tokensAmountPerPeriod[i]);
+        }
+
+        _salary.amountOfPeriods = _salary.amountOfPeriods + tokensAmountPerPeriod.length;
+        salaryById[_salary.id] = _salary;
+        emit SalaryPeriodsAdded(_salary.employee, msg.sender, _salary);
+    }
+
     /// @notice Adds salary to employee.
     /// @param employeeAddress Address of employee.
     /// @param periodDuration Duration of one period.
@@ -265,7 +328,8 @@ contract Salary is ISalary{
         _salary.amountOfWithdrawals = 0;
         _salary.tokenAddress = tokenAddress;
         _salary.tokensAmountPerPeriod = tokensAmountPerPeriod;
-        _salary.lastWithdrawalTime = block.timestamp;
+        //_salary.lastWithdrawalTime = block.timestamp;
+        _salary.salaryStartTime = block.timestamp;
         _salary.employer = msg.sender;
         _salary.employee = employeeAddress;
         employeeToAdminToSalaryId[employeeAddress][msg.sender].add(_salary.id);
@@ -281,12 +345,15 @@ contract Salary is ISalary{
         if (_salary.amountOfWithdrawals != _salary.amountOfPeriods) {
             uint256 amountToPay;
             uint256 amountOfRemainingPeriods = _salary.amountOfPeriods - _salary.amountOfWithdrawals;
-            uint256 timePassedFromLastWithdrawal = block.timestamp - _salary.lastWithdrawalTime;
+            uint256 timePassedFromLastWithdrawal = block.timestamp - (_salary.amountOfWithdrawals * _salary.periodDuration + _salary.salaryStartTime); //(_salary.lastWithdrawalTime + (_salary.amountOfWithdrawals * _salary.periodDuration + _salary.salaryStartTime)
             uint256 periodsPassed = timePassedFromLastWithdrawal / _salary.periodDuration;
 
             if (periodsPassed < amountOfRemainingPeriods) {
                 /// @dev The case when an employee withdraw salary before the end of all periods
-                uint256 period;
+                uint256 period = 0;
+                if (_salary.amountOfWithdrawals != 0) {
+                    period = _salary.amountOfWithdrawals - 1;
+                }
                 for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + (periodsPassed); i++) {
                     amountToPay = amountToPay + _salary.tokensAmountPerPeriod[i];
                     period = i;
@@ -327,12 +394,15 @@ contract Salary is ISalary{
         if (_salary.amountOfWithdrawals != _salary.amountOfPeriods) {
             uint256 amountToPay;
             uint256 amountOfRemainingPeriods = _salary.amountOfPeriods - _salary.amountOfWithdrawals;
-            uint256 timePassedFromLastWithdrawal = block.timestamp - _salary.lastWithdrawalTime;
+            uint256 timePassedFromLastWithdrawal = block.timestamp - (_salary.amountOfWithdrawals * _salary.periodDuration + _salary.salaryStartTime);
             uint256 periodsPassed = timePassedFromLastWithdrawal / _salary.periodDuration;
 
             if (periodsPassed < amountOfRemainingPeriods) {
                 /// @dev The case when an employee withdraw salary before the end of all periods
-                uint256 period;
+                uint256 period = 0;
+                if (_salary.amountOfWithdrawals != 0) {
+                    period = _salary.amountOfWithdrawals - 1;
+                }
                 for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + (periodsPassed); i++) {
                     amountToPay = amountToPay + _salary.tokensAmountPerPeriod[i];
                     period = i;
@@ -341,13 +411,14 @@ contract Salary is ISalary{
                 if (timePassedFromLastWithdrawal - (_salary.periodDuration * (periodsPassed)) > 0) {
                     amountToPay = amountToPay + (_salary.tokensAmountPerPeriod[period + 1] * (timePassedFromLastWithdrawal - (periodsPassed) * _salary.periodDuration)) / _salary.periodDuration;
                 }
-                
+   
             } else {
                 /// @dev The case when an employee withdraw salary after the end of all periods
                 for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + amountOfRemainingPeriods; i++) {
                     amountToPay = amountToPay + _salary.tokensAmountPerPeriod[i];
                 }
             }
+
             /// @dev Transfer tokens from the employer's wallet to the employee's wallet
             IERC20(_salary.tokenAddress).safeTransferFrom(
                 msg.sender,
