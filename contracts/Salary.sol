@@ -78,6 +78,10 @@ contract Salary is ISalary{
             checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender),
             "Salary: not allowed to set name!"
         );
+        require(
+            bytes(name).length != 0,
+            "Salary: empty name!"
+        );
         names[employeeAddress] = name;
         emit EmployeeNameChanged(employeeAddress, name);
     }
@@ -354,6 +358,8 @@ contract Salary is ISalary{
             uint256 periodsPassed = timePassedFromLastWithdrawal / _salary.periodDuration;
 
             if (periodsPassed < amountOfRemainingPeriods) {
+
+                /* uint256 amountToPay = _payingPeriodsCounter(_salary);
                 /// @dev The case when an employee withdraw salary before the end of all periods
                 uint256 period = 0;
                 if (_salary.amountOfWithdrawals != 0) {
@@ -362,10 +368,12 @@ contract Salary is ISalary{
                 for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + (periodsPassed); i++) {
                     amountToPay = amountToPay + _salary.tokensAmountPerPeriod[i];
                     period = i;
-                }
+                } */
+
+                amountToPay = _payingPeriodsCounter(_salary);
 
                 if (timePassedFromLastWithdrawal - (_salary.periodDuration * (periodsPassed)) > 0) {
-                    amountToPay = amountToPay + (_salary.tokensAmountPerPeriod[period + 1] * (timePassedFromLastWithdrawal - (periodsPassed) * _salary.periodDuration)) / _salary.periodDuration;
+                    amountToPay = amountToPay + (_salary.tokensAmountPerPeriod[_salary.amountOfWithdrawals + periodsPassed] * (timePassedFromLastWithdrawal - periodsPassed * _salary.periodDuration)) / _salary.periodDuration;
                 }
                 
             } else {
@@ -377,6 +385,18 @@ contract Salary is ISalary{
             return amountToPay;
         }
         return 0;
+    }
+
+      function _payingPeriodsCounter(SalaryInfo memory _salary) private view returns (uint256 wholeAmountToPay) {
+        //uint256 timePassed = block.timestamp - (_salary.amountOfWithdrawals * _salary.periodDuration + _salary.salaryStartTime);
+        uint256 timePassedFromLastWithdrawal = block.timestamp - (_salary.amountOfWithdrawals * _salary.periodDuration + _salary.salaryStartTime);
+        uint256 periodsPassed = timePassedFromLastWithdrawal / _salary.periodDuration;
+
+        for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + periodsPassed; i++) {
+            wholeAmountToPay = wholeAmountToPay + _salary.tokensAmountPerPeriod[i];
+        }
+
+        return wholeAmountToPay;
     }
 
     /// @notice Removes salary from employee.
