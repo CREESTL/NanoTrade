@@ -33,6 +33,7 @@ contract Salary is ISalary{
     /// @dev Mapping from salary ID to its info
     mapping(uint256 => SalaryInfo) private salaryById;
 
+    /// @dev Mapping from employee address to admin address to salary ID
     mapping(address => mapping(address => EnumerableSet.UintSet)) private employeeToAdminToSalaryId;
 
     /// @dev Uses to check if user is BentureAdmin tokens holder
@@ -162,8 +163,6 @@ contract Salary is ISalary{
             _salary.amountOfWithdrawals =
                 _salary.amountOfWithdrawals +
                 periodsToPay;
-           // _salary.lastWithdrawalTime = block.timestamp;
-
             
             /// @dev Transfer tokens from the employer's wallet to the employee's wallet
             IERC20(_salary.tokenAddress).safeTransferFrom(
@@ -230,6 +229,10 @@ contract Salary is ISalary{
         return salaryById[salaryId];
     }
 
+    /// @notice Removes periods from salary
+    /// @param salaryId ID of target salary
+    /// @param amountOfPeriodsToDelete Amount of periods to delete from salary
+    /// @dev Only admin can call this method.
     function removePeriodsFromSalary(
         uint256 salaryId,
         uint256 amountOfPeriodsToDelete
@@ -248,10 +251,14 @@ contract Salary is ISalary{
                 _salary.tokensAmountPerPeriod.pop();
             }
             _salary.amountOfPeriods = _salary.amountOfPeriods - amountOfPeriodsToDelete;
-            //salaryById[_salary.id] = _salary;
         }
+        emit SalaryPeriodsRemoved(_salary.employee, msg.sender, _salary);
     }
 
+    /// @notice Adds periods to salary
+    /// @param salaryId ID of target salary
+    /// @param tokensAmountPerPeriod Array of periods to add to salary
+    /// @dev Only admin can call this method.
     function addPeriodsToSalary(
         uint256 salaryId,
         uint256[] memory tokensAmountPerPeriod
@@ -288,7 +295,6 @@ contract Salary is ISalary{
         }
 
         _salary.amountOfPeriods = _salary.amountOfPeriods + tokensAmountPerPeriod.length;
-        //salaryById[_salary.id] = _salary;
         emit SalaryPeriodsAdded(_salary.employee, msg.sender, _salary);
     }
 
@@ -328,7 +334,6 @@ contract Salary is ISalary{
         _salary.amountOfWithdrawals = 0;
         _salary.tokenAddress = tokenAddress;
         _salary.tokensAmountPerPeriod = tokensAmountPerPeriod;
-        //_salary.lastWithdrawalTime = block.timestamp;
         _salary.salaryStartTime = block.timestamp;
         _salary.employer = msg.sender;
         _salary.employee = employeeAddress;
