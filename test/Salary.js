@@ -395,8 +395,10 @@ describe("Salary", () => {
 
       //Already spent 1 sec
       await increaseTime(600 * 10)
-
+      /* let test = await salary.getCurrentPeriod("1")
+      console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA: ", test) */
       await salary.connect(clientAcc1).withdrawSalary("1")
+      
       await salary.connect(adminAcc1).removeSalaryFromEmployee("1")
 
       expect(await mockERC20.balanceOf(clientAcc1.address)).to.be.equal(totalTokenAmount)
@@ -1127,6 +1129,11 @@ it("Should withdraw through withdrawSalary only for setted periods", async () =>
         await salary.addEmployee(clientAcc1.address)
         await expect(salary.connect(clientAcc1).setNameToEmployee(clientAcc1.address, "Alice")).to.be.revertedWith("BentureAdmin: user does not have an admin token!")
     });
+
+    it("Should revert setNameToEmployee with Salary: empty name!", async () => {
+      await salary.addEmployee(clientAcc1.address)
+      await expect(salary.setNameToEmployee(clientAcc1.address, "")).to.be.revertedWith("Salary: empty name!")
+  });
 
     it("Should revert setNameToEmployee with Salary: not allowed to set name!", async () => {
       await salary.addEmployee(clientAcc1.address)
