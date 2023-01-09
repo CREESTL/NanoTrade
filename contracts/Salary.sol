@@ -78,6 +78,10 @@ contract Salary is ISalary{
             checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender),
             "Salary: not allowed to set name!"
         );
+        require(
+            bytes(name).length != 0,
+            "Salary: empty name!"
+        );
         names[employeeAddress] = name;
         emit EmployeeNameChanged(employeeAddress, name);
     }
@@ -352,24 +356,10 @@ contract Salary is ISalary{
             
             if (periodsPassed < amountOfRemainingPeriods) {
                 /// @dev The case when an employee withdraw salary before the end of all periods
-<<<<<<< HEAD
                 amountToPay = _getAmountForPeriod(periodsPassed + _salary.amountOfWithdrawals, salaryId);
 
                 if (timePassedFromLastWithdrawal - (_salary.periodDuration * (periodsPassed)) > 0) {
                     amountToPay = amountToPay + (_salary.tokensAmountPerPeriod[periodsPassed + _salary.amountOfWithdrawals] * (timePassedFromLastWithdrawal - (periodsPassed) * _salary.periodDuration)) / _salary.periodDuration;
-=======
-                uint256 period = 0;
-                if (_salary.amountOfWithdrawals != 0) {
-                    period = _salary.amountOfWithdrawals - 1;
-                }
-                for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + (periodsPassed); i++) {
-                    amountToPay = amountToPay + _salary.tokensAmountPerPeriod[i];
-                    period = i;
-                }
-
-                if (timePassedFromLastWithdrawal - (_salary.periodDuration * (periodsPassed)) > 0) {
-                    amountToPay = amountToPay + (_salary.tokensAmountPerPeriod[period + 1] * (timePassedFromLastWithdrawal - (periodsPassed) * _salary.periodDuration)) / _salary.periodDuration;
->>>>>>> parent of ad4b121 (experimental optimization)
                 }
             } else {
                 /// @dev The case when an employee withdraw salary after the end of all periods
