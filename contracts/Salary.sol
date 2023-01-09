@@ -316,6 +316,11 @@ contract Salary is ISalary{
         uint256[] memory tokensAmountPerPeriod
     ) external onlyAdmin {
         require(
+            amountOfPeriods == tokensAmountPerPeriod.length,
+            "Salary: amount of periods != tokens amount per period!"
+        );
+
+        require(
             checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender),
             "Salary: not an admin for employee!"
         );

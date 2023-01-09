@@ -1339,5 +1339,17 @@ it("Should withdraw through withdrawSalary only for setted periods", async () =>
       console.log(await mockERC20.balanceOf(clientAcc1.address))
       await expect (salary.removePeriodsFromSalary(1, 1)).to.be.revertedWith("Salary: salary ended!")
     });
+
+    it("Should revert addSalaryToEmployee with Salary: amount of periods != tokens amount per period!", async () => {
+      let initOwnerBalance = 1200
+      await mockERC20.mint(adminAcc1.address, initOwnerBalance)
+      await mockERC20.approve(salary.address, initOwnerBalance)
+      await salary.addEmployee(clientAcc1.address)
+      let periodDuration = 60
+      let amountOfPeriods = 10
+      let tokenAddress = mockERC20.address
+      let tokensAmountPerPeriod = [10, 20, 30, 40, 50, 60, 70, 80, 90]
+      await expect (salary.addSalaryToEmployee(clientAcc1.address, periodDuration, amountOfPeriods, tokenAddress, tokensAmountPerPeriod)).to.be.revertedWith("Salary: amount of periods != tokens amount per period!")
+    });
   })
 })
