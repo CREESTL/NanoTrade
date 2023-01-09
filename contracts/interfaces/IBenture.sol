@@ -61,6 +61,11 @@ interface IBenture {
         address admin
     ) external view returns (bool);
 
+    /// @notice Locks user's tokens in order for him to receive dividends later
+    /// @param id The ID of the distribution to lock tokens for
+    /// @param amount The amount of tokens to lock
+    function lockTokens(uint256 id, uint256 amount) external payable;
+
     /// @notice Distributes one token as dividends for holders of another token _equally _
     /// @param id The ID of the distribution that is being fulfilled
     /// @param origToken The address of the token that is held by receivers

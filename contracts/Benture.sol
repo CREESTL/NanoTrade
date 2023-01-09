@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "./BentureProducedToken.sol";
 import "./interfaces/IBenture.sol";
 import "./interfaces/IBentureProducedToken.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -14,19 +15,27 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 contract Benture is IBenture, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
     using SafeERC20 for IERC20;
+    using SafeERC20 for IBentureProducedToken;
 
     /// @dev The contract must be able to receive ether to pay dividends with it
     receive() external payable {}
 
+    /// @dev Mapping showing how much tokens a holder has locked in a each distribution
+    mapping(uint256 => mapping(address => uint256)) lockedByHolders;
+    /// @dev Mapping showing shares of holder in each distribution
+    mapping(uint256 => mapping(address => uint256)) sharesOfHolders;
+
     /// @dev Stores information about a specific dividends distribution
     struct Distribution {
-        uint256 id;
-        address origToken;
-        address distToken;
-        uint256 amount;
-        uint256 dueDate;
-        bool isEqual;
-        DistStatus status;
+        uint256 id;  // ID of distributiion
+        address origToken; // The token owned by holders
+        address distToken; // The token distributed to holders
+        uint256 amount; // The amount of `distTokens` or native tokens paid to holders
+        uint256 dueDate; // Time that should pass from announcement till the beginning of distribution
+        bool isEqual; // True if distribution is equal, false if it's weighted
+        uint256 totalLocked; // The total amount of locked tokens (ERC20 of native)
+        uint256 totalLockers; // The number of holders (lockers) that locked their tokens
+        DistStatus status; // Current status of distribution
     }
 
     /// @dev Incrementing IDs of distributions
@@ -92,6 +101,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             amount: amount,
             dueDate: dueDate,
             isEqual: isEqual,
+            totalLocked: 0,
+            totalLockers: 0,
             // Set a `pending` status for each new distribution
             status: DistStatus.pending
         });
@@ -325,7 +336,69 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         return balance;
     }
 
-    /// @notice Distributes one token as dividends for holders of another token _equally _
+
+    // TODO add it to `claimDividends` later
+    /// @notice Calculates locker's share in the distribution
+    /// @param id The ID of the distribution to calculates shares in
+    /// @dev Shares must be calculated *after* the `dueDate`
+    function calculateShare(uint256 id) internal {
+        Distribution storage distribution = distributions[idsToIndexes[id]];
+        // Calculate shares if equal distribution
+        if (distribution.isEqual == true) {
+            // NOTE: result gets rounded up to the lower integer, some "change" might be left after division
+            uint256 share = distribution.amount / distribution.totalLockers;
+            sharesOfHolders[id][msg.sender] = share;
+        // Calculate shares in weighted distribution
+        } else {
+            uint256 share = distribution.amount * lockedByHolders[id][msg.sender] /  distribution.totalLocked;
+            sharesOfHolders[id][msg.sender] = share;
+        }
+    }
+
+    /// @notice Locks user's tokens in order for him to receive dividends later
+    /// @param id The ID of the distribution to lock tokens for
+    /// @param amount The amount of tokens to lock
+    function lockTokens(uint256 id, uint256 amount) external payable {
+        require(amount > 0, "Benture: can not lock zero tokens!");
+        // Check that this distribution was announced
+        require(
+            distributionsToAdmins[id] != address(0),
+            "Benture: distribution with the given ID has not been annouced yet!"
+        );
+        Distribution storage distribution = distributions[idsToIndexes[id]];
+        // Can only lock tokens when distribution is pending (not cancelled)
+        require(
+            distribution.status == DistStatus.pending, "Benture: distribution is not pending!"
+        );
+        // User should have origTokens to be able to take part in dividends distribution
+        require(
+            IBentureProducedToken(distribution.origToken).isHolder(msg.sender), "Benture: user does not have project tokens!"
+        );
+        // Can only lock tokens before the distribution starts
+        require(
+            block.timestamp <= distribution.dueDate, "Benture: too late for locking!"
+        );
+        // Locking ERC20 tokens
+        if (distribution.distToken != address(0)) {
+            IBentureProducedToken(distribution.origToken).safeTransferFrom(msg.sender, address(this), amount);
+            // Mark that user locked this amount of tokens
+            lockedByHolders[id][msg.sender] = amount;
+            // Increase the total amount of locked tokens
+            distribution.totalLocked += amount;
+            distribution.totalLockers += 1;
+        } else {
+        // Locking native tokens
+        // If user pays more than `amount` the excess just stays on contract's balance
+            require(msg.value >= amount, "Benture: not enough native tokens was provided to lock!");
+            // Mark that user locked this amount of tokens
+            lockedByHolders[id][msg.sender] = amount;
+            // Increase the total amount of locked tokens
+            distribution.totalLocked += amount;
+            distribution.totalLockers += 1;
+        }
+    }
+
+    /// @notice Distributes one token as dividends for holders of another token _equally_
     /// @param id The ID of the distribution that is being fulfilled
     /// @param origToken The address of the token that is held by receivers;
     ///        Can not be a zero address!

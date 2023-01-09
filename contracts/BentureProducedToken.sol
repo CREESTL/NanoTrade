@@ -8,6 +8,7 @@ import "./interfaces/IBentureAdmin.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 contract BentureProducedToken is ERC20, IBentureProducedToken {
+
     using EnumerableSet for EnumerableSet.AddressSet;
 
     string internal _tokenName;
