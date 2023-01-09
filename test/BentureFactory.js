@@ -39,7 +39,13 @@ describe("Benture Factory", () => {
                 )
             )
                 .to.emit(factory, "CreateERC20Token")
-                .withArgs("Dummy", "DMM", await factory.lastProducedToken(), 18, true);
+                .withArgs(
+                    "Dummy",
+                    "DMM",
+                    await factory.lastProducedToken(),
+                    18,
+                    true
+                );
             expect(await factory.lastProducedToken()).to.not.equal(zeroAddress);
             expect(await adminToken.balanceOf(ownerAcc.address)).to.equal(1);
         });
@@ -60,7 +66,10 @@ describe("Benture Factory", () => {
                 adminTokenAddress
             );
             let tokenAddress = await factory.lastProducedToken();
-            token = await ethers.getContractAt("BentureProducedToken", tokenAddress);
+            token = await ethers.getContractAt(
+                "BentureProducedToken",
+                tokenAddress
+            );
             expect(await token.name()).to.equal(name);
             expect(await token.symbol()).to.equal(symbol);
             expect(await token.decimals()).to.equal(decimals);

@@ -36,7 +36,10 @@ describe("Benture Produced Token", () => {
 
         // Get the address of the last ERC20 token produced in the factory
         tokenAddress = await factory.lastProducedToken();
-        token = await ethers.getContractAt("BentureProducedToken", tokenAddress);
+        token = await ethers.getContractAt(
+            "BentureProducedToken",
+            tokenAddress
+        );
     });
 
     describe("Getters", () => {
@@ -92,7 +95,9 @@ describe("Benture Produced Token", () => {
             // Owner is an admin
             await expect(token.checkAdmin(ownerAcc.address)).not.to.be.reverted;
             // Client is not
-            await expect(token.checkAdmin(clientAcc1.address)).to.be.revertedWith(
+            await expect(
+                token.checkAdmin(clientAcc1.address)
+            ).to.be.revertedWith(
                 "BentureAdmin: user does not have an admin token!"
             );
         });
@@ -122,7 +127,9 @@ describe("Benture Produced Token", () => {
 
         it("Should fail to mint more than `maxTotalSupply` of tokens", async () => {
             let amount = 1_000_000_000;
-            await expect(token.mint(clientAcc1.address, amount)).to.be.revertedWith(
+            await expect(
+                token.mint(clientAcc1.address, amount)
+            ).to.be.revertedWith(
                 "BentureProducedToken: supply exceeds maximum supply!"
             );
         });
@@ -138,7 +145,9 @@ describe("Benture Produced Token", () => {
             let amount = 1000;
             await expect(
                 token.connect(clientAcc1).mint(clientAcc2.address, amount)
-            ).to.be.revertedWith("BentureAdmin: user does not have an admin token!");
+            ).to.be.revertedWith(
+                "BentureAdmin: user does not have an admin token!"
+            );
         });
 
         it("Should fail to mint if caller transferred his admin token", async () => {
@@ -150,7 +159,9 @@ describe("Benture Produced Token", () => {
             // Try to call mint funcion from owner account
             await expect(
                 token.connect(ownerAcc).mint(clientAcc1.address, amount)
-            ).to.be.revertedWith("BentureAdmin: user does not have an admin token!");
+            ).to.be.revertedWith(
+                "BentureAdmin: user does not have an admin token!"
+            );
         });
 
         it("Should fail to mint if mint is disabled", async () => {
@@ -165,12 +176,17 @@ describe("Benture Produced Token", () => {
             );
 
             newAddress = await factory.lastProducedToken();
-            newToken = await ethers.getContractAt("BentureProducedToken", newAddress);
+            newToken = await ethers.getContractAt(
+                "BentureProducedToken",
+                newAddress
+            );
 
             let amount = 1000;
             await expect(
                 newToken.mint(clientAcc2.address, amount)
-            ).to.be.revertedWith("BentureProducedToken: the token is not mintable!");
+            ).to.be.revertedWith(
+                "BentureProducedToken: the token is not mintable!"
+            );
         });
 
         it("Should fail to increase the number of holders if mint to the same address", async () => {
@@ -219,14 +235,18 @@ describe("Benture Produced Token", () => {
 
         it("Should fail to burn tokens if caller does not have any", async () => {
             let amount = 1000;
-            await expect(token.connect(clientAcc1).burn(amount)).to.be.revertedWith(
+            await expect(
+                token.connect(clientAcc1).burn(amount)
+            ).to.be.revertedWith(
                 "BentureProducedToken: caller does not have any tokens to burn!"
             );
         });
 
         it("Should fail to burn zero amount of tokens", async () => {
             let amount = 0;
-            await expect(token.connect(clientAcc1).burn(amount)).to.be.revertedWith(
+            await expect(
+                token.connect(clientAcc1).burn(amount)
+            ).to.be.revertedWith(
                 "BentureProducedToken: the amount of tokens to burn must be greater than zero!"
             );
         });
@@ -255,7 +275,9 @@ describe("Benture Produced Token", () => {
             expect(await token.isHolder(clientAcc1.address)).to.equal(true);
             expect(await token.isHolder(clientAcc2.address)).to.equal(false);
             await expect(
-                token.connect(clientAcc1).transfer(clientAcc2.address, amount / 2)
+                token
+                    .connect(clientAcc1)
+                    .transfer(clientAcc2.address, amount / 2)
             )
                 .to.emit(token, "ControlledTokenTransferred")
                 .withArgs(anyValue, anyValue, amount / 2);
@@ -277,13 +299,19 @@ describe("Benture Produced Token", () => {
             expect(startHolders.length).to.equal(1);
             // Only one holder should be added after these 3 transfers
             await expect(
-                token.connect(clientAcc1).transfer(clientAcc2.address, amount / 4)
+                token
+                    .connect(clientAcc1)
+                    .transfer(clientAcc2.address, amount / 4)
             );
             await expect(
-                token.connect(clientAcc1).transfer(clientAcc2.address, amount / 4)
+                token
+                    .connect(clientAcc1)
+                    .transfer(clientAcc2.address, amount / 4)
             );
             await expect(
-                token.connect(clientAcc1).transfer(clientAcc2.address, amount / 4)
+                token
+                    .connect(clientAcc1)
+                    .transfer(clientAcc2.address, amount / 4)
             );
             let endHolders = await token.holders();
             expect(endHolders.length - startHolders.length).to.equal(1);

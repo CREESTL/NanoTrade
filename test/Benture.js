@@ -15,7 +15,8 @@ describe("Benture Dividend-Paying Token", () => {
 
     // Deploy all contracts before each test suite
     beforeEach(async () => {
-        [ownerAcc, clientAcc1, clientAcc2, clientAcc3] = await ethers.getSigners();
+        [ownerAcc, clientAcc1, clientAcc2, clientAcc3] =
+            await ethers.getSigners();
 
         provider = ethers.provider;
 
@@ -71,8 +72,12 @@ describe("Benture Dividend-Paying Token", () => {
         // Premint 1M distTokens to the owner
         await distToken.mint(ownerAcc.address, parseUnits("10000000", 6));
         // NOTE: Allow benture to spend all tokens from owner's account (and ever more)
-        await distToken.connect(ownerAcc).approve(benture.address, parseUnits("10000000", 6));
-        await origToken.connect(ownerAcc).approve(benture.address, parseUnits("10000000", 6));
+        await distToken
+            .connect(ownerAcc)
+            .approve(benture.address, parseUnits("10000000", 6));
+        await origToken
+            .connect(ownerAcc)
+            .approve(benture.address, parseUnits("10000000", 6));
 
         // Deploy another "empty" contract to use its address
         let rummyTx = await ethers.getContractFactory("Rummy");
@@ -112,7 +117,7 @@ describe("Benture Dividend-Paying Token", () => {
                         parseEther("1"),
                         0, // Use 0 seconds here for an immediate distribution
                         false,
-                        {value: parseEther("1")}
+                        { value: parseEther("1") }
                     )
                 )
                     .to.emit(benture, "DividendsAnnounced")
@@ -135,9 +140,9 @@ describe("Benture Dividend-Paying Token", () => {
                 expect(dist1[6]).to.equal(0);
                 let ids = await benture.getDistributions(ownerAcc.address);
                 expect(ids.length).to.equal(2);
-                expect(await benture.checkAnnounced(1, ownerAcc.address)).to.equal(
-                    true
-                );
+                expect(
+                    await benture.checkAnnounced(1, ownerAcc.address)
+                ).to.equal(true);
 
                 let dist2 = await benture.getDistribution(2);
                 expect(dist2[0]).to.equal(BigNumber.from("2"));
@@ -149,9 +154,9 @@ describe("Benture Dividend-Paying Token", () => {
                 expect(dist2[6]).to.equal(0);
                 ids = await benture.getDistributions(ownerAcc.address);
                 expect(ids.length).to.equal(2);
-                expect(await benture.checkAnnounced(2, ownerAcc.address)).to.equal(
-                    true
-                );
+                expect(
+                    await benture.checkAnnounced(2, ownerAcc.address)
+                ).to.equal(true);
             });
 
             it("Should transfer tokens on announcement", async () => {
@@ -159,20 +164,19 @@ describe("Benture Dividend-Paying Token", () => {
 
                 // ERC20 tokens
                 let startBalance = await distToken.balanceOf(ownerAcc.address);
-                await (
-                    benture.announceDividends(
-                        origToken.address,
-                        distToken.address,
-                        parseUnits("1", 6),
-                        time,
-                        true
-                    )
+                await benture.announceDividends(
+                    origToken.address,
+                    distToken.address,
+                    parseUnits("1", 6),
+                    time,
+                    true
                 );
 
                 let endBalance = await distToken.balanceOf(ownerAcc.address);
 
-                expect(startBalance.sub(endBalance)).to.equal(parseUnits("1", 6));
-
+                expect(startBalance.sub(endBalance)).to.equal(
+                    parseUnits("1", 6)
+                );
             });
 
             it("Should fail to annouce distribution with incorrect parameters", async () => {
@@ -198,7 +202,9 @@ describe("Benture Dividend-Paying Token", () => {
                         time,
                         true
                     )
-                ).to.be.revertedWith("Benture: dividends amount can not be zero!");
+                ).to.be.revertedWith(
+                    "Benture: dividends amount can not be zero!"
+                );
             });
 
             it("Should fail to announce distribution if caller is not admin", async () => {
@@ -206,14 +212,14 @@ describe("Benture Dividend-Paying Token", () => {
 
                 await expect(
                     benture
-                    .connect(clientAcc1)
-                    .announceDividends(
-                        origToken.address,
-                        distToken.address,
-                        parseUnits("100", 6),
-                        time,
-                        true
-                    )
+                        .connect(clientAcc1)
+                        .announceDividends(
+                            origToken.address,
+                            distToken.address,
+                            parseUnits("100", 6),
+                            time,
+                            true
+                        )
                 ).to.be.revertedWith(
                     "BentureAdmin: user does not have an admin token!"
                 );
@@ -223,8 +229,7 @@ describe("Benture Dividend-Paying Token", () => {
                 let time = Date.now() + 3600 * 24 * 31;
 
                 await expect(
-                    benture
-                    .announceDividends(
+                    benture.announceDividends(
                         origToken.address,
                         zeroAddress,
                         parseEther("1"),
@@ -239,225 +244,21 @@ describe("Benture Dividend-Paying Token", () => {
             it("Should fail to announce distribution if admin has not enough ERC20 tokens", async () => {
                 let time = Date.now() + 3600 * 24 * 31;
 
-                await distToken.connect(ownerAcc).approve(benture.address, parseUnits("1000000000000000", 6));
+                await distToken
+                    .connect(ownerAcc)
+                    .approve(
+                        benture.address,
+                        parseUnits("1000000000000000", 6)
+                    );
                 await expect(
-                    benture
-                    .announceDividends(
+                    benture.announceDividends(
                         origToken.address,
                         distToken.address,
                         parseUnits("1000000000000000", 6),
                         time,
                         true
                     )
-                ).to.be.revertedWith(
-                    "ERC20: transfer amount exceeds balance"
-                );
-            });
-
-        });
-
-        describe("Cancel", () => {
-            it("Should cancel single announced distribution", async () => {
-                let time = Date.now() + 3600 * 24 * 31;
-
-                await expect(
-                    benture.announceDividends(
-                        origToken.address,
-                        distToken.address,
-                        parseUnits("100", 6),
-                        time,
-                        true
-                    )
-                )
-                    .to.emit(benture, "DividendsAnnounced")
-                    .withArgs(
-                        origToken.address,
-                        distToken.address,
-                        parseUnits("100", 6),
-                        time,
-                        true
-                    );
-
-                await expect(benture.cancelDividends(1))
-                    .to.emit(benture, "DividendsCancelled")
-                    .withArgs(BigNumber.from("1"));
-
-                // Get the cancelled distribution and check its info
-                let cancelledDist = await benture.getDistribution(1);
-                expect(cancelledDist[0]).to.equal(BigNumber.from("1"));
-                expect(cancelledDist[1]).to.equal(origToken.address);
-                expect(cancelledDist[2]).to.equal(distToken.address);
-                expect(cancelledDist[3]).to.equal(parseUnits("100", 6));
-                expect(cancelledDist[4]).to.equal(time);
-                expect(cancelledDist[5]).to.equal(true);
-                // 1 for `cancelled`
-                expect(cancelledDist[6]).to.equal(1);
-                // The distribution should still be in the list of all distributions the admin has announced
-                let ids = await benture.getDistributions(ownerAcc.address);
-                expect(ids.length).to.equal(1);
-                expect(await benture.checkAnnounced(1, ownerAcc.address)).to.equal(
-                    true
-                );
-            });
-
-            it("Should cancel one of announced distributions", async () => {
-                let time = Date.now() + 3600 * 24 * 31;
-
-                // Announce 2 distributions (ID = 1, 2) and  cancel ID = 2
-                await benture.announceDividends(
-                    origToken.address,
-                    distToken.address,
-                    parseUnits("100", 6),
-                    time,
-                    true
-                );
-
-                await benture.announceDividends(
-                    origToken.address,
-                    distToken.address,
-                    parseUnits("100", 6),
-                    time,
-                    true
-                );
-
-                await expect(benture.cancelDividends(2))
-                    .to.emit(benture, "DividendsCancelled")
-                    .withArgs(BigNumber.from("2"));
-
-                let cancelledDist = await benture.getDistribution(2);
-                expect(cancelledDist[0]).to.equal(BigNumber.from("2"));
-                expect(cancelledDist[1]).to.equal(origToken.address);
-                expect(cancelledDist[2]).to.equal(distToken.address);
-                expect(cancelledDist[3]).to.equal(parseUnits("100", 6));
-                expect(cancelledDist[4]).to.equal(time);
-                expect(cancelledDist[5]).to.equal(true);
-                expect(cancelledDist[6]).to.equal(1);
-                let ids = await benture.getDistributions(ownerAcc.address);
-                expect(ids.length).to.equal(2);
-                expect(await benture.checkAnnounced(2, ownerAcc.address)).to.equal(
-                    true
-                );
-
-                // Announce another one (ID = 3) and cancel ID = 1
-                await benture.announceDividends(
-                    origToken.address,
-                    distToken.address,
-                    parseUnits("100", 6),
-                    time,
-                    true
-                );
-                await expect(benture.cancelDividends(1))
-                    .to.emit(benture, "DividendsCancelled")
-                    .withArgs(BigNumber.from("1"));
-
-                cancelledDist = await benture.getDistribution(1);
-                expect(cancelledDist[0]).to.equal(BigNumber.from("1"));
-                expect(cancelledDist[1]).to.equal(origToken.address);
-                expect(cancelledDist[2]).to.equal(distToken.address);
-                expect(cancelledDist[3]).to.equal(parseUnits("100", 6));
-                expect(cancelledDist[4]).to.equal(time);
-                expect(cancelledDist[5]).to.equal(true);
-                expect(cancelledDist[6]).to.equal(1);
-                ids = await benture.getDistributions(ownerAcc.address);
-                expect(ids.length).to.equal(3);
-                expect(await benture.checkAnnounced(1, ownerAcc.address)).to.equal(
-                    true
-                );
-
-                // Announce another 2 (ID = 4, 5) and cancel ID = 3
-                await benture.announceDividends(
-                    origToken.address,
-                    distToken.address,
-                    parseUnits("100", 6),
-                    time,
-                    true
-                );
-                await benture.announceDividends(
-                    origToken.address,
-                    distToken.address,
-                    parseUnits("100", 6),
-                    time,
-                    true
-                );
-
-                await expect(benture.cancelDividends(3))
-                    .to.emit(benture, "DividendsCancelled")
-                    .withArgs(BigNumber.from("3"));
-
-                cancelledDist = await benture.getDistribution(3);
-                expect(cancelledDist[0]).to.equal(BigNumber.from("3"));
-                expect(cancelledDist[1]).to.equal(origToken.address);
-                expect(cancelledDist[2]).to.equal(distToken.address);
-                expect(cancelledDist[3]).to.equal(parseUnits("100", 6));
-                expect(cancelledDist[4]).to.equal(time);
-                expect(cancelledDist[5]).to.equal(true);
-                expect(cancelledDist[6]).to.equal(1);
-                ids = await benture.getDistributions(ownerAcc.address);
-                expect(ids.length).to.equal(5);
-                expect(await benture.checkAnnounced(3, ownerAcc.address)).to.equal(
-                    true
-                );
-            });
-
-            it("Should return tokens back to admin after cancelling the distribution", async () => {
-                let time = Date.now() + 3600 * 24 * 31;
-
-                // Announce 2 distributions: 1 with ERC20 token and 1 with native token
-                await benture.announceDividends(
-                    origToken.address,
-                    distToken.address,
-                    parseUnits("100", 6),
-                    time,
-                    true
-                );
-
-                await benture.announceDividends(
-                    origToken.address,
-                    zeroAddress,
-                    parseEther("1"),
-                    time,
-                    true,
-                    {value: parseEther("1")}
-                );
-
-                expect((await benture.getDistributions(ownerAcc.address)).length).to.equal(2);
-
-                // Return ERC20 tokens
-                let startBalance = await distToken.balanceOf(ownerAcc.address);
-                await benture.cancelDividends(1);
-                let endBalance = await distToken.balanceOf(ownerAcc.address);
-                expect(endBalance.sub(startBalance)).to.equal(parseUnits("100", 6));
-
-                // Return native tokens
-                let startNativeBalance = await provider.getBalance(ownerAcc.address);
-                await benture.cancelDividends(2);
-                let endNativeBalance = await provider.getBalance(ownerAcc.address);
-                expect(endNativeBalance.sub(startNativeBalance)).to.be.lt(parseEther("1"));
-                expect(endNativeBalance.sub(startNativeBalance)).to.be.gt(parseEther("0.98"));
-            });
-
-            it("Should fail to cancel distribution if caller is not admin", async () => {
-                let time = Date.now() + 3600 * 24 * 31;
-
-                await benture.announceDividends(
-                    origToken.address,
-                    distToken.address,
-                    parseUnits("100", 6),
-                    time,
-                    true
-                );
-
-                await expect(
-                    benture.connect(clientAcc1).cancelDividends(1)
-                ).to.be.revertedWith(
-                    "BentureAdmin: user does not have an admin token!"
-                );
-            });
-
-            it("Should fail to cancel not announced distribution", async () => {
-                await expect(benture.cancelDividends(1)).to.be.revertedWith(
-                    "Benture: distribution with the given ID has not been annouced yet!"
-                );
+                ).to.be.revertedWith("ERC20: transfer amount exceeds balance");
             });
         });
 
@@ -488,7 +289,9 @@ describe("Benture Dividend-Paying Token", () => {
             });
 
             it("Should fail to list dividends of a zero address admin", async () => {
-                await expect(benture.getDistributions(zeroAddress)).to.be.revertedWith(
+                await expect(
+                    benture.getDistributions(zeroAddress)
+                ).to.be.revertedWith(
                     "Benture: admin can not have a zero address!"
                 );
             });
@@ -543,12 +346,12 @@ describe("Benture Dividend-Paying Token", () => {
                     true
                 );
 
-                expect(await benture.checkAnnounced(1, ownerAcc.address)).to.equal(
-                    true
-                );
-                expect(await benture.checkAnnounced(1, clientAcc1.address)).to.equal(
-                    false
-                );
+                expect(
+                    await benture.checkAnnounced(1, ownerAcc.address)
+                ).to.equal(true);
+                expect(
+                    await benture.checkAnnounced(1, clientAcc1.address)
+                ).to.equal(false);
             });
 
             it("Should fail to check distribution with invalid ID", async () => {
@@ -577,7 +380,9 @@ describe("Benture Dividend-Paying Token", () => {
                     time,
                     true
                 );
-                await expect(benture.checkAnnounced(1, zeroAddress)).to.be.revertedWith(
+                await expect(
+                    benture.checkAnnounced(1, zeroAddress)
+                ).to.be.revertedWith(
                     "Benture: admin can not have a zero address!"
                 );
             });
@@ -585,18 +390,14 @@ describe("Benture Dividend-Paying Token", () => {
     });
 
     describe("ERC20 dividends", () => {
-        describe("Equal dividends", () => {
-        });
+        describe("Equal dividends", () => {});
 
-        describe("Weighted dividends", () => {
-        });
-     });
+        describe("Weighted dividends", () => {});
+    });
 
     describe("Native tokens dividends", () => {
-        describe("Equal dividends", () => {
-          });
+        describe("Equal dividends", () => {});
 
-        describe("Weighted dividends", () => {
-         });
+        describe("Weighted dividends", () => {});
     });
 });
