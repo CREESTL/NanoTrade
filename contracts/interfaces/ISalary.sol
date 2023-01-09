@@ -59,37 +59,11 @@ interface ISalary {
         SalaryInfo indexed salary
     );
 
-    /// @notice Emits when Admin adds periods to salary
     event SalaryPeriodsAdded(
         address indexed employeeAddress,
         address indexed adminAddress,
         SalaryInfo indexed salary
     );
-
-    /// @notice Emits when Admin removes periods from salary
-    event SalaryPeriodsRemoved(
-        address indexed employeeAddress,
-        address indexed adminAddress,
-        SalaryInfo indexed salary
-    );
-
-    /// @notice Adds periods to salary
-    /// @param salaryId ID of target salary
-    /// @param tokensAmountPerPeriod Array of periods to add to salary
-    /// @dev Only admin can call this method.
-    function addPeriodsToSalary(
-        uint256 salaryId,
-        uint256[] memory tokensAmountPerPeriod
-    ) external;
-
-    /// @notice Removes periods from salary
-    /// @param salaryId ID of target salary
-    /// @param amountOfPeriodsToDelete Amount of periods to delete from salary
-    /// @dev Only admin can call this method.
-    function removePeriodsFromSalary(
-        uint256 salaryId,
-        uint256 amountOfPeriodsToDelete
-    ) external;
 
     /// @notice Returns the name of employee.
     /// @param employeeAddress Address of employee.
@@ -169,7 +143,7 @@ interface ISalary {
     /// @dev Only admin can call this method.
     function removeNameFromEmployee(address employeeAddress) external;
 
-    /// @notice Returns amount of pending salary.
+        /// @notice Returns amount of pending salary.
     /// @param salaryId Salary ID.
     /// @return salaryAmount Amount of pending salary.
     function getSalaryAmount(uint256 salaryId) external view returns(uint256 salaryAmount);
