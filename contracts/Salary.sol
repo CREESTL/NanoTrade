@@ -33,6 +33,7 @@ contract Salary is ISalary{
     /// @dev Mapping from salary ID to its info
     mapping(uint256 => SalaryInfo) private salaryById;
 
+    /// @dev Mapping from employee address to admin address to salary ID
     mapping(address => mapping(address => EnumerableSet.UintSet)) private employeeToAdminToSalaryId;
 
     /// @dev Uses to check if user is BentureAdmin tokens holder
@@ -144,9 +145,8 @@ contract Salary is ISalary{
             _salary.employee == msg.sender,
             "Salary: not employee for this salary!"
         );
-        
-        uint256 timePassed = _getTimePassed(salaryId);
-        uint256 periodsToPay = timePassed / _salary.periodDuration;
+        uint256 periodsToPay = (block.timestamp - (_salary.amountOfWithdrawals * _salary.periodDuration + _salary.salaryStartTime)) /
+            _salary.periodDuration;
         if (
             periodsToPay + _salary.amountOfWithdrawals >=
             _salary.amountOfPeriods
@@ -159,18 +159,20 @@ contract Salary is ISalary{
 
         if (periodsToPay != 0) {
             /// @dev The case when there are periods for payment
-            uint256 amountToPay = _getAmountForPeriod(periodsToPay + _salary.amountOfWithdrawals, salaryId);
+            uint256 toPay;
+            for(uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + periodsToPay; i++) {
+                toPay = toPay + _salary.tokensAmountPerPeriod[i];
+            }
+
             _salary.amountOfWithdrawals =
                 _salary.amountOfWithdrawals +
                 periodsToPay;
-           // _salary.lastWithdrawalTime = block.timestamp;
-
             
             /// @dev Transfer tokens from the employer's wallet to the employee's wallet
             IERC20(_salary.tokenAddress).safeTransferFrom(
                 _salary.employer,
                 _salary.employee,
-                amountToPay
+                toPay
             );
 
             emit EmployeeSalaryClaimed(
@@ -231,6 +233,10 @@ contract Salary is ISalary{
         return salaryById[salaryId];
     }
 
+    /// @notice Removes periods from salary
+    /// @param salaryId ID of target salary
+    /// @param amountOfPeriodsToDelete Amount of periods to delete from salary
+    /// @dev Only admin can call this method.
     function removePeriodsFromSalary(
         uint256 salaryId,
         uint256 amountOfPeriodsToDelete
@@ -249,10 +255,14 @@ contract Salary is ISalary{
                 _salary.tokensAmountPerPeriod.pop();
             }
             _salary.amountOfPeriods = _salary.amountOfPeriods - amountOfPeriodsToDelete;
-            //salaryById[_salary.id] = _salary;
         }
+        emit SalaryPeriodsRemoved(_salary.employee, msg.sender, _salary);
     }
 
+    /// @notice Adds periods to salary
+    /// @param salaryId ID of target salary
+    /// @param tokensAmountPerPeriod Array of periods to add to salary
+    /// @dev Only admin can call this method.
     function addPeriodsToSalary(
         uint256 salaryId,
         uint256[] memory tokensAmountPerPeriod
@@ -289,7 +299,6 @@ contract Salary is ISalary{
         }
 
         _salary.amountOfPeriods = _salary.amountOfPeriods + tokensAmountPerPeriod.length;
-        //salaryById[_salary.id] = _salary;
         emit SalaryPeriodsAdded(_salary.employee, msg.sender, _salary);
     }
 
@@ -329,7 +338,6 @@ contract Salary is ISalary{
         _salary.amountOfWithdrawals = 0;
         _salary.tokenAddress = tokenAddress;
         _salary.tokensAmountPerPeriod = tokensAmountPerPeriod;
-        //_salary.lastWithdrawalTime = block.timestamp;
         _salary.salaryStartTime = block.timestamp;
         _salary.employer = msg.sender;
         _salary.employee = employeeAddress;
@@ -346,23 +354,49 @@ contract Salary is ISalary{
         if (_salary.amountOfWithdrawals != _salary.amountOfPeriods) {
             uint256 amountToPay;
             uint256 amountOfRemainingPeriods = _salary.amountOfPeriods - _salary.amountOfWithdrawals;
-            uint256 timePassedFromLastWithdrawal =  _getTimePassed(salaryId);
+            uint256 timePassedFromLastWithdrawal = block.timestamp - (_salary.amountOfWithdrawals * _salary.periodDuration + _salary.salaryStartTime);
             uint256 periodsPassed = timePassedFromLastWithdrawal / _salary.periodDuration;
-            
+
             if (periodsPassed < amountOfRemainingPeriods) {
+
+                /* uint256 amountToPay = _payingPeriodsCounter(_salary);
                 /// @dev The case when an employee withdraw salary before the end of all periods
-                amountToPay = _getAmountForPeriod(periodsPassed + _salary.amountOfWithdrawals, salaryId);
+                uint256 period = 0;
+                if (_salary.amountOfWithdrawals != 0) {
+                    period = _salary.amountOfWithdrawals - 1;
+                }
+                for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + (periodsPassed); i++) {
+                    amountToPay = amountToPay + _salary.tokensAmountPerPeriod[i];
+                    period = i;
+                } */
+
+                amountToPay = _payingPeriodsCounter(_salary);
 
                 if (timePassedFromLastWithdrawal - (_salary.periodDuration * (periodsPassed)) > 0) {
-                    amountToPay = amountToPay + (_salary.tokensAmountPerPeriod[periodsPassed + _salary.amountOfWithdrawals] * (timePassedFromLastWithdrawal - (periodsPassed) * _salary.periodDuration)) / _salary.periodDuration;
+                    amountToPay = amountToPay + (_salary.tokensAmountPerPeriod[_salary.amountOfWithdrawals + periodsPassed] * (timePassedFromLastWithdrawal - periodsPassed * _salary.periodDuration)) / _salary.periodDuration;
                 }
+                
             } else {
                 /// @dev The case when an employee withdraw salary after the end of all periods
-                amountToPay = _getAmountForPeriod(_salary.amountOfPeriods, salaryId);
+                for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + amountOfRemainingPeriods; i++) {
+                    amountToPay = amountToPay + _salary.tokensAmountPerPeriod[i];
+                }
             }
             return amountToPay;
         }
         return 0;
+    }
+
+      function _payingPeriodsCounter(SalaryInfo memory _salary) private view returns (uint256 wholeAmountToPay) {
+        //uint256 timePassed = block.timestamp - (_salary.amountOfWithdrawals * _salary.periodDuration + _salary.salaryStartTime);
+        uint256 timePassedFromLastWithdrawal = block.timestamp - (_salary.amountOfWithdrawals * _salary.periodDuration + _salary.salaryStartTime);
+        uint256 periodsPassed = timePassedFromLastWithdrawal / _salary.periodDuration;
+
+        for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + periodsPassed; i++) {
+            wholeAmountToPay = wholeAmountToPay + _salary.tokensAmountPerPeriod[i];
+        }
+
+        return wholeAmountToPay;
     }
 
     /// @notice Removes salary from employee.
@@ -392,18 +426,4 @@ contract Salary is ISalary{
         );
         
     }
-
-   function _getTimePassed(uint256 salaryId) private view returns(uint256 currentPeriod) {
-        SalaryInfo memory _salary = salaryById[salaryId];
-        uint256 result = block.timestamp - (_salary.amountOfWithdrawals * _salary.periodDuration + _salary.salaryStartTime);
-        return result;
-    }
-
-    function _getAmountForPeriod(uint256 to, uint256 salaryId) private view returns(uint256 amountForPeriod) {
-        SalaryInfo memory _salary = salaryById[salaryId];
-        for(uint256 i = _salary.amountOfWithdrawals; i < to; i++) {
-            amountForPeriod += _salary.tokensAmountPerPeriod[i];   
-        }
-        return amountForPeriod;
-    } 
 }
