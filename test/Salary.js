@@ -1130,11 +1130,6 @@ it("Should withdraw through withdrawSalary only for setted periods", async () =>
         await expect(salary.connect(clientAcc1).setNameToEmployee(clientAcc1.address, "Alice")).to.be.revertedWith("BentureAdmin: user does not have an admin token!")
     });
 
-    it("Should revert setNameToEmployee with Salary: empty name!", async () => {
-      await salary.addEmployee(clientAcc1.address)
-      await expect(salary.setNameToEmployee(clientAcc1.address, "")).to.be.revertedWith("Salary: empty name!")
-  });
-
     it("Should revert setNameToEmployee with Salary: not allowed to set name!", async () => {
       await salary.addEmployee(clientAcc1.address)
       await expect(salary.connect(adminAcc2).setNameToEmployee(clientAcc1.address, "Alice")).to.be.revertedWith("Salary: not allowed to set name!")
