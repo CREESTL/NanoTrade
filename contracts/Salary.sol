@@ -8,9 +8,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-
-/// @title Salary contract. A contract to manage salaries 
-contract Salary is ISalary{
+/// @title Salary contract. A contract to manage salaries
+contract Salary is ISalary {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
@@ -34,7 +33,8 @@ contract Salary is ISalary{
     mapping(uint256 => SalaryInfo) private salaryById;
 
     /// @dev Mapping from employee address to admin address to salary ID
-    mapping(address => mapping(address => EnumerableSet.UintSet)) private employeeToAdminToSalaryId;
+    mapping(address => mapping(address => EnumerableSet.UintSet))
+        private employeeToAdminToSalaryId;
 
     /// @dev Uses to check if user is BentureAdmin tokens holder
     modifier onlyAdmin() {
@@ -78,10 +78,7 @@ contract Salary is ISalary{
             checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender),
             "Salary: not allowed to set name!"
         );
-        require(
-            bytes(name).length != 0,
-            "Salary: empty name!"
-        );
+        require(bytes(name).length != 0, "Salary: empty name!");
         names[employeeAddress] = name;
         emit EmployeeNameChanged(employeeAddress, name);
     }
@@ -121,10 +118,16 @@ contract Salary is ISalary{
             checkIfUserIsEmployeeOfAdmin(msg.sender, employeeAddress),
             "Salary: already not an employee!"
         );
-        
-        if (employeeToAdminToSalaryId[employeeAddress][msg.sender].length() > 0) {
-        uint256[] memory id = employeeToAdminToSalaryId[employeeAddress][msg.sender].values();
-        uint256 arrayLength = employeeToAdminToSalaryId[employeeAddress][msg.sender].length();
+
+        if (
+            employeeToAdminToSalaryId[employeeAddress][msg.sender].length() > 0
+        ) {
+            uint256[] memory id = employeeToAdminToSalaryId[employeeAddress][
+                msg.sender
+            ].values();
+            uint256 arrayLength = employeeToAdminToSalaryId[employeeAddress][
+                msg.sender
+            ].length();
             for (uint256 i = 0; i < arrayLength; i++) {
                 if (salaryById[id[i]].employer == msg.sender) {
                     removeSalaryFromEmployee(id[i]);
@@ -145,8 +148,10 @@ contract Salary is ISalary{
             _salary.employee == msg.sender,
             "Salary: not employee for this salary!"
         );
-        uint256 periodsToPay = (block.timestamp - (_salary.amountOfWithdrawals * _salary.periodDuration + _salary.salaryStartTime)) /
-            _salary.periodDuration;
+        uint256 periodsToPay = (block.timestamp -
+            (_salary.amountOfWithdrawals *
+                _salary.periodDuration +
+                _salary.salaryStartTime)) / _salary.periodDuration;
         if (
             periodsToPay + _salary.amountOfWithdrawals >=
             _salary.amountOfPeriods
@@ -160,14 +165,18 @@ contract Salary is ISalary{
         if (periodsToPay != 0) {
             /// @dev The case when there are periods for payment
             uint256 toPay;
-            for(uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + periodsToPay; i++) {
+            for (
+                uint256 i = _salary.amountOfWithdrawals;
+                i < _salary.amountOfWithdrawals + periodsToPay;
+                i++
+            ) {
                 toPay = toPay + _salary.tokensAmountPerPeriod[i];
             }
 
             _salary.amountOfWithdrawals =
                 _salary.amountOfWithdrawals +
                 periodsToPay;
-            
+
             /// @dev Transfer tokens from the employer's wallet to the employee's wallet
             IERC20(_salary.tokenAddress).safeTransferFrom(
                 _salary.employer,
@@ -221,7 +230,8 @@ contract Salary is ISalary{
         address employeeAddress,
         address adminAddress
     ) external view returns (uint256[] memory ids) {
-        return employeeToAdminToSalaryId[employeeAddress][adminAddress].values();
+        return
+            employeeToAdminToSalaryId[employeeAddress][adminAddress].values();
     }
 
     /// @notice Returns salary by ID.
@@ -242,19 +252,28 @@ contract Salary is ISalary{
         uint256 amountOfPeriodsToDelete
     ) external onlyAdmin {
         SalaryInfo storage _salary = salaryById[salaryId];
-        require(block.timestamp - _salary.salaryStartTime <= _salary.periodDuration * _salary.amountOfPeriods, "Salary: salary ended!");
+        require(
+            block.timestamp - _salary.salaryStartTime <=
+                _salary.periodDuration * _salary.amountOfPeriods,
+            "Salary: salary ended!"
+        );
         require(
             checkIfUserIsAdminOfEmployee(_salary.employee, msg.sender),
             "Salary: not an admin for employee!"
         );
-        uint256 remainingTime = _salary.periodDuration * _salary.amountOfPeriods - amountOfPeriodsToDelete * _salary.periodDuration;
-        if (block.timestamp - _salary.salaryStartTime >= remainingTime) { 
+        uint256 remainingTime = _salary.periodDuration *
+            _salary.amountOfPeriods -
+            amountOfPeriodsToDelete *
+            _salary.periodDuration;
+        if (block.timestamp - _salary.salaryStartTime >= remainingTime) {
             removeSalaryFromEmployee(salaryId);
         } else {
             for (uint256 i = 0; i < amountOfPeriodsToDelete; i++) {
                 _salary.tokensAmountPerPeriod.pop();
             }
-            _salary.amountOfPeriods = _salary.amountOfPeriods - amountOfPeriodsToDelete;
+            _salary.amountOfPeriods =
+                _salary.amountOfPeriods -
+                amountOfPeriodsToDelete;
         }
         emit SalaryPeriodsRemoved(_salary.employee, msg.sender, _salary);
     }
@@ -268,7 +287,11 @@ contract Salary is ISalary{
         uint256[] memory tokensAmountPerPeriod
     ) external onlyAdmin {
         SalaryInfo storage _salary = salaryById[salaryId];
-        require(block.timestamp - _salary.salaryStartTime <= _salary.periodDuration * _salary.amountOfPeriods, "Salary: salary ended!");
+        require(
+            block.timestamp - _salary.salaryStartTime <=
+                _salary.periodDuration * _salary.amountOfPeriods,
+            "Salary: salary ended!"
+        );
         require(
             checkIfUserIsAdminOfEmployee(_salary.employee, msg.sender),
             "Salary: not an admin for employee!"
@@ -281,9 +304,11 @@ contract Salary is ISalary{
 
         uint256 totalTokenAmount;
         for (uint256 i = 0; i < _salary.tokensAmountPerPeriod.length; i++) {
-            totalTokenAmount = totalTokenAmount + _salary.tokensAmountPerPeriod[i];
+            totalTokenAmount =
+                totalTokenAmount +
+                _salary.tokensAmountPerPeriod[i];
         }
-        
+
         for (uint256 i = 0; i < tokensAmountPerPeriod.length; i++) {
             totalTokenAmount = totalTokenAmount + tokensAmountPerPeriod[i];
         }
@@ -295,10 +320,12 @@ contract Salary is ISalary{
         );
 
         for (uint i = 0; i < tokensAmountPerPeriod.length; i++) {
-                _salary.tokensAmountPerPeriod.push(tokensAmountPerPeriod[i]);
+            _salary.tokensAmountPerPeriod.push(tokensAmountPerPeriod[i]);
         }
 
-        _salary.amountOfPeriods = _salary.amountOfPeriods + tokensAmountPerPeriod.length;
+        _salary.amountOfPeriods =
+            _salary.amountOfPeriods +
+            tokensAmountPerPeriod.length;
         emit SalaryPeriodsAdded(_salary.employee, msg.sender, _salary);
     }
 
@@ -354,25 +381,49 @@ contract Salary is ISalary{
     /// @notice Returns amount of pending salary.
     /// @param salaryId Salary ID.
     /// @return salaryAmount Amount of pending salary.
-    function getSalaryAmount(uint256 salaryId) public view returns(uint256 salaryAmount) {
+    function getSalaryAmount(
+        uint256 salaryId
+    ) public view returns (uint256 salaryAmount) {
         SalaryInfo memory _salary = salaryById[salaryId];
         if (_salary.amountOfWithdrawals != _salary.amountOfPeriods) {
             uint256 amountToPay;
-            uint256 amountOfRemainingPeriods = _salary.amountOfPeriods - _salary.amountOfWithdrawals;
-            uint256 timePassedFromLastWithdrawal = block.timestamp - (_salary.amountOfWithdrawals * _salary.periodDuration + _salary.salaryStartTime);
-            uint256 periodsPassed = timePassedFromLastWithdrawal / _salary.periodDuration;
+            uint256 amountOfRemainingPeriods = _salary.amountOfPeriods -
+                _salary.amountOfWithdrawals;
+            uint256 timePassedFromLastWithdrawal = block.timestamp -
+                (_salary.amountOfWithdrawals *
+                    _salary.periodDuration +
+                    _salary.salaryStartTime);
+            uint256 periodsPassed = timePassedFromLastWithdrawal /
+                _salary.periodDuration;
 
             if (periodsPassed < amountOfRemainingPeriods) {
                 amountToPay = _payingPeriodsCounter(_salary);
 
-                if (timePassedFromLastWithdrawal - (_salary.periodDuration * (periodsPassed)) > 0) {
-                    amountToPay = amountToPay + (_salary.tokensAmountPerPeriod[_salary.amountOfWithdrawals + periodsPassed] * (timePassedFromLastWithdrawal - periodsPassed * _salary.periodDuration)) / _salary.periodDuration;
+                if (
+                    timePassedFromLastWithdrawal -
+                        (_salary.periodDuration * (periodsPassed)) >
+                    0
+                ) {
+                    amountToPay =
+                        amountToPay +
+                        (_salary.tokensAmountPerPeriod[
+                            _salary.amountOfWithdrawals + periodsPassed
+                        ] *
+                            (timePassedFromLastWithdrawal -
+                                periodsPassed *
+                                _salary.periodDuration)) /
+                        _salary.periodDuration;
                 }
-                
             } else {
                 /// @dev The case when an employee withdraw salary after the end of all periods
-                for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + amountOfRemainingPeriods; i++) {
-                    amountToPay = amountToPay + _salary.tokensAmountPerPeriod[i];
+                for (
+                    uint256 i = _salary.amountOfWithdrawals;
+                    i < _salary.amountOfWithdrawals + amountOfRemainingPeriods;
+                    i++
+                ) {
+                    amountToPay =
+                        amountToPay +
+                        _salary.tokensAmountPerPeriod[i];
                 }
             }
             return amountToPay;
@@ -380,13 +431,25 @@ contract Salary is ISalary{
         return 0;
     }
 
-      function _payingPeriodsCounter(SalaryInfo memory _salary) private view returns (uint256 wholeAmountToPay) {
+    function _payingPeriodsCounter(
+        SalaryInfo memory _salary
+    ) private view returns (uint256 wholeAmountToPay) {
         //uint256 timePassed = block.timestamp - (_salary.amountOfWithdrawals * _salary.periodDuration + _salary.salaryStartTime);
-        uint256 timePassedFromLastWithdrawal = block.timestamp - (_salary.amountOfWithdrawals * _salary.periodDuration + _salary.salaryStartTime);
-        uint256 periodsPassed = timePassedFromLastWithdrawal / _salary.periodDuration;
+        uint256 timePassedFromLastWithdrawal = block.timestamp -
+            (_salary.amountOfWithdrawals *
+                _salary.periodDuration +
+                _salary.salaryStartTime);
+        uint256 periodsPassed = timePassedFromLastWithdrawal /
+            _salary.periodDuration;
 
-        for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + periodsPassed; i++) {
-            wholeAmountToPay = wholeAmountToPay + _salary.tokensAmountPerPeriod[i];
+        for (
+            uint256 i = _salary.amountOfWithdrawals;
+            i < _salary.amountOfWithdrawals + periodsPassed;
+            i++
+        ) {
+            wholeAmountToPay =
+                wholeAmountToPay +
+                _salary.tokensAmountPerPeriod[i];
         }
 
         return wholeAmountToPay;
@@ -408,15 +471,16 @@ contract Salary is ISalary{
 
         uint256 amountToPay = getSalaryAmount(salaryId);
 
-        employeeToAdminToSalaryId[_salary.employee][msg.sender].remove(salaryId);
+        employeeToAdminToSalaryId[_salary.employee][msg.sender].remove(
+            salaryId
+        );
         delete salaryById[_salary.id];
-  
+
         /// @dev Transfer tokens from the employer's wallet to the employee's wallet
         IERC20(_salary.tokenAddress).safeTransferFrom(
             msg.sender,
             _salary.employee,
             amountToPay
         );
-        
     }
 }

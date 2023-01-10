@@ -172,7 +172,9 @@ interface ISalary {
     /// @notice Returns amount of pending salary.
     /// @param salaryId Salary ID.
     /// @return salaryAmount Amount of pending salary.
-    function getSalaryAmount(uint256 salaryId) external view returns(uint256 salaryAmount);
+    function getSalaryAmount(
+        uint256 salaryId
+    ) external view returns (uint256 salaryAmount);
 
     /// @notice Adds salary to employee.
     /// @param employeeAddress Address of employee.

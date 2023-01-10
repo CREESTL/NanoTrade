@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "./BentureProducedToken.sol";
 import "./interfaces/IBenture.sol";
 import "./interfaces/IBentureProducedToken.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -14,19 +15,27 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 contract Benture is IBenture, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
     using SafeERC20 for IERC20;
+    using SafeERC20 for IBentureProducedToken;
 
     /// @dev The contract must be able to receive ether to pay dividends with it
     receive() external payable {}
 
+    /// @dev Mapping showing how much tokens a holder has locked in a each distribution
+    mapping(uint256 => mapping(address => uint256)) lockedByHolders;
+    /// @dev Mapping showing shares of holder in each distribution
+    mapping(uint256 => mapping(address => uint256)) sharesOfHolders;
+
     /// @dev Stores information about a specific dividends distribution
     struct Distribution {
-        uint256 id;
-        address origToken;
-        address distToken;
-        uint256 amount;
-        uint256 dueDate;
-        bool isEqual;
-        DistStatus status;
+        uint256 id; // ID of distributiion
+        address origToken; // The token owned by holders
+        address distToken; // The token distributed to holders
+        uint256 amount; // The amount of `distTokens` or native tokens paid to holders
+        uint256 dueDate; // Time that should pass from announcement till the beginning of distribution
+        bool isEqual; // True if distribution is equal, false if it's weighted
+        uint256 totalLocked; // The total amount of locked tokens (ERC20 of native)
+        uint256 totalLockers; // The number of holders (lockers) that locked their tokens
+        DistStatus status; // Current status of distribution
     }
 
     /// @dev Incrementing IDs of distributions
@@ -72,10 +81,17 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             // NOTE: Caller should approve transfer of at least `amount` of tokens with `ERC20.approve()`
             // before calling this function
             // Transfer tokens from caller to the contract
-            IERC20(distToken).safeTransferFrom(msg.sender, address(this), amount);
+            IERC20(distToken).safeTransferFrom(
+                msg.sender,
+                address(this),
+                amount
+            );
         } else {
             // Check that enough native tokens were provided
-            require(msg.value >= amount, "Benture: not enough native tokens were provided!");
+            require(
+                msg.value >= amount,
+                "Benture: not enough native tokens were provided!"
+            );
         }
         distributionIds.increment();
         // NOTE The lowest distribution ID is 1
@@ -92,6 +108,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             amount: amount,
             dueDate: dueDate,
             isEqual: isEqual,
+            totalLocked: 0,
+            totalLockers: 0,
             // Set a `pending` status for each new distribution
             status: DistStatus.pending
         });
@@ -105,33 +123,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         emit DividendsAnnounced(origToken, distToken, amount, dueDate, isEqual);
     }
 
-    /// @notice Cancels previously announced distribution
-    /// @param id The ID of the distribution to cancel
-    function cancelDividends(uint256 id) external {
-        // Check that distribution with the provided ID was announced previously
-        require(
-            distributionsToAdmins[id] != address(0),
-            "Benture: distribution with the given ID has not been annouced yet!"
-        );
-        // Get the distribution with the provided id
-        Distribution storage distribution = distributions[idsToIndexes[id]];
-        // Check that caller is an admin of the origToken project
-        IBentureProducedToken(distribution.origToken).checkAdmin(msg.sender);
-        // All we need is to change distribution's status to `cancelled`
-        distribution.status = DistStatus.cancelled;
-        // Return tokens to the admin
-        address distToken = distribution.distToken;
-        if (distToken != address(0)) {
-            IERC20(distribution.distToken).safeTransfer(msg.sender, distribution.amount);
-        } else {
-            (bool success, ) = msg.sender.call{value: distribution.amount}("");
-            require(success, "Benture: return of tokens failed!");
-        }
-        // Do not reset amount here. It's saved in storage to be able to get this distribution
-        // in the future and see what the amount was.
-
-        emit DividendsCancelled(id);
-    }
 
     /// @notice Returns the list of IDs of all distributions the admin has ever announced
     /// @param admin The address of the admin
@@ -303,7 +294,9 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
                     amount - reallyDistributed
                 );
             } else {
-                (bool success, ) = msg.sender.call{value: amount - reallyDistributed}("");
+                (bool success, ) = msg.sender.call{
+                    value: amount - reallyDistributed
+                }("");
                 require(success, "Benture: return of tokens failed!");
             }
         }
@@ -325,174 +318,75 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         return balance;
     }
 
-    /// @notice Distributes one token as dividends for holders of another token _equally _
-    /// @param id The ID of the distribution that is being fulfilled
-    /// @param origToken The address of the token that is held by receivers;
-    ///        Can not be a zero address!
-    ///        MUST be an address of a contract - not an address of EOA!
-    /// @param distToken The address of the token that is to be distributed as dividends
-    ///        Zero address for native token (ether, wei)
-    /// @param amount The amount of distTokens to be distributed in total
-    ///        NOTE: This amount takes `decimals` into account. For example 4 USDT = 4 000 000 units
-    function distributeDividendsEqual(
-        uint256 id,
-        address origToken,
-        address distToken,
-        uint256 amount
-    ) external payable nonReentrant {
-        // Do all necessary checks before distributing dividends
-        preDistChecks(origToken, distToken, id, amount, true);
-        // Transfer tokens to the `Benture` contract before distributing dividends
-        preDistTransfer(distToken, amount);
-
-        // The initial balance before distribution
-        uint256 startBalance = getCurrentBalance(distToken);
-
-        // Get all holders of the origToken
-        address[] memory receivers = IBentureProducedToken(origToken).holders();
-        uint256 length = receivers.length;
-        uint256 parts = length;
-        require(length > 0, "Benture: no dividends receivers were found!");
-        // It is impossible to distribute dividends if the amount is less then the number of receivers
-        // (mostly used for ERC20 tokens)
-        require(
-            amount >= length,
-            "Benture: too many receivers for the provided amount!"
-        );
-        // If one of the receivers is the `Benture` contract itself - do not distribute dividends to it
-        // Reduce the number of receivers as well to calculate dividends correctly
-        if (IBentureProducedToken(origToken).isHolder(address(this))) {
-            parts -= 1;
-        }
-        // Distribute dividends to each of the holders
-        for (uint256 i = 0; i < length; i++) {
-            // No dividends should be distributed to a zero address
-            require(
-                receivers[i] != address(0),
-                "Benture: no dividends for a zero address allowed!"
-            );
-            // If `Benture` contract is a receiver, just ignore it and move to the next one
-            if (receivers[i] != address(this)) {
-                if (distToken == address(0)) {
-                    // Native tokens (wei)
-                    (bool transferred, ) = receivers[i].call{
-                        value: amount / parts
-                    }("");
-                    require(transferred, "Benture: dividends transfer failed!");
-                } else {
-                    // ERC20 tokens
-                    IERC20(distToken).safeTransfer(
-                        receivers[i],
-                        amount / parts
-                    );
-                }
-            }
-        }
-
-        // The balance after the distribution
-        uint256 endBalance = getCurrentBalance(distToken);
-
-        // Change distribution status to `fulfilled`
+    // TODO add it to `claimDividends` later
+    /// @notice Calculates locker's share in the distribution
+    /// @param id The ID of the distribution to calculates shares in
+    /// @dev Shares must be calculated *after* the `dueDate`
+    function calculateShare(uint256 id) internal {
         Distribution storage distribution = distributions[idsToIndexes[id]];
-        distribution.status = DistStatus.fulfilled;
-
-        emit DividendsFulfilled(id);
-        emit DividendsDistributed(distToken, startBalance - endBalance);
-
-        // All distTokens that were for some reason not distributed are returned
-        // to the admin
-        returnLeft(distToken, amount, startBalance, endBalance);
+        // Calculate shares if equal distribution
+        if (distribution.isEqual == true) {
+            // NOTE: result gets rounded up to the lower integer, some "change" might be left after division
+            uint256 share = distribution.amount / distribution.totalLockers;
+            sharesOfHolders[id][msg.sender] = share;
+            // Calculate shares in weighted distribution
+        } else {
+            uint256 share = (distribution.amount *
+                lockedByHolders[id][msg.sender]) / distribution.totalLocked;
+            sharesOfHolders[id][msg.sender] = share;
+        }
     }
 
-    /// @notice Distributes one token as dividends for holders of another token _according to each user's balance_
-    /// @param id The ID of the distribution that is being fulfilled
-    /// @param origToken The address of the token that is held by receivers
-    ///        Can not be a zero address!
-    /// @param distToken The address of the token that is to be distributed as dividends
-    ///        Zero address for native token (ether, wei)
-    /// @param amount The amount of distTokens to be distributed in total
-    ///        NOTE: This amount takes `decimals` into account. For example 4 USDT = 4 000 000 units
-    function distributeDividendsWeighted(
-        uint256 id,
-        address origToken,
-        address distToken,
-        uint256 amount
-    ) external payable nonReentrant {
-        // Do all necessary checks before distributing dividends
-        preDistChecks(origToken, distToken, id, amount, false);
-        // Transfer tokens to the `Benture` contract before distributing dividends
-        preDistTransfer(distToken, amount);
-
-        // The initial balance before distribution
-        uint256 startBalance = getCurrentBalance(distToken);
-
-        // Get all holders of the origToken
-        address[] memory receivers = IBentureProducedToken(origToken).holders();
-        uint256 length = receivers.length;
-        require(length > 0, "Benture: no dividends receivers were found!");
-
-        // NOTE formula [A] of amount of distTokens each user receives:
-        // `tokensToReceive = userBalance * amount / totalBalance`
-        // Where `amount / totalBalance = weight` but it's *not* calculated in a separate operation
-        // in order to avoid zero result, e.g:
-        // 1) `weight = 5 / 100 = 0`
-        // 2) `tokensToReceive = 240 * 0 = 0`
-        // But `tokensToReceive = 240 * 5 / 100 = 1200 / 100 = 12` <- different result
-
-        // NOTE this inequation [B] should meet for *each* user in order for them to get minimum
-        // possible dividends (1 wei+):
-        // userBalance * amount * 10 ^ (distToken decimals) / totalBalance >= 1
-        // Otherwise, the user will get 0 dividends
-
-        // If `amount` is less than `length` then none of the users will receive any dividends
-        // NOTE Only users with balance >= `totalBalance / amount` will receive their dividends
+    /// @notice Locks user's tokens in order for him to receive dividends later
+    /// @param id The ID of the distribution to lock tokens for
+    /// @param amount The amount of tokens to lock
+    function lockTokens(uint256 id, uint256 amount) external payable {
+        require(amount > 0, "Benture: can not lock zero tokens!");
+        // Check that this distribution was announced
         require(
-            amount >= length,
-            "Benture: amount should be greater than the number of dividends receivers!"
+            distributionsToAdmins[id] != address(0),
+            "Benture: distribution with the given ID has not been annouced yet!"
         );
-        // NOTE: That's correct only if *all minted* origTokens get transfered to some account
-        // i.e. total balance of all origToken holders is equal to `totalSupply`
-        uint256 totalBalance = IERC20(origToken).totalSupply() - IERC20(origToken).balanceOf(address(this));
-        // Distribute dividends to each of the holders
-        for (uint256 i = 0; i < length; i++) {
-            // No dividends should be distributed to a zero address
-            require(
-                receivers[i] != address(0),
-                "Benture: no dividends for a zero address allowed!"
-            );
-            // If `Benture` contract is a receiver, just ignore it and move to the next one
-            if (receivers[i] != address(this)) {
-                uint256 userBalance = IERC20(origToken).balanceOf(receivers[i]);
-                // Native tokens
-                if (distToken == address(0)) {
-                    (bool success, ) = receivers[i].call{ // Some of the holders might receive no dividends // Formulas [A] and [B] can be used here
-                        value: (userBalance * amount) / totalBalance
-                    }("");
-                    require(success, "Benture: dividends transfer failed!");
-                    // Other ERC20 tokens
-                } else {
-                    IERC20(distToken).safeTransfer(
-                        receivers[i],
-                        // Formulas [A] and [B] can be used here
-                        // Some of the holders might receive no dividends
-                        (userBalance * amount) / totalBalance
-                    );
-                }
-            }
-        }
-
-        // The balance after the distribution
-        uint256 endBalance = getCurrentBalance(distToken);
-
-        // Change distribution status to `fulfilled`
         Distribution storage distribution = distributions[idsToIndexes[id]];
-        distribution.status = DistStatus.fulfilled;
-
-        emit DividendsFulfilled(id);
-        emit DividendsDistributed(distToken, startBalance - endBalance);
-
-        // All distTokens that were for some reason not distributed are returned
-        // to the admin
-        returnLeft(distToken, amount, startBalance, endBalance);
+        // Can only lock tokens when distribution is pending (not cancelled)
+        require(
+            distribution.status == DistStatus.pending,
+            "Benture: distribution is not pending!"
+        );
+        // User should have origTokens to be able to take part in dividends distribution
+        require(
+            IBentureProducedToken(distribution.origToken).isHolder(msg.sender),
+            "Benture: user does not have project tokens!"
+        );
+        // Can only lock tokens before the distribution starts
+        require(
+            block.timestamp <= distribution.dueDate,
+            "Benture: too late for locking!"
+        );
+        // Locking ERC20 tokens
+        if (distribution.distToken != address(0)) {
+            IBentureProducedToken(distribution.origToken).safeTransferFrom(
+                msg.sender,
+                address(this),
+                amount
+            );
+            // Mark that user locked this amount of tokens
+            lockedByHolders[id][msg.sender] = amount;
+            // Increase the total amount of locked tokens
+            distribution.totalLocked += amount;
+            distribution.totalLockers += 1;
+        } else {
+            // Locking native tokens
+            // If user pays more than `amount` the excess just stays on contract's balance
+            require(
+                msg.value >= amount,
+                "Benture: not enough native tokens was provided to lock!"
+            );
+            // Mark that user locked this amount of tokens
+            lockedByHolders[id][msg.sender] = amount;
+            // Increase the total amount of locked tokens
+            distribution.totalLocked += amount;
+            distribution.totalLockers += 1;
+        }
     }
 }
