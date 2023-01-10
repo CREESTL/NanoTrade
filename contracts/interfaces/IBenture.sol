@@ -15,6 +15,36 @@ interface IBenture {
         fulfilled
     }
 
+    /// @notice Creates a new pool
+    /// @param token The token that will be locked in the pool
+    function createPool(address token) external;
+
+    /// @notice Deletes a pool
+    ///         After that all operations with the pool will fail
+    /// @param token The token of the pool
+    function deletePool(address token) external;
+
+    /// @notice Returns info about the pool of a given token
+    /// @param token The address of the token of the pool
+    /// @return The address of the tokens in the pool.
+    /// @return The number of users who locked their tokens in the pool
+    /// @return The amount of locked tokens
+    function getPool(address token) external view returns(address, uint256, uint256);
+
+    /// @notice Checks if user has locked tokens in the pool
+    /// @param token The address of the token of the pool
+    /// @return True if user has locked tokens. Otherwise - false
+    function hasLockedTokens(address token) external view returns(bool);
+
+    /// @notice Checks if user has unlocked tokens from the pool
+    /// @param token The address of the token of the pool
+    /// @return True if user has unlocked tokens. Otherwise - false
+    function hasUnlockedTokens(address token) external view returns(bool);
+
+    /// @notice Returns the amount of tokens locked by the caller
+    /// @param token The address of the token of the pool
+    /// @return The amount of tokens locked by the caller inside the pool
+    function getAmountLocked(address token) external view returns(uint256);
 
     /// @notice Returns the list of IDs of all active distributions the admin has announced
     /// @param admin The address of the admin
@@ -46,6 +76,12 @@ interface IBenture {
     /// @param id The ID of the distribution to lock tokens for
     /// @param amount The amount of tokens to lock
     function lockTokens(uint256 id, uint256 amount) external payable;
+
+    /// @dev Indicates that a new pool has been created
+    event PoolCreated(address token);
+
+    /// @dev Indicates that a pool has been deleted
+    event PoolDeleted(address token);
 
     // TODO change it to DividendsStarted
     /// @dev Indicates that new dividends distribution was announced

@@ -50,7 +50,7 @@ describe("Benture Dividend-Paying Token", () => {
 
         // Deploy dividend-distribution contract
         let bentureTx = await ethers.getContractFactory("Benture");
-        benture = await bentureTx.deploy();
+        benture = await bentureTx.deploy(factory.address);
         await benture.deployed();
 
         // Deploy another ERC20 in order to have a distToken

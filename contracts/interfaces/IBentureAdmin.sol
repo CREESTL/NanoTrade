@@ -10,7 +10,8 @@ interface IBentureAdmin {
     /// @notice Checks if the provided user owns an admin token controlling the provided ERC20 token
     /// @param user The address of the user that potentially controls ERC20 token
     /// @param ERC20Address The address of the potentially controlled ERC20 token
-    function verifyAdminToken(address user, address ERC20Address) external view;
+    /// @return True if user has admin token. Otherwise - false.
+    function verifyAdminToken(address user, address ERC20Address) external view returns(bool);
 
     /// @notice Returns the address of the controlled ERC20 token
     /// @param tokenId The ID of ERC721 token to check

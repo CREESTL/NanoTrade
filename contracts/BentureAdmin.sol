@@ -67,10 +67,11 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
     /// @notice Checks if the provided user owns an admin token controlling the provided ERC20 token
     /// @param user The address of the user that potentially controls ERC20 token
     /// @param ERC20Address The address of the potentially controlled ERC20 token
+    /// @return True if user has admin token. Otherwise - false.
     function verifyAdminToken(
         address user,
         address ERC20Address
-    ) external view {
+    ) external view returns(bool){
         require(
             user != address(0),
             "BentureAdmin: user can not have a zero address!"
@@ -83,10 +84,10 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
         // No need to check if ID is 0 here
         uint256 id = _controlledToAdmin[ERC20Address];
         // Get the actual holder of the token with that ID and compare it to the provided user address
-        require(
-            _idToHolder[id] == user,
-            "BentureAdmin: user does not have an admin token!"
-        );
+        if (_idToHolder[id] != user) {
+            return false;
+        }
+        return true;
     }
 
     /// @notice Returns the address of the controlled ERC20 token

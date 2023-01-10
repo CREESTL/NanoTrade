@@ -93,12 +93,12 @@ describe("Benture Produced Token", () => {
 
         it("Should check that user is an admin", async () => {
             // Owner is an admin
-            await expect(token.checkAdmin(ownerAcc.address)).not.to.be.reverted;
+            expect(await token.checkAdmin(ownerAcc.address)).to.equal(true);
             // Client is not
-            await expect(
-                token.checkAdmin(clientAcc1.address)
-            ).to.be.revertedWith(
-                "BentureAdmin: user does not have an admin token!"
+            expect(
+                await token.checkAdmin(clientAcc1.address)
+            ).to.equal(
+                false
             );
         });
     });
@@ -146,7 +146,7 @@ describe("Benture Produced Token", () => {
             await expect(
                 token.connect(clientAcc1).mint(clientAcc2.address, amount)
             ).to.be.revertedWith(
-                "BentureAdmin: user does not have an admin token!"
+                "BentureProducedToken: user does not have an admin token!"
             );
         });
 
@@ -160,7 +160,7 @@ describe("Benture Produced Token", () => {
             await expect(
                 token.connect(ownerAcc).mint(clientAcc1.address, amount)
             ).to.be.revertedWith(
-                "BentureAdmin: user does not have an admin token!"
+                "BentureProducedToken: user does not have an admin token!"
             );
         });
 

@@ -36,7 +36,8 @@ interface IBentureProducedToken is IERC20 {
 
     /// @notice Checks if user is an admin of this token
     /// @param account The address to check
-    function checkAdmin(address account) external view;
+    /// @return True if user has admin token. Otherwise - false.
+    function checkAdmin(address account) external view returns(bool);
 
     /// @notice Creates tokens and assigns them to account, increasing the total supply.
     /// @param to The receiver of tokens

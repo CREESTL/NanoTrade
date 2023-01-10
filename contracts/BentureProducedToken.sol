@@ -30,7 +30,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
 
     /// @dev Checks if caller is an admin token holder
     modifier hasAdminToken() {
-        IBentureAdmin(_adminToken).verifyAdminToken(msg.sender, address(this));
+        require(IBentureAdmin(_adminToken).verifyAdminToken(msg.sender, address(this)), "BentureProducedToken: user does not have an admin token!");
         _;
     }
 
@@ -150,9 +150,10 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
 
     /// @notice Checks if user is an admin of this token
     /// @param account The address to check
-    function checkAdmin(address account) public view {
+    /// @return True if user has admin token. Otherwise - false.
+    function checkAdmin(address account) public view returns(bool) {
         // This reverts. Does not return boolean.
-        IBentureAdmin(_adminToken).verifyAdminToken(account, address(this));
+        return IBentureAdmin(_adminToken).verifyAdminToken(account, address(this));
     }
 
     /// @notice Creates tokens and assigns them to account, increasing the total supply.

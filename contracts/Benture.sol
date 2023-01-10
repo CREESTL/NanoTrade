@@ -17,13 +17,14 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using SafeERC20 for IBentureProducedToken;
 
-    /// @dev The contract must be able to receive ether to pay dividends with it
-    receive() external payable {}
-
-    /// @dev Mapping showing how much tokens a holder has locked in a each distribution
-    mapping(uint256 => mapping(address => uint256)) lockedByHolders;
-    /// @dev Mapping showing shares of holder in each distribution
-    mapping(uint256 => mapping(address => uint256)) sharesOfHolders;
+    /// @dev Pool to lock tokens
+    struct Pool {
+        address origToken; // The address of the token inside the pool
+        uint256 totalLockers; // The number of users who locked their tokens
+        uint256 totalLocked; // The amount of locked tokens
+        mapping(address => uint256) lockedByLocker; // The amount of tokens locked by each user (locker)
+        mapping(address => bool) hasUnlocked; // Indicates that locker has unlocked his tokens
+    }
 
     /// @dev Stores information about a specific dividends distribution
     struct Distribution {
@@ -38,6 +39,17 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         DistStatus status; // Current status of distribution
     }
 
+
+    /// @notice Address of the factory used for projects creation
+    address public factory;
+
+    /// @dev Mapping showing how much tokens a holder has locked in a each distribution
+    mapping(uint256 => mapping(address => uint256)) lockedByHolders;
+    /// @dev Mapping showing shares of holder in each distribution
+    mapping(uint256 => mapping(address => uint256)) sharesOfHolders;
+
+    /// @dev All pools
+    mapping(address => Pool) pools;
     /// @dev Incrementing IDs of distributions
     Counters.Counter internal distributionIds;
     /// @dev Mapping from distribution ID to the address of the admin
@@ -50,6 +62,98 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     Distribution[] internal distributions;
     /// @dev Mapping from distribution ID to its index inside the `distributions` array
     mapping(uint256 => uint256) internal idsToIndexes;
+
+    /// @dev Checks that caller is either an admin of a project or a factory
+    modifier onlyAdminOrFactory(address token) {
+        // If caller is neither a factory nor an admin - revert
+        if (!(token == factory) && !(IBentureAdmin(token).verifyAdminToken(msg.sender, token) == true)) {
+            revert("Benture: caller is neither admin nor factory!");
+        }
+        _;
+    }
+
+    /// @dev Checks that caller is an admin of a project
+    modifier onlyAdmin(address token) {
+        if (IBentureAdmin(token).verifyAdminToken(msg.sender, token) == false) {
+            revert("Benture: caller is not an admin!");
+        }
+        _;
+    }
+
+
+    /// @dev The contract must be able to receive ether to pay dividends with it
+    receive() external payable {}
+
+    constructor(address factory_) {
+        factory = factory_;
+    }
+
+    /// @notice Creates a new pool
+    /// @param token The token that will be locked in the pool
+    function createPool(address token) external onlyAdminOrFactory(token) {
+        require(token != address(0), "Benture: pools can not hold zero address tokens!");
+
+        emit PoolCreated(token);
+
+        Pool storage newPool = pools[token];
+        // Check that this pool has not yet been initialized with the token
+        // There can't multiple pools of the same token
+        require(newPool.origToken != token, "Benture: pool already exists!");
+        newPool.origToken = token;
+        // Other fields are initialized with default values
+    }
+
+    /// @notice Deletes a pool
+    ///         After that all operations with the pool will fail
+    /// @param token The token of the pool
+    function deletePool(address token) external onlyAdmin(token) {
+        require(token != address(0), "Benture: pools can not hold zero address tokens!");
+
+        emit PoolDeleted(token);
+
+        delete pools[token];
+    }
+
+
+    /// @notice Returns info about the pool of a given token
+    /// @param token The address of the token of the pool
+    /// @return The address of the tokens in the pool.
+    /// @return The number of users who locked their tokens in the pool
+    /// @return The amount of locked tokens
+    function getPool(address token) public view returns(address, uint256, uint256) {
+        require(token != address(0), "Benture: pools can not hold zero address tokens!");
+        Pool storage pool = pools[token];
+        return (
+            pool.origToken,
+            pool.totalLockers,
+            pool.totalLocked
+        );
+    }
+
+    /// @notice Checks if user has locked tokens in the pool
+    /// @param token The address of the token of the pool
+    /// @return True if user has locked tokens. Otherwise - false
+    function hasLockedTokens(address token) public view returns(bool) {
+        require(token != address(0), "Benture: pools can not hold zero address tokens!");
+        return (pools[token].lockedByLocker[msg.sender] != 0 ? true : false);
+    }
+
+    /// @notice Checks if user has unlocked tokens from the pool
+    /// @param token The address of the token of the pool
+    /// @return True if user has unlocked tokens. Otherwise - false
+    function hasUnlockedTokens(address token) public view returns(bool) {
+        require(token != address(0), "Benture: pools can not hold zero address tokens!");
+        return (pools[token].hasUnlocked[msg.sender]);
+    }
+
+    /// @notice Returns the amount of tokens locked by the caller
+    /// @param token The address of the token of the pool
+    /// @return The amount of tokens locked by the caller inside the pool
+    function getAmountLocked(address token) public view returns(uint256) {
+        require(token != address(0), "Benture: pools can not hold zero address tokens!");
+        return (pools[token].lockedByLocker[msg.sender]);
+    }
+
 
     /// @notice Allows admin to annouce the next distribution of dividends
     /// @param origToken The tokens to the holders of which the dividends will be paid
@@ -74,7 +178,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             "Benture: original token can not have a zero address!"
         );
         // Check that caller is an admin of `origToken`
-        IBentureProducedToken(origToken).checkAdmin(msg.sender);
+        require(IBentureProducedToken(origToken).checkAdmin(msg.sender), "BentureAdmin: user does not have an admin token!");
         // Amount can not be zero
         require(amount > 0, "Benture: dividends amount can not be zero!");
         if (distToken != address(0)) {
@@ -246,7 +350,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             "Benture: original token can not have a zero address!"
         );
         // Check that caller is an admin of `origToken`
-        IBentureProducedToken(origToken).checkAdmin(msg.sender);
+        require(IBentureProducedToken(origToken).checkAdmin(msg.sender), "BentureAdmin: user does not have an admin token!");
         // Check that distribution can be fulfilled
         canFulfill(id, origToken, distToken, amount, isEqual);
     }

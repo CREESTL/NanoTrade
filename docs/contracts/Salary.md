@@ -2,7 +2,7 @@
 
 
 
-> Salary contract. A contract to manage salaries 
+> Salary contract. A contract to manage salaries
 
 
 
@@ -26,10 +26,27 @@ Adds new employee.
 |---|---|---|
 | employeeAddress | address | Address of employee. |
 
+### addPeriodsToSalary
+
+```solidity
+function addPeriodsToSalary(uint256 salaryId, uint256[] tokensAmountPerPeriod) external nonpayable
+```
+
+Adds periods to salary
+
+*Only admin can call this method.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| salaryId | uint256 | ID of target salary |
+| tokensAmountPerPeriod | uint256[] | Array of periods to add to salary |
+
 ### addSalaryToEmployee
 
 ```solidity
-function addSalaryToEmployee(address employeeAddress, uint256 periodDuration, uint256 amountOfPeriods, address tokenAddress, uint256 totalTokenAmount, uint256[] tokensAmountPerPeriod) external nonpayable
+function addSalaryToEmployee(address employeeAddress, uint256 periodDuration, uint256 amountOfPeriods, address tokenAddress, uint256[] tokensAmountPerPeriod) external nonpayable
 ```
 
 Adds salary to employee.
@@ -41,11 +58,10 @@ Adds salary to employee.
 | Name | Type | Description |
 |---|---|---|
 | employeeAddress | address | Address of employee. |
-| periodDuration | uint256 | undefined |
-| amountOfPeriods | uint256 | undefined |
+| periodDuration | uint256 | Duration of one period. |
+| amountOfPeriods | uint256 | Amount of periods. |
 | tokenAddress | address | undefined |
-| totalTokenAmount | uint256 | undefined |
-| tokensAmountPerPeriod | uint256[] | undefined |
+| tokensAmountPerPeriod | uint256[] | Amount of tokens per period. |
 
 ### checkIfUserIsAdminOfEmployee
 
@@ -182,6 +198,28 @@ Returns array of salaries of employee.
 |---|---|---|
 | ids | uint256[] | Array of salaries id of employee. |
 
+### getSalaryAmount
+
+```solidity
+function getSalaryAmount(uint256 salaryId) external view returns (uint256 salaryAmount)
+```
+
+Returns amount of pending salary.
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| salaryId | uint256 | Salary ID. |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| salaryAmount | uint256 | Amount of pending salary. |
+
 ### getSalaryById
 
 ```solidity
@@ -235,6 +273,23 @@ Removes name from employee.
 | Name | Type | Description |
 |---|---|---|
 | employeeAddress | address | Address of employee. |
+
+### removePeriodsFromSalary
+
+```solidity
+function removePeriodsFromSalary(uint256 salaryId, uint256 amountOfPeriodsToDelete) external nonpayable
+```
+
+Removes periods from salary
+
+*Only admin can call this method.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| salaryId | uint256 | ID of target salary |
+| amountOfPeriodsToDelete | uint256 | Amount of periods to delete from salary |
 
 ### removeSalaryFromEmployee
 
@@ -399,6 +454,42 @@ event EmployeeSalaryRemoved(address indexed employeeAddress, address indexed adm
 ```
 
 Emits when salary was removed from Employee
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| employeeAddress `indexed` | address | undefined |
+| adminAddress `indexed` | address | undefined |
+| salary `indexed` | ISalary.SalaryInfo | undefined |
+
+### SalaryPeriodsAdded
+
+```solidity
+event SalaryPeriodsAdded(address indexed employeeAddress, address indexed adminAddress, ISalary.SalaryInfo indexed salary)
+```
+
+Emits when Admin adds periods to salary
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| employeeAddress `indexed` | address | undefined |
+| adminAddress `indexed` | address | undefined |
+| salary `indexed` | ISalary.SalaryInfo | undefined |
+
+### SalaryPeriodsRemoved
+
+```solidity
+event SalaryPeriodsRemoved(address indexed employeeAddress, address indexed adminAddress, ISalary.SalaryInfo indexed salary)
+```
+
+Emits when Admin removes periods from salary
 
 
 
