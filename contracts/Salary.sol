@@ -363,18 +363,6 @@ contract Salary is ISalary{
             uint256 periodsPassed = timePassedFromLastWithdrawal / _salary.periodDuration;
 
             if (periodsPassed < amountOfRemainingPeriods) {
-
-                /* uint256 amountToPay = _payingPeriodsCounter(_salary);
-                /// @dev The case when an employee withdraw salary before the end of all periods
-                uint256 period = 0;
-                if (_salary.amountOfWithdrawals != 0) {
-                    period = _salary.amountOfWithdrawals - 1;
-                }
-                for (uint256 i = _salary.amountOfWithdrawals; i < _salary.amountOfWithdrawals + (periodsPassed); i++) {
-                    amountToPay = amountToPay + _salary.tokensAmountPerPeriod[i];
-                    period = i;
-                } */
-
                 amountToPay = _payingPeriodsCounter(_salary);
 
                 if (timePassedFromLastWithdrawal - (_salary.periodDuration * (periodsPassed)) > 0) {
