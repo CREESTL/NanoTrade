@@ -209,6 +209,7 @@ Each employee can have _multiple salary schedules with different parameters_ sim
 There can be an employee with no schedules at all. He will not be able to claim any salaries.
 An entrepreneur is also able to **remove an employee** (fire him). If he decides to do that when the employee has not claimed his salary, then the employee _automatically receives_ the pending amount of salary tokens for the number of days he was working (even if it happens in the middle of the salary period). That is, an entrepreneur can not fire an employee at the very end of the period and leave him with no salary paid at all.
 _An entrepreneur can remove (fire) an employee only if the employee has received (manually or automatically) all salaries appointed to him in the current project by all salary schedules for all days of work_
+
 An entrepreneur can **add** or **remove** periods from an employee's schedule. The method for adding periods is passed the chart ID and the amount of salary for each period that we want to add. _Periods are added to the end of the selected chart._
 Deletion of periods occurs in the same way from the end of the worker's schedule. As parameters, the ID and the number of periods that we want to delete are passed.
 
