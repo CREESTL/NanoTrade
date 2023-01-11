@@ -22,6 +22,28 @@ interface IBenture {
     /// @param token The token of the pool
     function deletePool(address token) external;
 
+    /// @notice Locks the provided amount of user's tokens in the pool
+    /// @param origToken The address of the token to lock
+    /// @param amount The amount of tokens to lock
+    function lockTokens(address origToken, uint256 amount) external;
+
+    /// @notice Locks all user's tokens in the pool
+    /// @param origToken The address of the token to lock
+    function lockAllTokens(address origToken) external;
+
+    /// @notice Allows admin to distribute dividends among lockers
+    /// @param origToken The tokens to the holders of which the dividends will be paid
+    /// @param distToken The token that will be paid
+    ///        Use zero address for native tokens
+    /// @param amount The amount of ERC20 tokens that will be paid
+    /// @param isEqual Indicates whether distribution will be equal
+    function distributeDividends (
+        address origToken,
+        address distToken,
+        uint256 amount,
+        bool isEqual
+    ) external payable;
+
     /// @notice Returns info about the pool of a given token
     /// @param token The address of the token of the pool
     /// @return The address of the tokens in the pool.
@@ -70,10 +92,6 @@ interface IBenture {
         address admin
     ) external view returns (bool);
 
-    /// @notice Locks user's tokens in order for him to receive dividends later
-    /// @param origToken The address of the token to lock
-    /// @param amount The amount of tokens to lock
-    function lockTokens(address origToken, uint256 amount) external payable;
 
     /// @dev Indicates that a new pool has been created
     event PoolCreated(address indexed token);

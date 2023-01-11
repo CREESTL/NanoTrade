@@ -121,11 +121,13 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         delete pools[token];
     }
 
-    /// @notice Locks user's tokens in order for him to receive dividends later
+    /// @notice Locks the provided amount of user's tokens in the pool
     /// @param origToken The address of the token to lock
     /// @param amount The amount of tokens to lock
-    function lockTokens(address origToken, uint256 amount) external payable {
-        require(amount > 0, "Benture: can not lock zero tokens!");
+    function lockTokens(address origToken, uint256 amount) public {
+        require(amount > 0, "Benture: invalid lock amount!");
+        // Token must have npn-zero address
+        require(origToken != address(0), "Benture: can not lock zero address tokens!")
         // Check that a pool to lock tokens exists
         require(pools[origToken].token != address(0), "Benture: pool does not exist!");
 
@@ -165,6 +167,14 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             address(this),
             amount
         );
+    }
+
+
+    /// @notice Locks all user's tokens in the pool
+    /// @param origToken The address of the token to lock
+    function lockAllTokens(address origToken) public {
+        uint256 wholeBalance = IBentureProducedToken(origToken).balanceOf(msg.sender);
+        lockTokens(origToken, wholeBalance);
     }
 
 
