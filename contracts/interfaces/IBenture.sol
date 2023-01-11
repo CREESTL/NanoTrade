@@ -31,6 +31,15 @@ interface IBenture {
     /// @param origToken The address of the token to lock
     function lockAllTokens(address origToken) external;
 
+    /// @notice Unlocks the provided amount of user's tokens from the pool
+    /// @param origToken The address of the token to unlock
+    /// @param amount The amount of tokens to unlock
+    function unlockTokens(address origToken, uint256 amount) external;
+
+    /// @notice Unlocks all locked tokens of the user in the pool
+    /// @param origToken The address of the token to unlock
+    function unlockAllTokens(address origToken) external;
+
     /// @notice Allows admin to distribute dividends among lockers
     /// @param origToken The tokens to the holders of which the dividends will be paid
     /// @param distToken The token that will be paid
@@ -101,6 +110,9 @@ interface IBenture {
 
     /// @dev Indicated that tokens have been locked
     event TokensLocked(address indexed user, address indexed token, uint256 amount);
+
+    /// @dev Indicated that tokens have been locked
+    event TokensUnlocked(address indexed user, address indexed token, uint256 amount);
 
     /// @dev Indicates that new dividends distribution was started
     /// @param origToken The tokens to the holders of which the dividends will be paid

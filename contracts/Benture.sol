@@ -24,6 +24,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         uint256 totalLocked; // The amount of locked tokens
         mapping(address => bool) hasLocked; // Indicates that locker has locked his tokens
         mapping(address => bool) hasUnlocked; // Indicates that locker has unlocked his tokens
+        // Use vanilla arrays instead of OZ EnumerableSet *on purpose*.
+        // EnumerableSet as well as mappings can't be copied from storage to storage
         address[] lockersArray; // These two arrays are used to be copied from pool into distribution
         uint256[] lockersLocks; // because it's impossible to copy a mapping. They simulate a mapping
     }
@@ -127,11 +129,11 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     function lockTokens(address origToken, uint256 amount) public {
         require(amount > 0, "Benture: invalid lock amount!");
         // Token must have npn-zero address
-        require(origToken != address(0), "Benture: can not lock zero address tokens!")
-        // Check that a pool to lock tokens exists
-        require(pools[origToken].token != address(0), "Benture: pool does not exist!");
+        require(origToken != address(0), "Benture: can not lock zero address tokens!");
 
         Pool storage pool = pools[origToken];
+        // Check that a pool to lock tokens exists
+        require(pool.token != address(0), "Benture: pool does not exist!");
         // Check that pool holds the same token. Just in case
         require(pool.token == origToken, "Benture: wrong token inside the pool!");
         // Make sure that pool's arrays are of a correct length
@@ -177,6 +179,69 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         lockTokens(origToken, wholeBalance);
     }
 
+    /// @notice Unlocks the provided amount of user's tokens from the pool
+    /// @param origToken The address of the token to unlock
+    /// @param amount The amount of tokens to unlock
+    function unlockTokens(address origToken, uint256 amount) public {
+        require(amount > 0, "Benture: invalid unlock amount!");
+        // Token must have npn-zero address
+        require(origToken != address(0), "Benture: can not unlock zero address tokens!");
+
+        Pool storage pool = pools[origToken];
+        // Check that a pool to lock tokens exists
+        require(pool.token != address(0), "Benture: pool does not exist!");
+        // Check that pool holds the same token. Just in case
+        require(pool.token == origToken, "Benture: wrong token inside the pool!");
+        // Make sure that pool's arrays are of a correct length
+        require(pool.lockersArray.length == pool.lockersLocks.length, "Benture: invalid arrays in the pool!");
+        // Make sure that user is trying to withdraw no more tokens than he has locked
+        require(pool.lockersLocks[lockersIndexes[origToken][msg.sender]] >= amount, "Benture: withdraw amount is too big!");
+
+        // Decrease the amount of locked tokens
+        pool.lockersLocks[lockersIndexes[origToken][msg.sender]] -= amount;
+
+        // If all tokens were unlocked - delete user from lockers list
+        if (pool.lockersLocks[lockersIndexes[origToken][msg.sender]] == 0) {
+            // Delete locker and his lock from the pool
+            deleteLocker(origToken, msg.sender);
+        }
+
+        emit TokensUnlocked(msg.sender, origToken, amount);
+
+        // Transfer unlocked tokens from contract to the user
+        IBentureProducedToken(origToken).safeTransfer(
+            msg.sender,
+            amount
+        );
+    }
+
+    /// @notice Unlocks all locked tokens of the user in the pool
+    /// @param origToken The address of the token to unlock
+    function unlockAllTokens(address origToken) public {
+        uint256 wholeBalance = IBentureProducedToken(origToken).balanceOf(msg.sender);
+        unlockTokens(origToken, wholeBalance);
+    }
+
+    /// @dev Deletes locker and his lock from the pool completely
+    /// @dev Does not preserve the order of elements in the arrays of the pool
+    /// @param origToken The address of the token stored in the pool
+    /// @param user The address of the locker to delete
+    function deleteLocker(address origToken, address user) internal {
+        Pool storage pool = pools[origToken];
+        // Remember the index of the deleted user and his lock
+        uint256 indexOfDeleted = lockersIndexes[origToken][user];
+        // Remember the last locker in the array;
+        address movedLocker = pool.lockersArray[pool.lockersArray.length - 1];
+        // Copy the last element of the array instead of the deleted one
+        pool.lockersArray[lockersIndexes[origToken][user]] = pool.lockersArray[pool.lockersArray.length - 1];
+        // Delete the last element. Shortens the array.
+        pool.lockersArray.pop();
+        // Do the same for locks as well
+        pool.lockersLocks[lockersIndexes[origToken][user]] = pool.lockersLocks[pool.lockersLocks.length - 1];
+        pool.lockersLocks.pop();
+        // Update the index of the copied user in the global mapping
+        lockersIndexes[origToken][movedLocker] = indexOfDeleted;
+    }
 
     // ===== DISTRIBUTIONS =====
 
