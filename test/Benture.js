@@ -309,15 +309,14 @@ describe("Benture Dividend-Paying Token", () => {
                     true
                 );
 
-                let [id, token1, token2, amount, dueDate, isEqual, status] =
+                let [id, token1, token2, amount, isEqual, status] =
                     await benture.getDistribution(1);
                 expect(id).to.equal(BigNumber.from("1"));
                 expect(token1).to.equal(origToken.address);
                 expect(token2).to.equal(distToken.address);
                 expect(amount).to.equal(parseUnits("90", 6));
-                expect(dueDate).to.equal(time);
                 expect(isEqual).to.equal(true);
-                // 0 for `pending` status
+                // 0 for `inProgress` status
                 expect(status).to.equal(0);
             });
 

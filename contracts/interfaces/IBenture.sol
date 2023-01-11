@@ -9,9 +9,7 @@ interface IBenture {
 
     /// @dev Status of a distribution
     enum DistStatus {
-        pending,
-        // TODO delete it
-        cancelled,
+        inProgress,
         fulfilled
     }
 
@@ -46,9 +44,9 @@ interface IBenture {
     /// @return The amount of tokens locked by the caller inside the pool
     function getAmountLocked(address token) external view returns(uint256);
 
-    /// @notice Returns the list of IDs of all active distributions the admin has announced
+    /// @notice Returns the list of IDs of all active distributions the admin has started
     /// @param admin The address of the admin
-    /// @return The list of IDs of all active distributions the admin has announced
+    /// @return The list of IDs of all active distributions the admin has started
     function getDistributions(
         address admin
     ) external view returns (uint256[] memory);
@@ -61,41 +59,40 @@ interface IBenture {
     )
         external
         view
-        returns (uint256, address, address, uint256, uint256, bool, DistStatus);
+        returns (uint256, address, address, uint256, bool, DistStatus);
 
-    /// @notice Checks if the distribution with the given ID was announced by the given admin
+    /// @notice Checks if the distribution with the given ID was started by the given admin
     /// @param id The ID of the distribution to check
     /// @param admin The address of the admin to check
-    /// @return True if admin has announced the distribution with the given ID. Otherwise - false.
-    function checkAnnounced(
+    /// @return True if admin has started the distribution with the given ID. Otherwise - false.
+    function checkStartedByAdmin(
         uint256 id,
         address admin
     ) external view returns (bool);
 
     /// @notice Locks user's tokens in order for him to receive dividends later
-    /// @param id The ID of the distribution to lock tokens for
+    /// @param origToken The address of the token to lock
     /// @param amount The amount of tokens to lock
-    function lockTokens(uint256 id, uint256 amount) external payable;
+    function lockTokens(address origToken, uint256 amount) external payable;
 
     /// @dev Indicates that a new pool has been created
-    event PoolCreated(address token);
+    event PoolCreated(address indexed token);
 
     /// @dev Indicates that a pool has been deleted
-    event PoolDeleted(address token);
+    event PoolDeleted(address indexed token);
 
-    // TODO change it to DividendsStarted
-    /// @dev Indicates that new dividends distribution was announced
+    /// @dev Indicated that tokens have been locked
+    event TokensLocked(address indexed user, address indexed token, uint256 amount);
+
+    /// @dev Indicates that new dividends distribution was started
     /// @param origToken The tokens to the holders of which the dividends will be paid
     /// @param distToken The token that will be paid
     /// @param amount The amount of tokens that will be paid
-    /// @param dueDate The number of seconds in which the dividends will be paid
-    ///        *after the announcement*
     /// @param isEqual Indicates whether distribution will be equal
-    event DividendsAnnounced(
+    event DividendsStarted (
         address indexed origToken,
         address indexed distToken,
         uint256 indexed amount,
-        uint256 dueDate,
         bool isEqual
     );
 
