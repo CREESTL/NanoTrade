@@ -69,7 +69,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     mapping(uint256 => address) internal distributionsToAdmins;
     /// @dev Mapping from admin address to the list of IDs of active distributions he started
     mapping(address => uint256[]) internal adminsToDistributions;
-    /// @dev All distributions
+    /// @dev Mapping from distribution ID to the distribution
     mapping(uint256 => Distribution) distributions;
 
     /// @dev Checks that caller is either an admin of a project or a factory
@@ -422,6 +422,23 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         );
     }
 
+    /// @notice Returns all users and their locks in the distribution
+    /// @param id The ID of the distribution to check
+    /// @return The list of all users taking part in the distribution
+    /// @return The list of locks. One for each user.
+    function getUsersAndLocks(uint256 id) public view returns(address[] memory, uint256[] memory) {
+        return ( distributions[id].formulaLockersArray, distributions[id].formulaLockersLocks );
+    }
+
+
+    /// @notice Checks if user has claimed dividends of the provided distribution
+    /// @param id The ID of the distribution to check
+    /// @param user The address of the user to check
+    /// @return True if user has claimed dividends. Otherwise - false
+    function hasClaimed(uint256 id, address user) public view returns(bool) {
+        return distributions[id].hasClaimed[user];
+    }
+
     /// @notice Checks if the distribution with the given ID was started by the given admin
     /// @param id The ID of the distribution to check
     /// @param admin The address of the admin to check
@@ -444,7 +461,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         }
         return false;
     }
-
 
 
     /// @dev Returns the current `distToken` address of this contract

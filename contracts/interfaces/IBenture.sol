@@ -103,6 +103,18 @@ interface IBenture {
         view
         returns (uint256, address, address, uint256, bool, DistStatus);
 
+    /// @notice Returns all users and their locks in the distribution
+    /// @param id The ID of the distribution to check
+    /// @return The list of all users taking part in the distribution
+    /// @return The list of locks. One for each user.
+    function getUsersAndLocks(uint256 id) external view returns(address[] memory, uint256[] memory);
+
+    /// @notice Checks if user has claimed dividends of the provided distribution
+    /// @param id The ID of the distribution to check
+    /// @param user The address of the user to check
+    /// @return True if user has claimed dividends. Otherwise - false
+    function hasClaimed(uint256 id, address user) external view returns(bool);
+
     /// @notice Checks if the distribution with the given ID was started by the given admin
     /// @param id The ID of the distribution to check
     /// @param admin The address of the admin to check
