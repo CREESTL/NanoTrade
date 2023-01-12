@@ -10,17 +10,21 @@ import "./BentureProducedToken.sol";
 import "./interfaces/IBenture.sol";
 import "./interfaces/IBentureProducedToken.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /// @title Dividends distributing contract
 contract Benture is IBenture, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
     using SafeERC20 for IERC20;
     using SafeERC20 for IBentureProducedToken;
+    using EnumerableSet for EnumerableSet.AddressSet;
 
     /// @dev Pool to lock tokens
+    /// @dev `lockers` and `lockersArray` basically store the same list of addresses
+    ///       but they are used for different purposes
     struct Pool {
         address token; // The address of the token inside the pool
-        uint256 totalLockers; // The number of users who locked their tokens
+        EnumerableSet.AddressSet lockers; // The list of all lockers of the pool
         uint256 totalLocked; // The amount of locked tokens
         mapping(address => bool) hasLocked; // Indicates that locker has locked his tokens
         mapping(address => bool) hasUnlocked; // Indicates that locker has unlocked his tokens
@@ -38,7 +42,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         uint256 amount; // The amount of `distTokens` or native tokens paid to holders
         bool isEqual; // True if distribution is equal, false if it's weighted
         mapping(address => bool) hasClaimed; // Mapping showing that holder has withdrawn his dividends
-        uint256 formulaLockers; // Copies the value of Pool.totalLockers when creating a distribution
+        uint256 formulaLockers; // Copies the length of `lockers` set from the pool
         uint256 formulaLocked; // Copies the value of Pool.totalLocked when creating a distribution
         address[] formulaLockersArray; // These two arrays copy Pool.lockersArray and Pool.lockersLocks arrays
         uint256[] formulaLockersLocks;
@@ -151,10 +155,9 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             // If user has never locked tokens, add him to the lockers list
             pool.lockersArray.push(msg.sender);
             pool.lockersLocks.push(amount);
+            pool.lockers.add(msg.sender);
             // Place his index to the global map
             lockersIndexes[origToken][msg.sender] = pool.lockersArray.length - 1;
-            // Increase the total number of lockers in the pool
-            pool.totalLockers += 1;
         }
         // Increase the total amount of locked tokens
         pool.totalLocked += amount;
@@ -204,6 +207,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         if (pool.lockersLocks[lockersIndexes[origToken][msg.sender]] == 0) {
             // Delete locker and his lock from the pool
             deleteLocker(origToken, msg.sender);
+            // Delete it from the set as well
+            pool.lockers.remove(msg.sender);
         }
 
         emit TokensUnlocked(msg.sender, origToken, amount);
@@ -298,7 +303,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         newDistribution.amount = amount;
         newDistribution.isEqual = isEqual;
         // `hasClaimed` is initialized with default value
-        newDistribution.formulaLockers = pools[origToken].totalLockers;
+        newDistribution.formulaLockers = pools[origToken].lockers.length();
         newDistribution.formulaLocked = pools[origToken].totalLocked;
         newDistribution.formulaLockersArray = pools[origToken].lockersArray;
         newDistribution.formulaLockersLocks = pools[origToken].lockersLocks;
@@ -331,9 +336,25 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         Pool storage pool = pools[token];
         return (
             pool.token,
-            pool.totalLockers,
+            pool.lockers.length(),
             pool.totalLocked
         );
+    }
+
+    /// @notice Returns the array of lockers of the pool
+    /// @param token The address of the token of the pool
+    /// @return The array of lockers of the pool
+    function getLockers(address token) public view returns(address[] memory) {
+        return pools[token].lockers.values();
+    }
+
+
+    /// @notice Checks if user is a locker of the provided token pool
+    /// @param token The address of the token of the pool
+    /// @param user The address of the user to check
+    /// @return True if user is a locker in the pool. Otherwise - false.
+    function isLocker(address token, address user) public view returns(bool) {
+        return pools[token].lockers.contains(user);
     }
 
     /// @notice Checks if user has locked tokens in the pool

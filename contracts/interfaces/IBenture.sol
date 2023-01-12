@@ -60,6 +60,17 @@ interface IBenture {
     /// @return The amount of locked tokens
     function getPool(address token) external view returns(address, uint256, uint256);
 
+    /// @notice Returns the array of lockers of the pool
+    /// @param token The address of the token of the pool
+    /// @return The array of lockers of the pool
+    function getLockers(address token) external view returns(address[] memory);
+
+    /// @notice Checks if user is a locker of the provided token pool
+    /// @param token The address of the token of the pool
+    /// @param user The address of the user to check
+    /// @return True if user is a locker in the pool. Otherwise - false.
+    function isLocker(address token, address user) external view returns(bool);
+
     /// @notice Checks if user has locked tokens in the pool
     /// @param token The address of the token of the pool
     /// @return True if user has locked tokens. Otherwise - false
