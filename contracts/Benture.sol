@@ -23,14 +23,25 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @dev `lockers` and `lockersArray` basically store the same list of addresses
     ///       but they are used for different purposes
     struct Pool {
-        address token; // The address of the token inside the pool
-        EnumerableSet.AddressSet lockers; // The list of all lockers of the pool
-        uint256 totalLocked; // The amount of locked tokens
-        mapping(address => bool) hasLocked; // Indicates that locker has locked his tokens
-        // Use vanilla arrays instead of OZ EnumerableSet *on purpose*.
-        // EnumerableSet as well as mappings can't be copied from storage to storage
-        address[] lockersArray; // These two arrays are used to be copied from pool into distribution
-        uint256[] lockersLocks; // because it's impossible to copy a mapping. They simulate a mapping
+        // The address of the token inside the pool
+        address token;
+        // The list of all lockers of the pool
+        EnumerableSet.AddressSet lockers;
+        // The amount of locked tokens
+        uint256 totalLocked;
+        // Indicates that locker has locked his tokens
+        mapping(address => bool) hasLocked;
+        // Mapping from user address to distribution ID to locked tokens amount
+        // Shows how many `token`s are currently locked in the pool by the user and
+        // can be used to calculate user's share *in the next* distribution
+        // Amounts locked for N-th distribution (used to calculate user's dividends) can only
+        // be updated since the start of (N-1)-th distribution and till the start of the N-th
+        // distribution. `distributionIds.current()` is the (N-1)-th distribution in our case.
+        // So we have to increase it by one to get the ID of the upcoming distribution and
+        // the amount locked for that distribution.
+        // For example, if distribution #476 has started and Bob adds 100 tokens to his 500 locked tokens
+        // the pool, then his lock for the distribution #477 should increase up to 600.
+        mapping(address => mapping(uint256 => uint256)) lockedForNextDist;
     }
 
     /// @dev Stores information about a specific dividends distribution
@@ -43,16 +54,9 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         mapping(address => bool) hasClaimed; // Mapping showing that holder has withdrawn his dividends
         uint256 formulaLockers; // Copies the length of `lockers` set from the pool
         uint256 formulaLocked; // Copies the value of Pool.totalLocked when creating a distribution
-        address[] formulaLockersArray; // These two arrays copy Pool.lockersArray and Pool.lockersLocks arrays
-        uint256[] formulaLockersLocks;
         DistStatus status; // Current status of distribution
     }
 
-
-    /// @dev Mapping of lockers indexes in lockersArray and lockersLocks arrays in Pool structure
-    /// @dev Used to get values from Pool.lockersArray, Pool.lockersLocks
-    ///      and Distribution.formulaLockersArray and Distribution.formulaLockersLocks
-    mapping(address => mapping(address => uint256)) lockersIndexes;
 
     /// @notice Address of the factory used for projects creation
     address public factory;
@@ -139,26 +143,21 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         require(pool.token != address(0), "Benture: pool does not exist!");
         // Check that pool holds the same token. Just in case
         require(pool.token == origToken, "Benture: wrong token inside the pool!");
-        // Make sure that pool's arrays are of a correct length
-        require(pool.lockersArray.length == pool.lockersLocks.length, "Benture: invalid arrays in the pool!");
         // User should have origTokens to be able to lock them
         require(
             IBentureProducedToken(origToken).isHolder(msg.sender),
             "Benture: user does not have project tokens!"
         );
-        // If user has already locked tokens in this pool, add new lock amount
+        // If user has already locked tokens in this pool, increase his locked amount
         if (pool.hasLocked[msg.sender]) {
-            pool.lockersLocks[lockersIndexes[origToken][msg.sender]] += amount;
-            // Do not modify `lockersArray` of `lockersIndexes` here
+            pool.lockedForNextDist[msg.sender][distributionIds.current() + 1] += amount;
         } else {
             // If user has never locked tokens, add him to the lockers list
-            pool.lockersArray.push(msg.sender);
-            pool.lockersLocks.push(amount);
             pool.lockers.add(msg.sender);
+            // Update his current lock. Will be used for calculations in the *next* distribution
+            pool.lockedForNextDist[msg.sender][distributionIds.current() + 1] = amount;
             // Mark that this user has locked tokens
             pool.hasLocked[msg.sender] = true;
-            // Place his index to the global map
-            lockersIndexes[origToken][msg.sender] = pool.lockersArray.length - 1;
         }
         // Increase the total amount of locked tokens
         pool.totalLocked += amount;
@@ -196,20 +195,16 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         require(pool.token != address(0), "Benture: pool does not exist!");
         // Check that pool holds the same token. Just in case
         require(pool.token == origToken, "Benture: wrong token inside the pool!");
-        // Make sure that pool's arrays are of a correct length
-        require(pool.lockersArray.length == pool.lockersLocks.length, "Benture: invalid arrays in the pool!");
         // Make sure that user has locked some tokens before
         require(pool.hasLocked[msg.sender] == true, "Benture: user does not have any locked tokens!");
-        // Make sure that user is trying to withdraw no more tokens than he has locked
-        require(pool.lockersLocks[lockersIndexes[origToken][msg.sender]] >= amount, "Benture: withdraw amount is too big!");
+        // Make sure that user is trying to withdraw no more tokens than he has locked for the next distribution
+        require(pool.lockedForNextDist[msg.sender][distributionIds.current() + 1] >= amount, "Benture: withdraw amount is too big!");
 
         // Decrease the amount of locked tokens
-        pool.lockersLocks[lockersIndexes[origToken][msg.sender]] -= amount;
+        pool.lockedForNextDist[msg.sender][distributionIds.current() + 1] -= amount;
 
         // If all tokens were unlocked - delete user from lockers list
-        if (pool.lockersLocks[lockersIndexes[origToken][msg.sender]] == 0) {
-            // Delete locker and his lock from the pool
-            deleteLocker(origToken, msg.sender);
+        if (pool.lockedForNextDist[msg.sender][distributionIds.current() + 1] == 0) {
             // Delete it from the set as well
             pool.lockers.remove(msg.sender);
             // Mark that he is no longer a locker
@@ -232,26 +227,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         unlockTokens(origToken, wholeBalance);
     }
 
-    /// @dev Deletes locker and his lock from the pool completely
-    /// @dev Does not preserve the order of elements in the arrays of the pool
-    /// @param origToken The address of the token stored in the pool
-    /// @param user The address of the locker to delete
-    function deleteLocker(address origToken, address user) internal {
-        Pool storage pool = pools[origToken];
-        // Remember the index of the deleted user and his lock
-        uint256 indexOfDeleted = lockersIndexes[origToken][user];
-        // Remember the last locker in the array;
-        address movedLocker = pool.lockersArray[pool.lockersArray.length - 1];
-        // Copy the last element of the array instead of the deleted one
-        pool.lockersArray[lockersIndexes[origToken][user]] = pool.lockersArray[pool.lockersArray.length - 1];
-        // Delete the last element. Shortens the array.
-        pool.lockersArray.pop();
-        // Do the same for locks as well
-        pool.lockersLocks[lockersIndexes[origToken][user]] = pool.lockersLocks[pool.lockersLocks.length - 1];
-        pool.lockersLocks.pop();
-        // Update the index of the copied user in the global mapping
-        lockersIndexes[origToken][movedLocker] = indexOfDeleted;
-    }
 
     // ===== DISTRIBUTIONS =====
 
@@ -310,8 +285,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // `hasClaimed` is initialized with default value
         newDistribution.formulaLockers = pools[origToken].lockers.length();
         newDistribution.formulaLocked = pools[origToken].totalLocked;
-        newDistribution.formulaLockersArray = pools[origToken].lockersArray;
-        newDistribution.formulaLockersLocks = pools[origToken].lockersLocks;
         newDistribution.id = distributionId;
         newDistribution.status = DistStatus.inProgress;
 
@@ -375,7 +348,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @return The amount of tokens locked by the caller inside the pool
     function getAmountLocked(address token) public view returns(uint256) {
         require(token != address(0), "Benture: pools can not hold zero address tokens!");
-        return pools[token].lockersLocks[lockersIndexes[token][msg.sender]];
+        return pools[token].lockedForNextDist[msg.sender][distributionIds.current() + 1];
     }
 
 
@@ -418,15 +391,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             distribution.status
         );
     }
-
-    /// @notice Returns all users and their locks in the distribution
-    /// @param id The ID of the distribution to check
-    /// @return The list of all users taking part in the distribution
-    /// @return The list of locks. One for each user.
-    function getUsersAndLocks(uint256 id) public view returns(address[] memory, uint256[] memory) {
-        return ( distributions[id].formulaLockersArray, distributions[id].formulaLockersLocks );
-    }
-
 
     /// @notice Checks if user has claimed dividends of the provided distribution
     /// @param id The ID of the distribution to check
