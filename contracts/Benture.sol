@@ -27,7 +27,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         EnumerableSet.AddressSet lockers; // The list of all lockers of the pool
         uint256 totalLocked; // The amount of locked tokens
         mapping(address => bool) hasLocked; // Indicates that locker has locked his tokens
-        mapping(address => bool) hasUnlocked; // Indicates that locker has unlocked his tokens
         // Use vanilla arrays instead of OZ EnumerableSet *on purpose*.
         // EnumerableSet as well as mappings can't be copied from storage to storage
         address[] lockersArray; // These two arrays are used to be copied from pool into distribution
@@ -156,6 +155,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             pool.lockersArray.push(msg.sender);
             pool.lockersLocks.push(amount);
             pool.lockers.add(msg.sender);
+            // Mark that this user has locked tokens
+            pool.hasLocked[msg.sender] = true;
             // Place his index to the global map
             lockersIndexes[origToken][msg.sender] = pool.lockersArray.length - 1;
         }
@@ -197,6 +198,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         require(pool.token == origToken, "Benture: wrong token inside the pool!");
         // Make sure that pool's arrays are of a correct length
         require(pool.lockersArray.length == pool.lockersLocks.length, "Benture: invalid arrays in the pool!");
+        // Make sure that user has locked some tokens before
+        require(pool.hasLocked[msg.sender] == true, "Benture: user does not have any locked tokens!");
         // Make sure that user is trying to withdraw no more tokens than he has locked
         require(pool.lockersLocks[lockersIndexes[origToken][msg.sender]] >= amount, "Benture: withdraw amount is too big!");
 
@@ -209,6 +212,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             deleteLocker(origToken, msg.sender);
             // Delete it from the set as well
             pool.lockers.remove(msg.sender);
+            // Mark that he is no longer a locker
+            pool.hasLocked[msg.sender] = false;
         }
 
         emit TokensUnlocked(msg.sender, origToken, amount);
@@ -363,14 +368,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     function hasLockedTokens(address token) public view returns(bool) {
         require(token != address(0), "Benture: pools can not hold zero address tokens!");
         return pools[token].hasLocked[msg.sender];
-    }
-
-    /// @notice Checks if user has unlocked tokens from the pool
-    /// @param token The address of the token of the pool
-    /// @return True if user has unlocked tokens. Otherwise - false
-    function hasUnlockedTokens(address token) public view returns(bool) {
-        require(token != address(0), "Benture: pools can not hold zero address tokens!");
-        return (pools[token].hasUnlocked[msg.sender]);
     }
 
     /// @notice Returns the amount of tokens locked by the caller

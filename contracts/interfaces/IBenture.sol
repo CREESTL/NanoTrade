@@ -76,11 +76,6 @@ interface IBenture {
     /// @return True if user has locked tokens. Otherwise - false
     function hasLockedTokens(address token) external view returns(bool);
 
-    /// @notice Checks if user has unlocked tokens from the pool
-    /// @param token The address of the token of the pool
-    /// @return True if user has unlocked tokens. Otherwise - false
-    function hasUnlockedTokens(address token) external view returns(bool);
-
     /// @notice Returns the amount of tokens locked by the caller
     /// @param token The address of the token of the pool
     /// @return The amount of tokens locked by the caller inside the pool
