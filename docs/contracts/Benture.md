@@ -10,33 +10,13 @@
 
 ## Methods
 
-### announceDividends
+### checkStartedByAdmin
 
 ```solidity
-function announceDividends(address origToken, address distToken, uint256 amount, uint256 dueDate, bool isEqual) external payable
+function checkStartedByAdmin(uint256 id, address admin) external view returns (bool)
 ```
 
-Allows admin to annouce the next distribution of dividends
-
-*Announcement does not guarantee that dividends will be distributed. It just shows      that the admin is willing to do that*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| origToken | address | The tokens to the holders of which the dividends will be paid |
-| distToken | address | The token that will be paid        Use zero address for native tokens |
-| amount | uint256 | The amount of ERC20 tokens that will be paid |
-| dueDate | uint256 | The number of seconds in which the dividends will be paid        *after the announcement*         Use `0` to announce an immediate distribution |
-| isEqual | bool | Indicates whether distribution will be equal |
-
-### checkAnnounced
-
-```solidity
-function checkAnnounced(uint256 id, address admin) external view returns (bool)
-```
-
-Checks if the distribution with the given ID was announced by the given admin
+Checks if the distribution with the given ID was started by the given admin
 
 
 
@@ -51,12 +31,151 @@ Checks if the distribution with the given ID was announced by the given admin
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bool | True if admin has announced the distribution with the given ID. Otherwise - false. |
+| _0 | bool | True if admin has started the distribution with the given ID. Otherwise - false. |
+
+### claimDividends
+
+```solidity
+function claimDividends(uint256 id) external nonpayable
+```
+
+Allows a user to claim dividends from a single distribution
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| id | uint256 | The ID of the distribution to claim |
+
+### claimMultipleDividends
+
+```solidity
+function claimMultipleDividends(uint256[] ids) external nonpayable
+```
+
+Allows user to claim dividends from multiple distributions         WARNING: Potentially can exceed block gas limit!
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| ids | uint256[] | The array of IDs of distributions to claim |
+
+### claimMultipleDividendsAndUnlock
+
+```solidity
+function claimMultipleDividendsAndUnlock(uint256[] ids) external nonpayable
+```
+
+Allows user to claim dividends from multiple distributions         and unlock his tokens after that         WARNING: Potentially can exceed block gas limit!
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| ids | uint256[] | The array of IDs of distributions to claim |
+
+### createPool
+
+```solidity
+function createPool(address token) external nonpayable
+```
+
+Creates a new pool
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| token | address | The token that will be locked in the pool |
+
+### deletePool
+
+```solidity
+function deletePool(address token) external nonpayable
+```
+
+Deletes a pool         After that all operations with the pool will fail
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| token | address | The token of the pool |
+
+### distributeDividends
+
+```solidity
+function distributeDividends(address origToken, address distToken, uint256 amount, bool isEqual) external payable
+```
+
+Allows admin to distribute dividends among lockers
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| origToken | address | The tokens to the holders of which the dividends will be paid |
+| distToken | address | The token that will be paid        Use zero address for native tokens |
+| amount | uint256 | The amount of ERC20 tokens that will be paid |
+| isEqual | bool | Indicates whether distribution will be equal |
+
+### factory
+
+```solidity
+function factory() external view returns (address)
+```
+
+Address of the factory used for projects creation
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
+
+### getCurrentLock
+
+```solidity
+function getCurrentLock(address token, address user) external view returns (uint256)
+```
+
+Returns the current lock amount of the user
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| token | address | The address of the token of the pool |
+| user | address | The address of the user to check |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | The current lock amount |
 
 ### getDistribution
 
 ```solidity
-function getDistribution(uint256 id) external view returns (uint256, address, address, uint256, uint256, bool, enum IBenture.DistStatus)
+function getDistribution(uint256 id) external view returns (uint256, address, address, uint256, bool, enum IBenture.DistStatus)
 ```
 
 Returns the distribution with the given ID
@@ -77,9 +196,8 @@ Returns the distribution with the given ID
 | _1 | address | undefined |
 | _2 | address | undefined |
 | _3 | uint256 | undefined |
-| _4 | uint256 | undefined |
-| _5 | bool | undefined |
-| _6 | enum IBenture.DistStatus | undefined |
+| _4 | bool | undefined |
+| _5 | enum IBenture.DistStatus | undefined |
 
 ### getDistributions
 
@@ -87,7 +205,7 @@ Returns the distribution with the given ID
 function getDistributions(address admin) external view returns (uint256[])
 ```
 
-Returns the list of IDs of all distributions the admin has ever announced
+Returns the list of IDs of all distributions the admin has ever started
 
 
 
@@ -101,7 +219,29 @@ Returns the list of IDs of all distributions the admin has ever announced
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256[] | The list of IDs of all distributions the admin has ever announced |
+| _0 | uint256[] | The list of IDs of all distributions the admin has ever started |
+
+### getLockers
+
+```solidity
+function getLockers(address token) external view returns (address[])
+```
+
+Returns the array of lockers of the pool
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| token | address | The address of the token of the pool |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address[] | The array of lockers of the pool |
 
 ### getPool
 
@@ -127,30 +267,13 @@ Returns info about the pool of a given token
 | _1 | uint256 | The number of users who locked their tokens in the pool |
 | _2 | uint256 | The amount of locked tokens |
 
-### getPools
+### hasClaimed
 
 ```solidity
-function getPools() external view returns (address[])
+function hasClaimed(uint256 id, address user) external view returns (bool)
 ```
 
-Returns the list of existing pools of tokens.         WARNING: might exceed block gas limit
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | address[] | The list of addresses of pool tokens |
-
-### lockTokens
-
-```solidity
-function lockTokens(uint256 id, uint256 amount) external payable
-```
-
-Locks user&#39;s tokens in order for him to receive dividends later
+Checks if user has claimed dividends of the provided distribution
 
 
 
@@ -158,7 +281,69 @@ Locks user&#39;s tokens in order for him to receive dividends later
 
 | Name | Type | Description |
 |---|---|---|
-| id | uint256 | The ID of the distribution to lock tokens for |
+| id | uint256 | The ID of the distribution to check |
+| user | address | The address of the user to check |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | True if user has claimed dividends. Otherwise - false |
+
+### isLocker
+
+```solidity
+function isLocker(address token, address user) external view returns (bool)
+```
+
+Checks if user is a locker of the provided token pool
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| token | address | The address of the token of the pool |
+| user | address | The address of the user to check |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | True if user is a locker in the pool. Otherwise - false. |
+
+### lockAllTokens
+
+```solidity
+function lockAllTokens(address origToken) external nonpayable
+```
+
+Locks all user&#39;s tokens in the pool
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| origToken | address | The address of the token to lock |
+
+### lockTokens
+
+```solidity
+function lockTokens(address origToken, uint256 amount) external nonpayable
+```
+
+Locks the provided amount of user&#39;s tokens in the pool
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| origToken | address | The address of the token to lock |
 | amount | uint256 | The amount of tokens to lock |
 
 ### owner
@@ -205,14 +390,47 @@ function transferOwnership(address newOwner) external nonpayable
 |---|---|---|
 | newOwner | address | undefined |
 
+### unlockAllTokens
+
+```solidity
+function unlockAllTokens(address origToken) external nonpayable
+```
+
+Unlocks all locked tokens of the user in the pool
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| origToken | address | The address of the token to unlock |
+
+### unlockTokens
+
+```solidity
+function unlockTokens(address origToken, uint256 amount) external nonpayable
+```
+
+Unlocks the provided amount of user&#39;s tokens from the pool
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| origToken | address | The address of the token to unlock |
+| amount | uint256 | The amount of tokens to unlock |
+
 
 
 ## Events
 
-### DividendsAnnounced
+### DividendsClaimed
 
 ```solidity
-event DividendsAnnounced(address indexed origToken, address indexed distToken, uint256 indexed amount, uint256 dueDate, bool isEqual)
+event DividendsClaimed(uint256 indexed id, address user)
 ```
 
 
@@ -223,11 +441,8 @@ event DividendsAnnounced(address indexed origToken, address indexed distToken, u
 
 | Name | Type | Description |
 |---|---|---|
-| origToken `indexed` | address | undefined |
-| distToken `indexed` | address | undefined |
-| amount `indexed` | uint256 | undefined |
-| dueDate  | uint256 | undefined |
-| isEqual  | bool | undefined |
+| id `indexed` | uint256 | undefined |
+| user  | address | undefined |
 
 ### DividendsFulfilled
 
@@ -245,6 +460,25 @@ event DividendsFulfilled(uint256 indexed id)
 |---|---|---|
 | id `indexed` | uint256 | undefined |
 
+### DividendsStarted
+
+```solidity
+event DividendsStarted(address indexed origToken, address indexed distToken, uint256 indexed amount, bool isEqual)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| origToken `indexed` | address | undefined |
+| distToken `indexed` | address | undefined |
+| amount `indexed` | uint256 | undefined |
+| isEqual  | bool | undefined |
+
 ### OwnershipTransferred
 
 ```solidity
@@ -261,6 +495,74 @@ event OwnershipTransferred(address indexed previousOwner, address indexed newOwn
 |---|---|---|
 | previousOwner `indexed` | address | undefined |
 | newOwner `indexed` | address | undefined |
+
+### PoolCreated
+
+```solidity
+event PoolCreated(address indexed token)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| token `indexed` | address | undefined |
+
+### PoolDeleted
+
+```solidity
+event PoolDeleted(address indexed token)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| token `indexed` | address | undefined |
+
+### TokensLocked
+
+```solidity
+event TokensLocked(address indexed user, address indexed token, uint256 amount)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| user `indexed` | address | undefined |
+| token `indexed` | address | undefined |
+| amount  | uint256 | undefined |
+
+### TokensUnlocked
+
+```solidity
+event TokensUnlocked(address indexed user, address indexed token, uint256 amount)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| user `indexed` | address | undefined |
+| token `indexed` | address | undefined |
+| amount  | uint256 | undefined |
 
 
 

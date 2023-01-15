@@ -97,7 +97,7 @@ Burns user&#39;s tokens
 ### checkAdmin
 
 ```solidity
-function checkAdmin(address account) external view
+function checkAdmin(address account) external view returns (bool)
 ```
 
 Checks if user is an admin of this token
@@ -109,6 +109,12 @@ Checks if user is an admin of this token
 | Name | Type | Description |
 |---|---|---|
 | account | address | The address to check |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | True if user has admin token. Otherwise - false. |
 
 ### decimals
 

@@ -123,7 +123,7 @@ Mints a new ERC721 token with the address of the controlled ERC20 token
 ### verifyAdminToken
 
 ```solidity
-function verifyAdminToken(address user, address ERC20Address) external view
+function verifyAdminToken(address user, address ERC20Address) external view returns (bool)
 ```
 
 Checks if the provided user owns an admin token controlling the provided ERC20 token
@@ -136,6 +136,12 @@ Checks if the provided user owns an admin token controlling the provided ERC20 t
 |---|---|---|
 | user | address | The address of the user that potentially controls ERC20 token |
 | ERC20Address | address | The address of the potentially controlled ERC20 token |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | True if user has admin token. Otherwise - false. |
 
 
 
