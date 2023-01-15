@@ -11,6 +11,7 @@ import "./interfaces/IBenture.sol";
 import "./interfaces/IBentureProducedToken.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 /// @title Dividends distributing contract
 contract Benture is IBenture, Ownable, ReentrancyGuard {
@@ -18,7 +19,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using SafeERC20 for IBentureProducedToken;
     using EnumerableSet for EnumerableSet.AddressSet;
-    using EnumerableSet for EnumerableSet.UintSet;
 
     /// @dev Pool to lock tokens
     /// @dev `lockers` and `lockersArray` basically store the same list of addresses
@@ -44,22 +44,38 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // For example, if distribution ID476 has started and Bob adds 100 tokens to his 500 locked tokens
         // the pool, then his lock for the distribution ID477 should increase up to 600.
         mapping(address => mapping(uint256 => uint256)) lockHistory;
-        // Mapping from user address to IDs of distributions *before which* user's lock amount was changed
+        // Mapping from user address to a list of IDs of distributions *before which* user's lock amount was changed
         // For example an array of [1, 2] means that user's lock amount changed before 1st and 2nd distributions
-        mapping(address => EnumerableSet.UintSet) lockChangesIds;
+        // `EnumerableSet` can't be used here because it does not *preserve* the order of IDs and we need that
+        mapping(address => uint256[]) lockChangesIds;
+        // Mapping indicating that before the distribution with the given ID, user's lock amount was changed
+        // Basically, a `true` value for `[user][ID]` here means that this ID is *in* the `lockChangesIds[user]` array
+        // So it's used to check if a given ID is in the array.
+        mapping(address => mapping(uint256 => bool)) changedBeforeId;
     }
 
     /// @dev Stores information about a specific dividends distribution
     struct Distribution {
-        uint256 id; // ID of distributiion
-        address origToken; // The token owned by holders
-        address distToken; // The token distributed to holders
-        uint256 amount; // The amount of `distTokens` or native tokens paid to holders
-        bool isEqual; // True if distribution is equal, false if it's weighted
-        mapping(address => bool) hasClaimed; // Mapping showing that holder has withdrawn his dividends
-        uint256 formulaLockers; // Copies the length of `lockers` set from the pool
-        uint256 formulaLocked; // Copies the value of Pool.totalLocked when creating a distribution
-        DistStatus status; // Current status of distribution
+        // ID of distributiion
+        uint256 id;
+        // The token owned by holders
+        address origToken;
+        // The token distributed to holders
+        address distToken;
+        // The amount of `distTokens` or native tokens paid to holders
+        uint256 amount;
+        // True if distribution is equal, false if it's weighted
+        bool isEqual;
+        // Mapping showing that holder has withdrawn his dividends
+        mapping(address => bool) hasClaimed;
+        // Copies the length of `lockers` set from the pool
+        uint256 formulaLockers;
+        // Copies the value of Pool.totalLocked when creating a distribution
+        uint256 formulaLocked;
+        // The number of calls of `claimDividends` function
+        uint256 numCalls;
+        // Current status of distribution
+        DistStatus status;
     }
 
 
@@ -158,7 +174,10 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // Mark that the lock amount was changed before the next distribution
         // NOTE: These is no need to check if set already contain the ID because
         //       it's done in the `add` method implicitly
-        pool.lockChangesIds[msg.sender].add(distributionIds.current() + 1);
+        pool.lockChangesIds[msg.sender].push(distributionIds.current() + 1);
+
+        // Mark that current ID is in the array now
+        pool.changedBeforeId[msg.sender][distributionIds.current() + 1] = true;
 
         // If user has already locked tokens in this pool, increase his locked amount
         if (isLocker(pool.token, msg.sender)) {
@@ -218,7 +237,9 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // Mark that the lock amount was changed before the next distribution
         // NOTE: These is no need to check if set already contain the ID because
         //       it's done in the `add` method implicitly
-        pool.lockChangesIds[msg.sender].add(distributionIds.current() + 1);
+        pool.lockChangesIds[msg.sender].push(distributionIds.current() + 1);
+        // Mark that current ID is in the array now
+        pool.changedBeforeId[msg.sender][distributionIds.current() + 1] = true;
 
         // If all tokens were unlocked - delete user from lockers list
         if (pool.lockHistory[msg.sender][distributionIds.current() + 1] == 0) {
@@ -307,15 +328,185 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
 
     }
 
-    // TODO add it to `claimDividends` later
-    /// @notice Calculates locker's share in the distribution
-    /// @param id The ID of the distribution to calculates shares in
-    function calculateShare(uint256 id) internal {
-            // TODO do stuff here
+    /// @dev Searches for the distribution that has an ID less than the `id`
+    ///      but greater than all other IDs less than `id` and before which user's
+    ///      lock amount was changed the last time. Returns the ID of that distribution
+    ///      of (-1) if no such ID exists.
+    ///      Performs a binary search.
+    /// @param user The user to find a previous distribution for
+    /// @param id The ID of the distribution to find a previous distribution for
+    /// @return The ID of the found distribution. Or (-1) if no such distribution exists
+    function findMaxPrev(address user, uint256 id) internal view returns(int256) {
+
+        address origToken = distributions[id].origToken;
+
+        uint256[] storage ids = pools[origToken].lockChangesIds[user];
+
+        // If the array is empty, there can't be a correct ID we're looking for in it
+        if (ids.length == 0) {
+            return -1;
+        }
+
+        // Start binary search
+        uint256 low = 0;
+        uint256 high = pools[origToken].lockChangesIds[user].length;
+
+        while (low < high) {
+
+            uint256 mid = Math.average(low, high);
+            if (pools[origToken].lockChangesIds[user][mid] > id) {
+                high = mid;
+            } else {
+                low = mid + 1;
+            }
+        }
+
+        // After this loop `low` is the array index of the ID that is *greater* than the `id`.
+        // (and we're looking for the one that is *less* than the `id`)
+
+        // IDs are sorted in the ascending order.
+        // If `low` is 0, that means that the first ID in the array is
+        //    greater than the `id`. Thus there are no any IDs in the array that may be *less* than the `id`
+        if (low == 0) {
+            return -1;
+        }
+
+        // If the array actually contains the `id` at index N, that means that a greater value is located at the
+        // N + 1 index in the array (which is `low`) and the *smaller* value is located at the N - 1
+        // index in the array (which is `low - 2`)
+        if (pools[origToken].changedBeforeId[user][id]) {
+            // If `low` is 1, that means that the `id` is the first element of the array (index 0).
+            // Thus there are no any IDs in the array that may be *less* then `id`
+            if (low == 1) {
+                return -1;
+            }
+            // If `low` is greater then 1, that means that there can be elements of the array at indexes
+            // of `low - 2` that are less than the `id`
+            return int256(ids[low - 2]);
+        // If the array does not contain the `id` at index N (that is also possible if user's lock was not changed before that `id`),
+        // that means that a greater value is located at the N + 1 index in the array (which is `low`) and the *smaller* value is located
+        // at the *N* index in the array (which is `low - 1`)
+        // The lowest possible value of `low` here is 1. 0 is excluded by one of the conditions above
+        } else {
+            return int256(ids[low - 1]);
+        }
     }
 
 
-    // TODO add claim dividends here
+    /// @notice Calculates locker's share in the distribution
+    /// @param id The ID of the distribution to calculates shares in
+    /// @param user The address of the user whos share has to be calculated
+    function calculateShare(uint256 id, address user) internal view returns(uint256) {
+
+        Distribution storage distribution = distributions[id];
+        Pool storage pool = pools[distribution.origToken];
+
+        uint256 share;
+
+        // Calculate shares if equal distribution
+        if (distribution.isEqual) {
+            // NOTE: result gets rounded towards zero
+            share = distribution.amount / pool.lockers.length();
+        // Calculate shares in weighted distribution
+        } else {
+
+            // Get the amount locked by the user before the given distribution
+            uint256 lock = pool.lockHistory[user][id];
+
+            // If lock is zero, that means:
+            // 1) The user has unlocked all his tokens before the given distribution
+            // OR
+            // 2) The user hasn't called either lock or unlock functions before the given distribution
+            //    and because of that his locked amount was not updated in the mapping
+            // So we have to determine which option is the right one
+            if (lock == 0) {
+                // Check if user has changed his lock amount before the distribution
+                if (pool.changedBeforeId[user][id]) {
+                    // If he did, and his current lock is 0, that means that he has unlocked all his tokens and 0 is a correct lock amount
+                    lock = 0;
+                } else {
+                    // If he didn't, that means that *we have to use his lock from the closest distribution from the past*
+                    // We have to find a distribution that has and ID that is less than `id` but greater than all other
+                    // IDs less than `id`
+                    int256 prevMaxId = findMaxPrev(user, id);
+                    if (prevMaxId != -1) {
+                        lock = pool.lockHistory[user][uint256(prevMaxId)];
+                    } else {
+                        // If no such an ID exists (i.e. there were no distributions before the current one that had non-zero locks before them)
+                        // that means that a user has *locked and unlocked* his tokens before the very first distribution. In this case 0 is a correct lock amount
+                        lock = 0;
+                    }
+                }
+            }
+
+            share = distribution.amount * lock / pool.totalLocked;
+        }
+
+        return share;
+    }
+
+
+    /// @notice Allows a user to claim dividends from a single distribution
+    /// @param id The ID of the distribution to claim
+    function claimDividends(uint256 id) public {
+        // Can't claim a distribution that has not started yet
+        require(id <= distributionIds.current(), "Benture: distribution has not started yet!");
+
+        Distribution storage distribution = distributions[id];
+
+        // User must be a locker of the `origToken` of the distribution he's trying to claim
+        require(isLocker(distribution.origToken, msg.sender), "Benture: user has no locked tokens!");
+        // User can't claim the same distribution more than once
+        require(distribution.hasClaimed[msg.sender] == false, "Benture: already claimed!");
+
+        // Calculate the share of the user
+        uint256 share = calculateShare(id, msg.sender);
+
+        emit DividendsClaimed(id, msg.sender);
+
+        distribution.hasClaimed[msg.sender] = true;
+
+        // Each user can claim dividends with a given ID only once
+        // So if a number of calls of that function is equal to `formulaLockers`
+        // than we can say that the distribution was fulfilled
+        if (distribution.numCalls == distribution.formulaLockers) {
+
+            emit DividendsFulfilled(id);
+
+            distribution.status = DistStatus.fulfilled;
+        }
+        // Increment the number of calls of this function
+        distribution.numCalls++;
+
+        // Send the share to the user
+        if (distribution.distToken == address(0)) {
+            // Send native tokens
+            (bool success, ) = msg.sender.call{value: share}("");
+            require(success, "Benture: native token dividends transfer failed!");
+        } else {
+            // Send ERC20 tokens
+            IERC20(distribution.distToken).safeTransferFrom(
+                address(this),
+                msg.sender,
+                share
+            );
+        }
+    }
+
+    /// @notice Allows user to claim dividends from multiple distributions
+    ///         WARNING: Potentially can exceed block gas limit!
+    /// @param ids The array of IDs of distributions to claim
+    function claimMultipleDividends(uint256[] calldata ids) public {
+
+    }
+
+    /// @notice Allows user to claim dividends from multiple distributions
+    ///         and unlock his tokens after that
+    ///         WARNING: Potentially can exceed block gas limit!
+    /// @param ids The array of IDs of distributions to claim
+    function claimMultipleDividendsAndUnlock(uint256[] calldata ids) public {
+
+    }
 
 
     // ===== GETTERS =====
@@ -384,10 +575,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @notice Returns the distribution with the given ID
     /// @param id The ID of the distribution to search for
     /// @return All information about the distribution
-    function getDistribution(
-        uint256 id
-    )
-        public
+    function getDistribution( uint256 id) public
         view
         returns (uint256, address, address, uint256, bool, DistStatus)
     {

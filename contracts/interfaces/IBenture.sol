@@ -53,6 +53,21 @@ interface IBenture {
         bool isEqual
     ) external payable;
 
+    /// @notice Allows user to claim dividends from a single distribution
+    /// @param id The ID of the distribution to claim
+    function claimDividends(uint256 id) external;
+
+    /// @notice Allows user to claim dividends from multiple distributions
+    ///         WARNING: Potentially can exceed block gas limit!
+    /// @param ids The array of IDs of distributions to claim
+    function claimMultipleDividends(uint256[] calldata ids) external;
+
+    /// @notice Allows user to claim dividends from multiple distributions
+    ///         and unlock his tokens after that
+    ///         WARNING: Potentially can exceed block gas limit!
+    /// @param ids The array of IDs of distributions to claim
+    function claimMultipleDividendsAndUnlock(uint256[] calldata ids) external;
+
     /// @notice Returns info about the pool of a given token
     /// @param token The address of the token of the pool
     /// @return The address of the tokens in the pool.
@@ -133,6 +148,12 @@ interface IBenture {
         uint256 indexed amount,
         bool isEqual
     );
+
+
+    /// @dev Indicates that dividends were claimed by a user
+    /// @param id The ID of the distribution that was claimed
+    /// @param user The address of the user who claimed the distribution
+    event DividendsClaimed(uint256 indexed id, address user);
 
     /// @dev Indicates that dividends distribution was fulfilled
     /// @param id The ID of the fulfilled distribution
