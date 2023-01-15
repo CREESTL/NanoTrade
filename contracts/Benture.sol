@@ -309,7 +309,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // `hasClaimed` is initialized with default value
         newDistribution.formulaLockers = pools[origToken].lockers.length();
         newDistribution.formulaLocked = pools[origToken].totalLocked;
-        newDistribution.id = distributionId;
         newDistribution.status = DistStatus.inProgress;
 
     }
