@@ -32,6 +32,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         uint256 totalLocked;
         // Indicates that locker has locked his tokens
         mapping(address => bool) hasLocked;
+        // Mapping from user address to his last lock amount (current one)
+        mapping(address => uint256) lastLock;
         // Mapping from user address to distribution ID to locked tokens amount
         // Shows "to what amount was the user's locked changed before the distribution with the given ID"
         // If the value for ID10 is 0, that means that user's lock amount did not change before that distribution
@@ -174,6 +176,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         }
         // Increase the total amount of locked tokens
         pool.totalLocked += amount;
+        // Update the last user's lock
+        pool.lastLock[msg.sender] = pool.lockHistory[msg.sender][distributionIds.current() + 1];
 
         emit TokensLocked(msg.sender, origToken, amount);
 
@@ -227,6 +231,9 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             // Mark that he is no longer a locker
             pool.hasLocked[msg.sender] = false;
         }
+
+        // Update the last user's lock
+        pool.lastLock[msg.sender] = pool.lockHistory[msg.sender][distributionIds.current() + 1];
 
         emit TokensUnlocked(msg.sender, origToken, amount);
 
@@ -340,6 +347,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @param token The address of the token of the pool
     /// @return The array of lockers of the pool
     function getLockers(address token) public view returns(address[] memory) {
+        require(token != address(0), "Benture: pools can not hold zero address tokens!");
         return pools[token].lockers.values();
     }
 
@@ -349,23 +357,20 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @param user The address of the user to check
     /// @return True if user is a locker in the pool. Otherwise - false.
     function isLocker(address token, address user) public view returns(bool) {
-        return pools[token].lockers.contains(user);
+        require(token != address(0), "Benture: pools can not hold zero address tokens!");
+        require(user != address(0), "Benture: user can not have zero address!");
+        // User is a locker if his lock is not a zero and he is in the lockers list
+        return (pools[token].lastLock[msg.sender] != 0) && (pools[token].lockers.contains(user));
     }
 
-    /// @notice Checks if user has locked tokens in the pool
+    /// @notice Returns the current lock amount of the user
     /// @param token The address of the token of the pool
-    /// @return True if user has locked tokens. Otherwise - false
-    function hasLockedTokens(address token) public view returns(bool) {
+    /// @param user The address of the user to check
+    /// @return The current lock amount
+    function getCurrentLock(address token, address user) public view returns(uint256) {
         require(token != address(0), "Benture: pools can not hold zero address tokens!");
-        return pools[token].hasLocked[msg.sender];
-    }
-
-    /// @notice Returns the amount of tokens locked by the caller
-    /// @param token The address of the token of the pool
-    /// @return The amount of tokens locked by the caller inside the pool
-    function getAmountLocked(address token) public view returns(uint256) {
-        require(token != address(0), "Benture: pools can not hold zero address tokens!");
-        return pools[token].lockHistory[msg.sender][distributionIds.current() + 1];
+        require(user != address(0), "Benture: user can not have zero address!");
+        return pools[token].lastLock[user];
     }
 
 

@@ -71,15 +71,11 @@ interface IBenture {
     /// @return True if user is a locker in the pool. Otherwise - false.
     function isLocker(address token, address user) external view returns(bool);
 
-    /// @notice Checks if user has locked tokens in the pool
+    /// @notice Returns the current lock amount of the user
+    /// @param user The address of the user to check
     /// @param token The address of the token of the pool
-    /// @return True if user has locked tokens. Otherwise - false
-    function hasLockedTokens(address token) external view returns(bool);
-
-    /// @notice Returns the amount of tokens locked by the caller
-    /// @param token The address of the token of the pool
-    /// @return The amount of tokens locked by the caller inside the pool
-    function getAmountLocked(address token) external view returns(uint256);
+    /// @return The current lock amount
+    function getCurrentLock(address user, address token) external view returns(uint256);
 
     /// @notice Returns the list of IDs of all active distributions the admin has started
     /// @param admin The address of the admin
