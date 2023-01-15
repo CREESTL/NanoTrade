@@ -30,8 +30,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         EnumerableSet.AddressSet lockers;
         // The amount of locked tokens
         uint256 totalLocked;
-        // Indicates that locker has locked his tokens
-        mapping(address => bool) hasLocked;
         // Mapping from user address to his last lock amount (current one)
         mapping(address => uint256) lastLock;
         // Mapping from user address to distribution ID to locked tokens amount
@@ -163,16 +161,14 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         pool.lockChangesIds[msg.sender].add(distributionIds.current() + 1);
 
         // If user has already locked tokens in this pool, increase his locked amount
-        if (pool.hasLocked[msg.sender]) {
+        if (isLocker(pool.token, msg.sender)) {
             // Update his current lock. Will be used for calculations in the *next* distribution
             pool.lockHistory[msg.sender][distributionIds.current() + 1] += amount;
         } else {
             // If user has never locked tokens, add him to the lockers list
             pool.lockers.add(msg.sender);
-            // Update his current lock. Will be used for calculations in the *next* distribution
+            // Update his lock for the next distribution
             pool.lockHistory[msg.sender][distributionIds.current() + 1] = amount;
-            // Mark that this user has locked tokens
-            pool.hasLocked[msg.sender] = true;
         }
         // Increase the total amount of locked tokens
         pool.totalLocked += amount;
@@ -213,7 +209,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // Check that pool holds the same token. Just in case
         require(pool.token == origToken, "Benture: wrong token inside the pool!");
         // Make sure that user has locked some tokens before
-        require(pool.hasLocked[msg.sender] == true, "Benture: user does not have any locked tokens!");
+        require(isLocker(pool.token, msg.sender), "Benture: user does not have any locked tokens!");
         // Make sure that user is trying to withdraw no more tokens than he has locked for the next distribution
         require(pool.lockHistory[msg.sender][distributionIds.current() + 1] >= amount, "Benture: withdraw amount is too big!");
 
@@ -228,8 +224,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         if (pool.lockHistory[msg.sender][distributionIds.current() + 1] == 0) {
             // Delete it from the set as well
             pool.lockers.remove(msg.sender);
-            // Mark that he is no longer a locker
-            pool.hasLocked[msg.sender] = false;
         }
 
         // Update the last user's lock
