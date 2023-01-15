@@ -86,24 +86,34 @@ describe("Benture Admin Token", () => {
         });
 
         it("Should verify that user controls provided ERC20 token", async () => {
-            expect(await adminToken.verifyAdminToken(ownerAcc.address, token.address)).to.equal(true);
             expect(
-                await adminToken.verifyAdminToken(clientAcc1.address, token.address)
-            ).to.equal(
-                false
-            );
+                await adminToken.verifyAdminToken(
+                    ownerAcc.address,
+                    token.address
+                )
+            ).to.equal(true);
+            expect(
+                await adminToken.verifyAdminToken(
+                    clientAcc1.address,
+                    token.address
+                )
+            ).to.equal(false);
         });
 
         it("Should fail to verify that zero address controls provided ERC20 token", async () => {
-             await expect(
+            await expect(
                 adminToken.verifyAdminToken(zeroAddress, token.address)
-            ).to.be.revertedWith("BentureAdmin: user can not have a zero address!");
+            ).to.be.revertedWith(
+                "BentureAdmin: user can not have a zero address!"
+            );
         });
 
         it("Should fail to verify that user controls provided token with zero address", async () => {
-             await expect(
+            await expect(
                 adminToken.verifyAdminToken(clientAcc1.address, zeroAddress)
-            ).to.be.revertedWith("BentureAdmin: token can not have a zero address!")
+            ).to.be.revertedWith(
+                "BentureAdmin: token can not have a zero address!"
+            );
         });
 
         it("Should get the address of controlled ERC20 token by admin token ID", async () => {
@@ -163,15 +173,24 @@ describe("Benture Admin Token", () => {
                 "BentureProducedToken",
                 newTokenAddress
             );
-             expect(
-                await adminToken.verifyAdminToken(ownerAcc.address, token.address)
+            expect(
+                await adminToken.verifyAdminToken(
+                    ownerAcc.address,
+                    token.address
+                )
             ).to.equal(true);
             expect(
-                await adminToken.verifyAdminToken(ownerAcc.address, newToken.address)
+                await adminToken.verifyAdminToken(
+                    ownerAcc.address,
+                    newToken.address
+                )
             ).to.equal(true);
             expect(
-                await adminToken.verifyAdminToken(ownerAcc.address, newToken.address)
-            ).to.equal(true)
+                await adminToken.verifyAdminToken(
+                    ownerAcc.address,
+                    newToken.address
+                )
+            ).to.equal(true);
             await expect(adminToken.checkOwner(ownerAcc.address)).not.to.be
                 .reverted;
         });
@@ -257,7 +276,10 @@ describe("Benture Admin Token", () => {
                 "BentureAdmin: user does not have an admin token!"
             );
             expect(
-                await adminToken.verifyAdminToken(clientAcc1.address, rummy.address)
+                await adminToken.verifyAdminToken(
+                    clientAcc1.address,
+                    rummy.address
+                )
             ).to.equal(false);
             // Check that it is impossible to get the controlled address for burnt admin token
             await expect(
@@ -312,7 +334,10 @@ describe("Benture Admin Token", () => {
             expect(endBalance).to.eq(1);
             // Check that user is still an admin
             expect(
-                await adminToken.verifyAdminToken(ownerAcc.address, token.address)
+                await adminToken.verifyAdminToken(
+                    ownerAcc.address,
+                    token.address
+                )
             ).to.equal(true);
             // Check that it is impossible to get the controlled address for burnt admin token
             await expect(
@@ -346,16 +371,19 @@ describe("Benture Admin Token", () => {
                 "BentureAdmin: user does not have an admin token!"
             );
             expect(
-                await adminToken.verifyAdminToken(clientAcc1.address, rummy.address)
-            ).to.equal(
-                false
-            );
+                await adminToken.verifyAdminToken(
+                    clientAcc1.address,
+                    rummy.address
+                )
+            ).to.equal(false);
             // Check that the second user received the token and now has the control
             await adminToken.checkOwner(clientAcc2.address);
-            expect(await adminToken.verifyAdminToken(
-                clientAcc2.address,
-                rummy.address
-            )).to.equal(true);
+            expect(
+                await adminToken.verifyAdminToken(
+                    clientAcc2.address,
+                    rummy.address
+                )
+            ).to.equal(true);
             // Check that it is still possible to get the controlled token address
             expect(await adminToken.getControlledAddressById(2)).to.equal(
                 rummy.address

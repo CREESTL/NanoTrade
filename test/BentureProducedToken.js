@@ -95,11 +95,7 @@ describe("Benture Produced Token", () => {
             // Owner is an admin
             expect(await token.checkAdmin(ownerAcc.address)).to.equal(true);
             // Client is not
-            expect(
-                await token.checkAdmin(clientAcc1.address)
-            ).to.equal(
-                false
-            );
+            expect(await token.checkAdmin(clientAcc1.address)).to.equal(false);
         });
     });
 

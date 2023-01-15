@@ -6,7 +6,6 @@ pragma solidity ^0.8.9;
 
 /// @dev An interface for dividends distributing contract
 interface IBenture {
-
     /// @dev Status of a distribution
     enum DistStatus {
         inProgress,
@@ -46,7 +45,7 @@ interface IBenture {
     ///        Use zero address for native tokens
     /// @param amount The amount of ERC20 tokens that will be paid
     /// @param isEqual Indicates whether distribution will be equal
-    function distributeDividends (
+    function distributeDividends(
         address origToken,
         address distToken,
         uint256 amount,
@@ -73,24 +72,29 @@ interface IBenture {
     /// @return The address of the tokens in the pool.
     /// @return The number of users who locked their tokens in the pool
     /// @return The amount of locked tokens
-    function getPool(address token) external view returns(address, uint256, uint256);
+    function getPool(
+        address token
+    ) external view returns (address, uint256, uint256);
 
     /// @notice Returns the array of lockers of the pool
     /// @param token The address of the token of the pool
     /// @return The array of lockers of the pool
-    function getLockers(address token) external view returns(address[] memory);
+    function getLockers(address token) external view returns (address[] memory);
 
     /// @notice Checks if user is a locker of the provided token pool
     /// @param token The address of the token of the pool
     /// @param user The address of the user to check
     /// @return True if user is a locker in the pool. Otherwise - false.
-    function isLocker(address token, address user) external view returns(bool);
+    function isLocker(address token, address user) external view returns (bool);
 
     /// @notice Returns the current lock amount of the user
     /// @param user The address of the user to check
     /// @param token The address of the token of the pool
     /// @return The current lock amount
-    function getCurrentLock(address user, address token) external view returns(uint256);
+    function getCurrentLock(
+        address user,
+        address token
+    ) external view returns (uint256);
 
     /// @notice Returns the list of IDs of all active distributions the admin has started
     /// @param admin The address of the admin
@@ -113,7 +117,7 @@ interface IBenture {
     /// @param id The ID of the distribution to check
     /// @param user The address of the user to check
     /// @return True if user has claimed dividends. Otherwise - false
-    function hasClaimed(uint256 id, address user) external view returns(bool);
+    function hasClaimed(uint256 id, address user) external view returns (bool);
 
     /// @notice Checks if the distribution with the given ID was started by the given admin
     /// @param id The ID of the distribution to check
@@ -124,7 +128,6 @@ interface IBenture {
         address admin
     ) external view returns (bool);
 
-
     /// @dev Indicates that a new pool has been created
     event PoolCreated(address indexed token);
 
@@ -132,23 +135,30 @@ interface IBenture {
     event PoolDeleted(address indexed token);
 
     /// @dev Indicated that tokens have been locked
-    event TokensLocked(address indexed user, address indexed token, uint256 amount);
+    event TokensLocked(
+        address indexed user,
+        address indexed token,
+        uint256 amount
+    );
 
     /// @dev Indicated that tokens have been locked
-    event TokensUnlocked(address indexed user, address indexed token, uint256 amount);
+    event TokensUnlocked(
+        address indexed user,
+        address indexed token,
+        uint256 amount
+    );
 
     /// @dev Indicates that new dividends distribution was started
     /// @param origToken The tokens to the holders of which the dividends will be paid
     /// @param distToken The token that will be paid
     /// @param amount The amount of tokens that will be paid
     /// @param isEqual Indicates whether distribution will be equal
-    event DividendsStarted (
+    event DividendsStarted(
         address indexed origToken,
         address indexed distToken,
         uint256 indexed amount,
         bool isEqual
     );
-
 
     /// @dev Indicates that dividends were claimed by a user
     /// @param id The ID of the distribution that was claimed
@@ -158,5 +168,4 @@ interface IBenture {
     /// @dev Indicates that dividends distribution was fulfilled
     /// @param id The ID of the fulfilled distribution
     event DividendsFulfilled(uint256 indexed id);
-
 }

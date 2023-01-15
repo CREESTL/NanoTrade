@@ -71,7 +71,7 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
     function verifyAdminToken(
         address user,
         address ERC20Address
-    ) external view returns(bool){
+    ) external view returns (bool) {
         require(
             user != address(0),
             "BentureAdmin: user can not have a zero address!"
