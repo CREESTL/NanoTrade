@@ -18,6 +18,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using SafeERC20 for IBentureProducedToken;
     using EnumerableSet for EnumerableSet.AddressSet;
+    using EnumerableSet for EnumerableSet.UintSet;
 
     /// @dev Pool to lock tokens
     /// @dev `lockers` and `lockersArray` basically store the same list of addresses
@@ -43,6 +44,9 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // For example, if distribution ID476 has started and Bob adds 100 tokens to his 500 locked tokens
         // the pool, then his lock for the distribution ID477 should increase up to 600.
         mapping(address => mapping(uint256 => uint256)) lockHistory;
+        // Mapping from user address to IDs of distributions *before which* user's lock amount was changed
+        // For example an array of [1, 2] means that user's lock amount changed before 1st and 2nd distributions
+        mapping(address => EnumerableSet.UintSet) lockChangesIds;
     }
 
     /// @dev Stores information about a specific dividends distribution
@@ -120,6 +124,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // Other fields are initialized with default values
     }
 
+    // TODO do we need this funcion?
     /// @notice Deletes a pool
     ///         After that all operations with the pool will fail
     /// @param token The token of the pool
@@ -149,8 +154,15 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             IBentureProducedToken(origToken).isHolder(msg.sender),
             "Benture: user does not have project tokens!"
         );
+
+        // Mark that the lock amount was changed before the next distribution
+        // NOTE: These is no need to check if set already contain the ID because
+        //       it's done in the `add` method implicitly
+        pool.lockChangesIds[msg.sender].add(distributionIds.current() + 1);
+
         // If user has already locked tokens in this pool, increase his locked amount
         if (pool.hasLocked[msg.sender]) {
+            // Update his current lock. Will be used for calculations in the *next* distribution
             pool.lockHistory[msg.sender][distributionIds.current() + 1] += amount;
         } else {
             // If user has never locked tokens, add him to the lockers list
@@ -203,6 +215,10 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
 
         // Decrease the amount of locked tokens
         pool.lockHistory[msg.sender][distributionIds.current() + 1] -= amount;
+        // Mark that the lock amount was changed before the next distribution
+        // NOTE: These is no need to check if set already contain the ID because
+        //       it's done in the `add` method implicitly
+        pool.lockChangesIds[msg.sender].add(distributionIds.current() + 1);
 
         // If all tokens were unlocked - delete user from lockers list
         if (pool.lockHistory[msg.sender][distributionIds.current() + 1] == 0) {
