@@ -32,16 +32,17 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // Indicates that locker has locked his tokens
         mapping(address => bool) hasLocked;
         // Mapping from user address to distribution ID to locked tokens amount
-        // Shows how many `token`s are currently locked in the pool by the user and
-        // can be used to calculate user's share *in the next* distribution
+        // Shows "to what amount was the user's locked changed before the distribution with the given ID"
+        // If the value for ID10 is 0, that means that user's lock amount did not change before that distribution
+        // If the value for ID10 is 500, that means that user's lock amount changed to 500 before that distibution.
         // Amounts locked for N-th distribution (used to calculate user's dividends) can only
         // be updated since the start of (N-1)-th distribution and till the start of the N-th
         // distribution. `distributionIds.current()` is the (N-1)-th distribution in our case.
         // So we have to increase it by one to get the ID of the upcoming distribution and
         // the amount locked for that distribution.
-        // For example, if distribution #476 has started and Bob adds 100 tokens to his 500 locked tokens
-        // the pool, then his lock for the distribution #477 should increase up to 600.
-        mapping(address => mapping(uint256 => uint256)) lockedForNextDist;
+        // For example, if distribution ID476 has started and Bob adds 100 tokens to his 500 locked tokens
+        // the pool, then his lock for the distribution ID477 should increase up to 600.
+        mapping(address => mapping(uint256 => uint256)) lockHistory;
     }
 
     /// @dev Stores information about a specific dividends distribution
@@ -150,12 +151,12 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         );
         // If user has already locked tokens in this pool, increase his locked amount
         if (pool.hasLocked[msg.sender]) {
-            pool.lockedForNextDist[msg.sender][distributionIds.current() + 1] += amount;
+            pool.lockHistory[msg.sender][distributionIds.current() + 1] += amount;
         } else {
             // If user has never locked tokens, add him to the lockers list
             pool.lockers.add(msg.sender);
             // Update his current lock. Will be used for calculations in the *next* distribution
-            pool.lockedForNextDist[msg.sender][distributionIds.current() + 1] = amount;
+            pool.lockHistory[msg.sender][distributionIds.current() + 1] = amount;
             // Mark that this user has locked tokens
             pool.hasLocked[msg.sender] = true;
         }
@@ -198,13 +199,13 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // Make sure that user has locked some tokens before
         require(pool.hasLocked[msg.sender] == true, "Benture: user does not have any locked tokens!");
         // Make sure that user is trying to withdraw no more tokens than he has locked for the next distribution
-        require(pool.lockedForNextDist[msg.sender][distributionIds.current() + 1] >= amount, "Benture: withdraw amount is too big!");
+        require(pool.lockHistory[msg.sender][distributionIds.current() + 1] >= amount, "Benture: withdraw amount is too big!");
 
         // Decrease the amount of locked tokens
-        pool.lockedForNextDist[msg.sender][distributionIds.current() + 1] -= amount;
+        pool.lockHistory[msg.sender][distributionIds.current() + 1] -= amount;
 
         // If all tokens were unlocked - delete user from lockers list
-        if (pool.lockedForNextDist[msg.sender][distributionIds.current() + 1] == 0) {
+        if (pool.lockHistory[msg.sender][distributionIds.current() + 1] == 0) {
             // Delete it from the set as well
             pool.lockers.remove(msg.sender);
             // Mark that he is no longer a locker
@@ -348,7 +349,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @return The amount of tokens locked by the caller inside the pool
     function getAmountLocked(address token) public view returns(uint256) {
         require(token != address(0), "Benture: pools can not hold zero address tokens!");
-        return pools[token].lockedForNextDist[msg.sender][distributionIds.current() + 1];
+        return pools[token].lockHistory[msg.sender][distributionIds.current() + 1];
     }
 
 
