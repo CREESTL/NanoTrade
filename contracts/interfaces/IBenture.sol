@@ -16,11 +16,6 @@ interface IBenture {
     /// @param token The token that will be locked in the pool
     function createPool(address token) external;
 
-    /// @notice Deletes a pool
-    ///         After that all operations with the pool will fail
-    /// @param token The token of the pool
-    function deletePool(address token) external;
-
     /// @notice Locks the provided amount of user's tokens in the pool
     /// @param origToken The address of the token to lock
     /// @param amount The amount of tokens to lock
@@ -168,4 +163,6 @@ interface IBenture {
     /// @dev Indicates that dividends distribution was fulfilled
     /// @param id The ID of the fulfilled distribution
     event DividendsFulfilled(uint256 indexed id);
+
+    event MultiplyDividendsClaimed(uint256[] ids, address user);
 }

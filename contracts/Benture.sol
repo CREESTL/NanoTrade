@@ -141,21 +141,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // Other fields are initialized with default values
     }
 
-    // TODO do we need this funcion?
-    /// @notice Deletes a pool
-    ///         After that all operations with the pool will fail
-    /// @param token The token of the pool
-    function deletePool(address token) external onlyAdmin(token) {
-        require(
-            token != address(0),
-            "Benture: pools can not hold zero address tokens!"
-        );
-
-        emit PoolDeleted(token);
-
-        delete pools[token];
-    }
-
     /// @notice Locks the provided amount of user's tokens in the pool
     /// @param origToken The address of the token to lock
     /// @param amount The amount of tokens to lock
@@ -551,7 +536,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             lastID = i;
         }
 
-        emit MultiplyDividendsClaimed(id[0:lastID], msg.sender);
+        emit MultiplyDividendsClaimed(ids[0:lastID], msg.sender);
     }
 
     /// @notice Allows user to claim dividends from multiple distributions
@@ -572,7 +557,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             lastID = i;
         }
         unlockAllTokens(distributions[ids[0]].origToken);
-        emit MultiplyDividendsClaimed(id[0:lastID], msg.sender);
+        emit MultiplyDividendsClaimed(ids[0:lastID], msg.sender);
     }
 
     // ===== GETTERS =====

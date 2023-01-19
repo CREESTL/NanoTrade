@@ -6,11 +6,18 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./BentureProducedToken.sol";
 import "./interfaces/IBentureFactory.sol";
 import "./interfaces/IBentureAdmin.sol";
+import "./interfaces/IBenture.sol";
 
 /// @title A factory of custom ERC20 tokens
 contract BentureFactory is IBentureFactory {
     /// @dev The address of the last token that was produced by the factory
     address private _lastProducedToken;
+
+    address private bentureAddress;
+
+    constructor (address bentureAddress_) {
+        bentureAddress = bentureAddress_;
+    }
 
     /// @notice Returns the address of the produced ERC20 token
     /// @return The address of the produced ERC20 token
@@ -42,6 +49,8 @@ contract BentureFactory is IBentureFactory {
             maxTotalSupply,
             adminToken_
         );
+
+        IBenture(bentureAddress).createPool(address(newToken));
 
         emit CreateERC20Token(
             name,
