@@ -538,13 +538,42 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @notice Allows user to claim dividends from multiple distributions
     ///         WARNING: Potentially can exceed block gas limit!
     /// @param ids The array of IDs of distributions to claim
-    function claimMultipleDividends(uint256[] calldata ids) public {}
+    function claimMultipleDividends(uint256[] calldata ids) public {
+        uint256 gasToSpend = (gasleft() * 2) / 3;
+        uint256 lastID = 0;
+
+        for (uint i = 0; i < ids.length; i++) {
+            claimDividends(ids[i]);
+            if(gasleft() <= gasToSpend) {
+                lastID = i;
+                break;
+            }
+            lastID = i;
+        }
+
+        emit MultiplyDividendsClaimed(id[0:lastID], msg.sender);
+    }
 
     /// @notice Allows user to claim dividends from multiple distributions
     ///         and unlock his tokens after that
     ///         WARNING: Potentially can exceed block gas limit!
     /// @param ids The array of IDs of distributions to claim
-    function claimMultipleDividendsAndUnlock(uint256[] calldata ids) public {}
+    function claimMultipleDividendsAndUnlock(uint256[] calldata ids) public {
+        uint256 gasToSpend = (gasleft() * 2) / 3;
+        uint256 lastID = 0;
+
+        for (uint i = 0; i < ids.length; i++) {
+            claimDividends(ids[i]);
+            //unlockAllTokens(distributions[ids[i]].origToken);
+            if(gasleft() <= gasToSpend) {
+                lastID = i;
+                break;
+            }
+            lastID = i;
+        }
+        unlockAllTokens(distributions[ids[0]].origToken);
+        emit MultiplyDividendsClaimed(id[0:lastID], msg.sender);
+    }
 
     // ===== GETTERS =====
 
