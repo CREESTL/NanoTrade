@@ -123,20 +123,45 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
 
     // ===== POOLS =====
 
+    error NativeTokenDividendsTransferFailed();
+    error PoolsCanNotHoldZeroAddressTokens();
+    error PoolAlreadyExists();
+    error InvalidLockAmount();
+    error CanNotLockZeroAddressTokens();
+    error PoolDoesNotExist();
+    error WrongTokenInsideThePool();
+    error UserDoesNotHaveProjectTokens();
+    error InvalidUnlockAmount();
+    error CanNotUnlockZeroAddressTokens();
+    error UserDoesNotHaveAnyLockedTokens();
+    error WithdrawAmountIsTooBig();
+    error OriginalTokenCanNotHaveAZeroAddress();
+    error UserDoesNotHaveAnAdminToken();
+    error DividendsAmountCanNotBeZero();
+    error NotEnoughNativeTokensWereProvided();
+    error DistributionHasNotStartedYet();
+    error UserHasNoLockedTokens();
+    error AlreadyClaimed();
+    error UserCanNotHaveZeroAddress();
+    error AdminCanNotHaveAZeroAddress();
+    error IDOfDistributionMustBeGreaterThanOne();
+    error DistributionWithTheGivenIDHasNotBeenAnnoucedYet();
+
     /// @notice Creates a new pool
     /// @param token The token that will be locked in the pool
     function createPool(address token) external onlyAdminOrFactory(token) {
-        require(
-            token != address(0),
-            "Benture: pools can not hold zero address tokens!"
-        );
+        if (token == address(0)) {
+            revert PoolsCanNotHoldZeroAddressTokens();
+        }
 
         emit PoolCreated(token);
 
         Pool storage newPool = pools[token];
         // Check that this pool has not yet been initialized with the token
         // There can't multiple pools of the same token
-        require(newPool.token != token, "Benture: pool already exists!");
+        if (newPool.token == token) {
+            revert PoolAlreadyExists();
+        }
         newPool.token = token;
         // Other fields are initialized with default values
     }
@@ -145,26 +170,27 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @param origToken The address of the token to lock
     /// @param amount The amount of tokens to lock
     function lockTokens(address origToken, uint256 amount) public {
-        require(amount > 0, "Benture: invalid lock amount!");
+        if (amount == 0) {
+            revert InvalidLockAmount();
+        }
         // Token must have npn-zero address
-        require(
-            origToken != address(0),
-            "Benture: can not lock zero address tokens!"
-        );
+        if (origToken == address(0)) {
+            revert CanNotLockZeroAddressTokens();
+        }
 
         Pool storage pool = pools[origToken];
         // Check that a pool to lock tokens exists
-        require(pool.token != address(0), "Benture: pool does not exist!");
+        if (pool.token == address(0)) {
+            revert PoolDoesNotExist();
+        }
         // Check that pool holds the same token. Just in case
-        require(
-            pool.token == origToken,
-            "Benture: wrong token inside the pool!"
-        );
+        if (pool.token != origToken) {
+            revert WrongTokenInsideThePool();
+        }
         // User should have origTokens to be able to lock them
-        require(
-            IBentureProducedToken(origToken).isHolder(msg.sender),
-            "Benture: user does not have project tokens!"
-        );
+        if (!IBentureProducedToken(origToken).isHolder(msg.sender)) {
+            revert UserDoesNotHaveProjectTokens();
+        }
 
         // Mark that the lock amount was changed before the next distribution
         // NOTE: These is no need to check if set already contain the ID because
@@ -220,32 +246,32 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @param origToken The address of the token to unlock
     /// @param amount The amount of tokens to unlock
     function unlockTokens(address origToken, uint256 amount) public {
-        require(amount > 0, "Benture: invalid unlock amount!");
+        if (amount == 0) {
+            revert InvalidUnlockAmount();
+        }
         // Token must have npn-zero address
-        require(
-            origToken != address(0),
-            "Benture: can not unlock zero address tokens!"
-        );
+        if (origToken == address(0)) {
+            revert CanNotUnlockZeroAddressTokens();
+        }
 
         Pool storage pool = pools[origToken];
         // Check that a pool to lock tokens exists
-        require(pool.token != address(0), "Benture: pool does not exist!");
+        if (pool.token == address(0)) {
+            revert PoolDoesNotExist();
+        }
         // Check that pool holds the same token. Just in case
-        require(
-            pool.token == origToken,
-            "Benture: wrong token inside the pool!"
-        );
+        if (pool.token != origToken) {
+            revert WrongTokenInsideThePool();
+        }
         // Make sure that user has locked some tokens before
-        require(
-            isLocker(pool.token, msg.sender),
-            "Benture: user does not have any locked tokens!"
-        );
+        if (!isLocker(pool.token, msg.sender)) {
+            revert UserDoesNotHaveAnyLockedTokens();
+        }
         // Make sure that user is trying to withdraw no more tokens than he has locked for the next distribution
-        require(
-            pool.lockHistory[msg.sender][distributionIds.current() + 1] >=
-                amount,
-            "Benture: withdraw amount is too big!"
-        );
+        if (pool.lockHistory[msg.sender][distributionIds.current() + 1] <
+                amount) {
+            revert WithdrawAmountIsTooBig();
+        }
 
         // Decrease the amount of locked tokens
         pool.lockHistory[msg.sender][distributionIds.current() + 1] -= amount;
@@ -296,17 +322,17 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         uint256 amount,
         bool isEqual
     ) external payable {
-        require(
-            origToken != address(0),
-            "Benture: original token can not have a zero address!"
-        );
+        if (origToken == address(0)) {
+            revert OriginalTokenCanNotHaveAZeroAddress();
+        }
         // Check that caller is an admin of `origToken`
-        require(
-            IBentureProducedToken(origToken).checkAdmin(msg.sender),
-            "BentureAdmin: user does not have an admin token!"
-        );
+        if (!IBentureProducedToken(origToken).checkAdmin(msg.sender)) {
+            revert UserDoesNotHaveAnAdminToken();
+        }
         // Amount can not be zero
-        require(amount > 0, "Benture: dividends amount can not be zero!");
+        if (amount == 0) {
+            revert DividendsAmountCanNotBeZero();
+        }
         if (distToken != address(0)) {
             // NOTE: Caller should approve transfer of at least `amount` of tokens with `ERC20.approve()`
             // before calling this function
@@ -318,10 +344,10 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             );
         } else {
             // Check that enough native tokens were provided
-            require(
-                msg.value >= amount,
-                "Benture: not enough native tokens were provided!"
-            );
+            if (msg.value < amount) {
+            revert NotEnoughNativeTokensWereProvided();
+        }
+
         }
 
         emit DividendsStarted(origToken, distToken, amount, isEqual);
@@ -466,23 +492,21 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @param id The ID of the distribution to claim
     function claimDividends(uint256 id) public {
         // Can't claim a distribution that has not started yet
-        require(
-            id <= distributionIds.current(),
-            "Benture: distribution has not started yet!"
-        );
+        if (id > distributionIds.current()) {
+            revert DistributionHasNotStartedYet();
+        }
 
         Distribution storage distribution = distributions[id];
 
         // User must be a locker of the `origToken` of the distribution he's trying to claim
-        require(
-            isLocker(distribution.origToken, msg.sender),
-            "Benture: user has no locked tokens!"
-        );
+        if (!isLocker(distribution.origToken, msg.sender)) {
+            revert UserHasNoLockedTokens();
+        }
+
         // User can't claim the same distribution more than once
-        require(
-            distribution.hasClaimed[msg.sender] == false,
-            "Benture: already claimed!"
-        );
+        if (distribution.hasClaimed[msg.sender] == true) {
+            revert AlreadyClaimed();
+        }
 
         // Calculate the share of the user
         uint256 share = calculateShare(id, msg.sender);
@@ -506,10 +530,9 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         if (distribution.distToken == address(0)) {
             // Send native tokens
             (bool success, ) = msg.sender.call{value: share}("");
-            require(
-                success,
-                "Benture: native token dividends transfer failed!"
-            );
+            if (!success) {
+                revert NativeTokenDividendsTransferFailed();
+            }
         } else {
             // Send ERC20 tokens
             IERC20(distribution.distToken).safeTransferFrom(
@@ -570,10 +593,10 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     function getPool(
         address token
     ) public view returns (address, uint256, uint256) {
-        require(
-            token != address(0),
-            "Benture: pools can not hold zero address tokens!"
-        );
+        if (token == address(0)) {
+            revert PoolsCanNotHoldZeroAddressTokens();
+        }
+
         Pool storage pool = pools[token];
         return (pool.token, pool.lockers.length(), pool.totalLocked);
     }
@@ -582,10 +605,10 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @param token The address of the token of the pool
     /// @return The array of lockers of the pool
     function getLockers(address token) public view returns (address[] memory) {
-        require(
-            token != address(0),
-            "Benture: pools can not hold zero address tokens!"
-        );
+        if (token == address(0)) {
+            revert PoolsCanNotHoldZeroAddressTokens();
+        }
+
         return pools[token].lockers.values();
     }
 
@@ -594,11 +617,13 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @param user The address of the user to check
     /// @return True if user is a locker in the pool. Otherwise - false.
     function isLocker(address token, address user) public view returns (bool) {
-        require(
-            token != address(0),
-            "Benture: pools can not hold zero address tokens!"
-        );
-        require(user != address(0), "Benture: user can not have zero address!");
+        if (token == address(0)) {
+            revert PoolsCanNotHoldZeroAddressTokens();
+        }
+
+        if (user == address(0)) {
+            revert UserCanNotHaveZeroAddress();
+        }
         // User is a locker if his lock is not a zero and he is in the lockers list
         return
             (pools[token].lastLock[msg.sender] != 0) &&
@@ -613,11 +638,12 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         address token,
         address user
     ) public view returns (uint256) {
-        require(
-            token != address(0),
-            "Benture: pools can not hold zero address tokens!"
-        );
-        require(user != address(0), "Benture: user can not have zero address!");
+        if (token == address(0)) {
+            revert PoolsCanNotHoldZeroAddressTokens();
+        }
+        if (user == address(0)) {
+            revert UserCanNotHaveZeroAddress();
+        }
         return pools[token].lastLock[user];
     }
 
@@ -628,10 +654,9 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         address admin
     ) public view returns (uint256[] memory) {
         // Do not check wheter the given address is actually an admin
-        require(
-            admin != address(0),
-            "Benture: admin can not have a zero address!"
-        );
+        if (admin == address(0)) {
+            revert AdminCanNotHaveAZeroAddress();
+        }
         return adminsToDistributions[admin];
     }
 
@@ -645,11 +670,12 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         view
         returns (uint256, address, address, uint256, bool, DistStatus)
     {
-        require(id >= 1, "Benture: ID of distribution must be greater than 1!");
-        require(
-            distributionsToAdmins[id] != address(0),
-            "Benture: distribution with the given ID has not been annouced yet!"
-        );
+        if (id < 1) {
+            revert IDOfDistributionMustBeGreaterThanOne();
+        }
+        if (distributionsToAdmins[id] == address(0)) {
+            revert DistributionWithTheGivenIDHasNotBeenAnnoucedYet();
+        }
         Distribution storage distribution = distributions[id];
         return (
             distribution.id,
@@ -677,15 +703,15 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         uint256 id,
         address admin
     ) public view returns (bool) {
-        require(id >= 1, "Benture: ID of distribution must be greater than 1!");
-        require(
-            distributionsToAdmins[id] != address(0),
-            "Benture: distribution with the given ID has not been annouced yet!"
-        );
-        require(
-            admin != address(0),
-            "Benture: admin can not have a zero address!"
-        );
+        if (id < 1) {
+            revert IDOfDistributionMustBeGreaterThanOne();
+        }
+        if (distributionsToAdmins[id] == address(0)) {
+            revert DistributionWithTheGivenIDHasNotBeenAnnoucedYet();
+        }
+        if (admin == address(0)) {
+            revert AdminCanNotHaveAZeroAddress();
+        }
         if (distributionsToAdmins[id] == admin) {
             return true;
         }
