@@ -93,6 +93,30 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     mapping(address => uint256[]) internal adminsToDistributions;
     /// @dev Mapping from distribution ID to the distribution
     mapping(uint256 => Distribution) distributions;
+    
+    error NativeTokenDividendsTransferFailed();
+    error PoolsCanNotHoldZeroAddressTokens();
+    error PoolAlreadyExists();
+    error InvalidLockAmount();
+    error CanNotLockZeroAddressTokens();
+    error PoolDoesNotExist();
+    error WrongTokenInsideThePool();
+    error UserDoesNotHaveProjectTokens();
+    error InvalidUnlockAmount();
+    error CanNotUnlockZeroAddressTokens();
+    error UserDoesNotHaveAnyLockedTokens();
+    error WithdrawAmountIsTooBig();
+    error OriginalTokenCanNotHaveAZeroAddress();
+    error UserDoesNotHaveAnAdminToken();
+    error DividendsAmountCanNotBeZero();
+    error NotEnoughNativeTokensWereProvided();
+    error DistributionHasNotStartedYet();
+    error UserHasNoLockedTokens();
+    error AlreadyClaimed();
+    error UserCanNotHaveZeroAddress();
+    error AdminCanNotHaveAZeroAddress();
+    error IDOfDistributionMustBeGreaterThanOne();
+    error DistributionWithTheGivenIDHasNotBeenAnnoucedYet();
 
     /// @dev Checks that caller is either an admin of a project or a factory
     modifier onlyAdminOrFactory(address token) {
@@ -122,30 +146,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     }
 
     // ===== POOLS =====
-
-    error NativeTokenDividendsTransferFailed();
-    error PoolsCanNotHoldZeroAddressTokens();
-    error PoolAlreadyExists();
-    error InvalidLockAmount();
-    error CanNotLockZeroAddressTokens();
-    error PoolDoesNotExist();
-    error WrongTokenInsideThePool();
-    error UserDoesNotHaveProjectTokens();
-    error InvalidUnlockAmount();
-    error CanNotUnlockZeroAddressTokens();
-    error UserDoesNotHaveAnyLockedTokens();
-    error WithdrawAmountIsTooBig();
-    error OriginalTokenCanNotHaveAZeroAddress();
-    error UserDoesNotHaveAnAdminToken();
-    error DividendsAmountCanNotBeZero();
-    error NotEnoughNativeTokensWereProvided();
-    error DistributionHasNotStartedYet();
-    error UserHasNoLockedTokens();
-    error AlreadyClaimed();
-    error UserCanNotHaveZeroAddress();
-    error AdminCanNotHaveAZeroAddress();
-    error IDOfDistributionMustBeGreaterThanOne();
-    error DistributionWithTheGivenIDHasNotBeenAnnoucedYet();
 
     /// @notice Creates a new pool
     /// @param token The token that will be locked in the pool

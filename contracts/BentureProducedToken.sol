@@ -22,21 +22,39 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
     /// @dev A list of addresses of tokens holders
     EnumerableSet.AddressSet internal _holders;
 
+    error TheTokenIsNotMintable();
+    error UserDoesNotHaveAnAdminToken();
+    error InitialTokenNameCanNotBeEmpty();
+    error InitialDecimalsCanNotBeZero();
+    error AdminTokenAddressCanNotBeAZeroAddress();
+    error MaxTotalSupplyMustBeZeroForUnmintableTokens();
+    error CanNotMintToZeroAddress();
+    error SupplyExceedsMaximumSupply();
+    error TheAmountOfTokensToBurnMustBeGreaterThanZero();
+    error CallerDoesNotHaveAnyTokensToBurn();
+    error DeletingHolderWithZeroBalanceFailed();
+    error SenderCanNotBeAZeroAddress();
+    error ReceiverCanNotBeAZeroAddress();
+    error SenderCanNotBeAReceiver();
+    error SenderDoesNotHaveAnyTokensToTransfer();
+    error InitialTokenSymbolCanNotBeEmpty();
+
     /// @dev Checks if mintability is activated
     modifier WhenMintable() {
-        require(_mintable, "BentureProducedToken: the token is not mintable!");
+        if (!_mintable) {
+            revert TheTokenIsNotMintable();
+        }
         _;
     }
 
     /// @dev Checks if caller is an admin token holder
     modifier hasAdminToken() {
-        require(
-            IBentureAdmin(_adminToken).verifyAdminToken(
+        if (!IBentureAdmin(_adminToken).verifyAdminToken(
                 msg.sender,
                 address(this)
-            ),
-            "BentureProducedToken: user does not have an admin token!"
-        );
+            )) {
+            revert UserDoesNotHaveAnAdminToken();
+        }
         _;
     }
 
@@ -57,22 +75,18 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         uint256 maxTotalSupply_,
         address adminToken_
     ) ERC20(name_, symbol_) {
-        require(
-            bytes(name_).length > 0,
-            "BentureProducedToken: initial token name can not be empty!"
-        );
-        require(
-            bytes(symbol_).length > 0,
-            "BentureProducedToken: initial token symbol can not be empty!"
-        );
-        require(
-            decimals_ > 0,
-            "BentureProducedToken: initial decimals can not be zero!"
-        );
-        require(
-            adminToken_ != address(0),
-            "BentureProducedToken: admin token address can not be a zero address!"
-        );
+        if (bytes(name_).length == 0) {
+            revert InitialTokenNameCanNotBeEmpty();
+        }
+        if (bytes(symbol_).length == 0) {
+            revert InitialTokenSymbolCanNotBeEmpty();
+        }
+        if (decimals_ == 0) {
+            revert InitialDecimalsCanNotBeZero();
+        }
+        if (adminToken_ == address(0)) {
+            revert AdminTokenAddressCanNotBeAZeroAddress();
+        }
         if (mintable_) {
             // If token is mintable it could either have a fixed maxTotalSupply or
             // have an "infinite" supply
@@ -83,10 +97,9 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
                 maxTotalSupply_ = type(uint256).max;
             }
         } else {
-            require(
-                maxTotalSupply_ == 0,
-                "BentureProducedToken: max total supply must be zero for unmintable tokens!"
-            );
+            if (maxTotalSupply_ != 0) {
+            revert MaxTotalSupplyMustBeZeroForUnmintableTokens();
+            }
         }
         _tokenName = name_;
         _tokenSymbol = symbol_;
@@ -172,14 +185,12 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         address to,
         uint256 amount
     ) external override hasAdminToken WhenMintable {
-        require(
-            to != address(0),
-            "BentureProducedToken: can not mint to zero address!"
-        );
-        require(
-            totalSupply() + amount <= _maxTotalSupply,
-            "BentureProducedToken: supply exceeds maximum supply!"
-        );
+        if (to == address(0)) {
+            revert CanNotMintToZeroAddress();
+        }
+        if (totalSupply() + amount > _maxTotalSupply) {
+            revert SupplyExceedsMaximumSupply();
+        }
         emit ControlledTokenCreated(to, amount);
         // Add receiver of tokens to holders list if he isn't there already
         _holders.add(to);
@@ -191,23 +202,20 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
     /// @param amount The amount of tokens to burn
     function burn(uint256 amount) external override {
         address caller = msg.sender;
-        require(
-            amount > 0,
-            "BentureProducedToken: the amount of tokens to burn must be greater than zero!"
-        );
-        require(
-            balanceOf(caller) != 0,
-            "BentureProducedToken: caller does not have any tokens to burn!"
-        );
+        if (amount == 0) {
+            revert TheAmountOfTokensToBurnMustBeGreaterThanZero();
+        }
+        if ( balanceOf(caller) == 0) {
+            revert CallerDoesNotHaveAnyTokensToBurn();
+        }
         emit ControlledTokenBurnt(caller, amount);
         _burn(caller, amount);
         // If caller does not have any tokens - remove the address from holders
         if (balanceOf(msg.sender) == 0) {
             bool removed = _holders.remove(caller);
-            require(
-                removed,
-                "BentureProducedToken: deleting holder with zero balance failed!"
-            );
+            if (!removed) {
+            revert DeletingHolderWithZeroBalanceFailed();
+            }
         }
     }
 
@@ -222,22 +230,18 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         address to,
         uint256 amount
     ) internal override {
-        require(
-            from != address(0),
-            "BentureProducedToken: sender can not be a zero address!"
-        );
-        require(
-            to != address(0),
-            "BentureProducedToken: receiver can not be a zero address!"
-        );
-        require(
-            to != from,
-            "BentureProducedToken: sender can not be a receiver!"
-        );
-        require(
-            isHolder(from),
-            "BentureProducedToken: sender does not have any tokens to transfer!"
-        );
+        if (from == address(0)) {
+            revert SenderCanNotBeAZeroAddress();
+        }
+        if (to == address(0)) {
+            revert ReceiverCanNotBeAZeroAddress();
+        }
+        if (to == from) {
+            revert SenderCanNotBeAReceiver();
+        }
+        if (!isHolder(from)) {
+            revert SenderDoesNotHaveAnyTokensToTransfer();
+        }
         emit ControlledTokenTransferred(from, to, amount);
         // If the receiver is not yet a holder, he becomes a holder
         _holders.add(to);
@@ -245,10 +249,9 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         uint256 fromBalance = balanceOf(from);
         if (amount >= fromBalance) {
             bool removed = _holders.remove(from);
-            require(
-                removed,
-                "BentureProducedToken: deleting holder with zero balance failed!"
-            );
+            if (!removed) {
+            revert DeletingHolderWithZeroBalanceFailed();
+            }
         }
         super._transfer(from, to, amount);
     }

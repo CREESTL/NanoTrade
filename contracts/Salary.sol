@@ -42,9 +42,24 @@ contract Salary is ISalary {
         _;
     }
 
+    error ZeroAddress();
+    error NotAllowedToSetName();
+    error EmptyName();
+    error NotAllowedToRemoveName();
+    error UserAllreadyIsEmployee();
+    error AlreadyNotAnEmployee();
+    error NotEmployeeForThisSalary();
+    error NotAnAdminForEmployee();
+    error SalaryEnded();
+    error NotEnoughTokensAllowed();
+    error AmountOfPeriodsNotEqualTokensAmmountPerPeriod();
+    error NotAnAdminForThisSalary();
+
     /// @param adminTokenAddress The address of the BentureAdmin Token
     constructor(address adminTokenAddress) {
-        require(adminTokenAddress != address(0), "Salary: Zero address!");
+        if (adminTokenAddress == address(0)) {
+            revert ZeroAddress();
+        }
         bentureAdminToken = adminTokenAddress;
     }
 
@@ -74,11 +89,12 @@ contract Salary is ISalary {
         address employeeAddress,
         string memory name
     ) external onlyAdmin {
-        require(
-            checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender),
-            "Salary: not allowed to set name!"
-        );
-        require(bytes(name).length != 0, "Salary: empty name!");
+        if (!checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender)) {
+            revert NotAllowedToSetName();
+        }
+        if (bytes(name).length == 0) {
+            revert EmptyName();
+        }
         names[employeeAddress] = name;
         emit EmployeeNameChanged(employeeAddress, name);
     }
@@ -89,10 +105,9 @@ contract Salary is ISalary {
     function removeNameFromEmployee(
         address employeeAddress
     ) external onlyAdmin {
-        require(
-            checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender),
-            "Salary: not allowed to remove name!"
-        );
+        if (!checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender)) {
+            revert NotAllowedToRemoveName();
+        }
         delete names[employeeAddress];
         emit EmployeeNameRemoved(employeeAddress);
     }
@@ -101,10 +116,9 @@ contract Salary is ISalary {
     /// @param employeeAddress Address of employee.
     /// @dev Only admin can call this method.
     function addEmployee(address employeeAddress) external onlyAdmin {
-        require(
-            !checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender),
-            "Salary: user already is employee!"
-        );
+        if (checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender)) {
+            revert UserAllreadyIsEmployee();
+        }
         adminToEmployees[msg.sender].add(employeeAddress);
         employeeToAdmins[employeeAddress].add(msg.sender);
         emit EmployeeAdded(employeeAddress, msg.sender);
@@ -114,10 +128,9 @@ contract Salary is ISalary {
     /// @param employeeAddress Address of employee.
     /// @dev Only admin can call this method.
     function removeEmployee(address employeeAddress) external onlyAdmin {
-        require(
-            checkIfUserIsEmployeeOfAdmin(msg.sender, employeeAddress),
-            "Salary: already not an employee!"
-        );
+        if (!checkIfUserIsEmployeeOfAdmin(msg.sender, employeeAddress)) {
+            revert AlreadyNotAnEmployee();
+        }
 
         if (
             employeeToAdminToSalaryId[employeeAddress][msg.sender].length() > 0
@@ -144,10 +157,9 @@ contract Salary is ISalary {
     /// @dev Anyone can call this method. No restrictions.
     function withdrawSalary(uint256 salaryId) external {
         SalaryInfo storage _salary = salaryById[salaryId];
-        require(
-            _salary.employee == msg.sender,
-            "Salary: not employee for this salary!"
-        );
+        if (_salary.employee != msg.sender) {
+            revert NotEmployeeForThisSalary();
+        }
         uint256 periodsToPay = (block.timestamp -
             (_salary.amountOfWithdrawals *
                 _salary.periodDuration +
@@ -252,15 +264,13 @@ contract Salary is ISalary {
         uint256 amountOfPeriodsToDelete
     ) external onlyAdmin {
         SalaryInfo storage _salary = salaryById[salaryId];
-        require(
-            block.timestamp - _salary.salaryStartTime <=
-                _salary.periodDuration * _salary.amountOfPeriods,
-            "Salary: salary ended!"
-        );
-        require(
-            checkIfUserIsAdminOfEmployee(_salary.employee, msg.sender),
-            "Salary: not an admin for employee!"
-        );
+        if (block.timestamp - _salary.salaryStartTime >
+                _salary.periodDuration * _salary.amountOfPeriods) {
+            revert SalaryEnded();
+        }
+        if (!checkIfUserIsAdminOfEmployee(_salary.employee, msg.sender)) {
+            revert NotAnAdminForEmployee();
+        }
         uint256 remainingTime = _salary.periodDuration *
             _salary.amountOfPeriods -
             amountOfPeriodsToDelete *
@@ -287,15 +297,13 @@ contract Salary is ISalary {
         uint256[] memory tokensAmountPerPeriod
     ) external onlyAdmin {
         SalaryInfo storage _salary = salaryById[salaryId];
-        require(
-            block.timestamp - _salary.salaryStartTime <=
-                _salary.periodDuration * _salary.amountOfPeriods,
-            "Salary: salary ended!"
-        );
-        require(
-            checkIfUserIsAdminOfEmployee(_salary.employee, msg.sender),
-            "Salary: not an admin for employee!"
-        );
+        if (block.timestamp - _salary.salaryStartTime >
+                _salary.periodDuration * _salary.amountOfPeriods) {
+            revert SalaryEnded();
+        }
+        if (!checkIfUserIsAdminOfEmployee(_salary.employee, msg.sender)) {
+            revert NotAnAdminForEmployee();
+        }
 
         uint256 alreadyPayed;
         for (uint256 i = 0; i < _salary.amountOfWithdrawals; i++) {
@@ -313,11 +321,10 @@ contract Salary is ISalary {
             totalTokenAmount = totalTokenAmount + tokensAmountPerPeriod[i];
         }
 
-        require(
-            IERC20(_salary.tokenAddress).allowance(msg.sender, address(this)) >=
-                totalTokenAmount - alreadyPayed,
-            "Salary: not enough tokens allowed!"
-        );
+        if (IERC20(_salary.tokenAddress).allowance(msg.sender, address(this)) <
+                totalTokenAmount - alreadyPayed) {
+            revert NotEnoughTokensAllowed();
+        }
 
         for (uint i = 0; i < tokensAmountPerPeriod.length; i++) {
             _salary.tokensAmountPerPeriod.push(tokensAmountPerPeriod[i]);
@@ -342,26 +349,23 @@ contract Salary is ISalary {
         address tokenAddress,
         uint256[] memory tokensAmountPerPeriod
     ) external onlyAdmin {
-        require(
-            amountOfPeriods == tokensAmountPerPeriod.length,
-            "Salary: amount of periods != tokens amount per period!"
-        );
+        if (amountOfPeriods != tokensAmountPerPeriod.length) {
+            revert AmountOfPeriodsNotEqualTokensAmmountPerPeriod();
+        }
 
-        require(
-            checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender),
-            "Salary: not an admin for employee!"
-        );
+        if (!checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender)) {
+            revert NotAnAdminForEmployee();
+        }
 
         uint256 totalTokenAmount;
         for (uint256 i = 0; i < amountOfPeriods; i++) {
             totalTokenAmount = totalTokenAmount + tokensAmountPerPeriod[i];
         }
 
-        require(
-            IERC20(tokenAddress).allowance(msg.sender, address(this)) >=
-                totalTokenAmount,
-            "Salary: not enough tokens allowed!"
-        );
+        if (IERC20(tokenAddress).allowance(msg.sender, address(this)) <
+                totalTokenAmount) {
+            revert NotEnoughTokensAllowed();
+        }
         SalaryInfo memory _salary;
         lastSalaryId++;
         _salary.id = lastSalaryId;
@@ -460,14 +464,12 @@ contract Salary is ISalary {
     /// @dev Only admin can call this method.
     function removeSalaryFromEmployee(uint256 salaryId) public onlyAdmin {
         SalaryInfo memory _salary = salaryById[salaryId];
-        require(
-            checkIfUserIsAdminOfEmployee(_salary.employee, msg.sender),
-            "Salary: not an admin for employee!"
-        );
-        require(
-            _salary.employer == msg.sender,
-            "Salary: not an admin of salary!"
-        );
+        if (!checkIfUserIsAdminOfEmployee(_salary.employee, msg.sender)) {
+            revert NotAnAdminForEmployee();
+        }
+        if (_salary.employer != msg.sender) {
+            revert NotAnAdminForThisSalary();
+        }
 
         uint256 amountToPay = getSalaryAmount(salaryId);
 

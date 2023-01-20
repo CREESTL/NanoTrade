@@ -30,13 +30,28 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
     mapping(address => bool) private _usedControlled;
     /// @dev The address of the factory minting admin tokens
     address private _factoryAddress;
+    
+    error CallerIsNotAFactory();
+    error FactoryAddressCanNotBeZeroAddress();
+    error ZeroAddressIsAnInvalidUser();
+    error UserDoesNotHaveAnAdminToken();
+    error UserCanNotHaveAZeroAddress();
+    error TokenCanNotHaveAZeroAddress();
+    error NoControlledTokenExistsForThisAdminToken();
+    error AdminAddressCanNotBeAZeroAddress();
+    error ControlledTokenCanNotHaveAZeroAddress();
+    error FailedToDeleteTokenID();
+    error AdminTokenMintToZeroAddressIsNotAllowed();
+    error OnlyASingleAdminTokenIsAllowedForASingleControlledToken();
+    error OnlyOwnerOfTheTokenIsAllowedToBurnIt();
+    error SenderCanNotBeAZeroAddress();
+    error ReceiverCanNotBeAZeroAddress();
 
     /// @dev Checks if caller is a factory address
     modifier onlyFactory() {
-        require(
-            msg.sender == _factoryAddress,
-            "BentureAdmin: caller is not a factory!"
-        );
+        if (msg.sender != _factoryAddress) {
+            revert CallerIsNotAFactory();
+        }
         _;
     }
 
@@ -45,23 +60,20 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
     constructor(
         address factoryAddress_
     ) ERC721("Benture Manager Token", "BMNG") {
-        require(
-            factoryAddress_ != address(0),
-            "BentureAdmin: factory address can not be zero address!"
-        );
+        if (factoryAddress_ == address(0)) {
+            revert FactoryAddressCanNotBeZeroAddress();
+        }
         _factoryAddress = factoryAddress_;
     }
 
     /// @notice Checks it the provided address owns any admin token
     function checkOwner(address user) external view {
-        require(
-            user != address(0),
-            "BentureAdmin: zero address is an invalid user!"
-        );
-        require(
-            _holderToIds[user].length() != 0,
-            "BentureAdmin: user does not have an admin token!"
-        );
+        if (user == address(0)) {
+            revert ZeroAddressIsAnInvalidUser();
+        }
+        if (_holderToIds[user].length() == 0) {
+            revert UserDoesNotHaveAnAdminToken();
+        }
     }
 
     /// @notice Checks if the provided user owns an admin token controlling the provided ERC20 token
@@ -72,14 +84,12 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
         address user,
         address ERC20Address
     ) external view returns (bool) {
-        require(
-            user != address(0),
-            "BentureAdmin: user can not have a zero address!"
-        );
-        require(
-            ERC20Address != address(0),
-            "BentureAdmin: token can not have a zero address!"
-        );
+        if (user == address(0)) {
+            revert UserCanNotHaveAZeroAddress();
+        }
+        if (ERC20Address == address(0)) {
+            revert TokenCanNotHaveAZeroAddress();
+        }
         // Get the ID of the admin token for the provided ERC20 token address
         // No need to check if ID is 0 here
         uint256 id = _controlledToAdmin[ERC20Address];
@@ -96,10 +106,9 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
     function getControlledAddressById(
         uint256 tokenId
     ) external view returns (address) {
-        require(
-            _adminToControlled[tokenId] != address(0),
-            "BentureAdmin: no controlled token exists for this admin token!"
-        );
+        if ( _adminToControlled[tokenId] == address(0)) {
+            revert NoControlledTokenExistsForThisAdminToken();
+        }
         _requireMinted(tokenId);
 
         return _adminToControlled[tokenId];
@@ -110,10 +119,9 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
     function getAdminTokenIds(
         address admin
     ) external view returns (uint256[] memory) {
-        require(
-            admin != address(0),
-            "BentureAdmin: admin address can not be a zero address!"
-        );
+        if (admin == address(0)) {
+            revert AdminAddressCanNotBeAZeroAddress();
+        }
         return _holderToIds[admin].values();
     }
 
@@ -130,10 +138,9 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
         uint256 tokenId,
         address ERC20Address
     ) internal onlyFactory {
-        require(
-            ERC20Address != address(0),
-            "BentureAdmin: controlled token can not have a zero address!"
-        );
+        if (ERC20Address == address(0)) {
+            revert ControlledTokenCanNotHaveAZeroAddress();
+        }
         _requireMinted(tokenId);
         _adminToControlled[tokenId] = ERC20Address;
         _controlledToAdmin[ERC20Address] = tokenId;
@@ -144,7 +151,9 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
     /// @param tokenId The ID of the admin token to delete
     function deleteOneId(address admin, uint256 tokenId) internal {
         bool removed = _holderToIds[admin].remove(tokenId);
-        require(removed, "BentureAdmin: faild to delete token id!");
+        if (!removed) {
+            revert FailedToDeleteTokenID();
+        }
     }
 
     /// @notice Mints a new ERC721 token with the address of the controlled ERC20 token
@@ -154,18 +163,15 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
         address to,
         address ERC20Address
     ) external onlyFactory {
-        require(
-            to != address(0),
-            "BentureAdmin: admin token mint to zero address is not allowed!"
-        );
-        require(
-            ERC20Address != address(0),
-            "BentureAdmin: controlled token can not have a zero address!"
-        );
-        require(
-            !_usedControlled[ERC20Address],
-            "BentureAdmin: only a single admin token is allowed for a single controlled token!"
-        );
+        if (to == address(0)) {
+            revert AdminTokenMintToZeroAddressIsNotAllowed();
+        }
+        if (ERC20Address == address(0)) {
+            revert ControlledTokenCanNotHaveAZeroAddress();;
+        }
+        if (_usedControlled[ERC20Address]) {
+            revert OnlyASingleAdminTokenIsAllowedForASingleControlledToken();
+        }
         _tokenIds.increment();
         // NOTE The lowest token ID is 1
         uint256 tokenId = _tokenIds.current();
@@ -186,10 +192,9 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
     /// @notice Burns the token with the provided ID
     /// @param tokenId The ID of the token to burn
     function burn(uint256 tokenId) external {
-        require(
-            ownerOf(tokenId) == msg.sender,
-            "BentureAdmin: only owner of the token is allowed to burn it!"
-        );
+        if (ownerOf(tokenId) != msg.sender) {
+            revert OnlyOwnerOfTheTokenIsAllowedToBurnIt();
+        }
         _requireMinted(tokenId);
         // NOTE: `delete` does not change the length of any array. It replaces a "deleted" item
         //        with a default value
@@ -213,14 +218,12 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
         address to,
         uint256 tokenId
     ) internal override {
-        require(
-            from != address(0),
-            "BentureAdmin: sender can not be a zero address!"
-        );
-        require(
-            to != address(0),
-            "BentureAdmin: receiver can not be a zero address!"
-        );
+        if (from == address(0)) {
+            revert SenderCanNotBeAZeroAddress();
+        }
+        if (to == address(0)) {
+            revert ReceiverCanNotBeAZeroAddress();
+        }
         _requireMinted(tokenId);
         // No need to check if sender has any admin tokens here because it is checked
         // in higher-level ERC721 functions such as `transferFrom` and `_safeTransfer`
