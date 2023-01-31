@@ -4,7 +4,7 @@ const { expect } = require("chai");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { parseUnits, parseEther } = ethers.utils;
 
-describe("Benture Dividend-Paying Token", () => {
+describe("Benture Dividend-Distributing Contract", () => {
     let benture;
     let origToken;
     let adminToken;
@@ -33,7 +33,7 @@ describe("Benture Dividend-Paying Token", () => {
         let adminTx = await ethers.getContractFactory("BentureAdmin");
         adminToken = await adminTx.deploy(factory.address);
         await adminToken.deployed();
-        
+
         // Deploy dividend-distribution contract
         let bentureTx = await ethers.getContractFactory("Benture");
         benture = await bentureTx.deploy(factory.address);
@@ -93,7 +93,7 @@ describe("Benture Dividend-Paying Token", () => {
 
     // TODO make all tests
     describe("ERC20 dividends", () => {
-        xdescribe("Equal dividends", () => {
+        describe("Equal dividends", () => {
             it("Distribute equal and claim" , async () => {
                 let pool = await benture.getPool(origToken.address)
                 let expectedPool = [origToken.address, 0, 0]
@@ -102,7 +102,7 @@ describe("Benture Dividend-Paying Token", () => {
                 await origToken.mint(clientAcc1.address, 1000)
                 await origToken.mint(clientAcc2.address, 1000)
                 await distToken.mint(benture.address, 1000)
-                
+
                 expect(await origToken.balanceOf(clientAcc1.address)).to.be.equal(1000)
                 expect(await origToken.balanceOf(clientAcc2.address)).to.be.equal(1000)
 
@@ -127,7 +127,7 @@ describe("Benture Dividend-Paying Token", () => {
 
                 expect(lockers.toString()).to.be.equal(expectedLockers.toString())
 
-                
+
                 expect(await origToken.balanceOf(clientAcc1.address)).to.be.equal(400)
                 expect(await origToken.balanceOf(clientAcc2.address)).to.be.equal(600)
 
@@ -136,7 +136,7 @@ describe("Benture Dividend-Paying Token", () => {
                 await benture.distributeDividends(origToken.address, distToken.address, 1000, true)
 
                 let result = await benture.getDistribution(1)
-                
+
                 let expected = [
                     BigNumber.from("1"),
                     origToken.address,
@@ -192,7 +192,7 @@ describe("Benture Dividend-Paying Token", () => {
 
                 await benture.distributeDividends(origToken.address, distToken.address, 1000, true)
 
-                
+
                 await benture.connect(clientAcc2).claimMultipleDividends([1,2])
 
                 expect(await distToken.balanceOf(clientAcc1.address)).to.be.equal(500)
@@ -200,7 +200,7 @@ describe("Benture Dividend-Paying Token", () => {
             })
         });
 
-        xdescribe("Weighted dividends", () => {
+        describe("Weighted dividends", () => {
             it("Distribute weighted and claim" , async () => {
                 let pool = await benture.getPool(origToken.address)
                 let expectedPool = [origToken.address, 0, 0]
@@ -209,7 +209,7 @@ describe("Benture Dividend-Paying Token", () => {
                 await origToken.mint(clientAcc1.address, 1000)
                 await origToken.mint(clientAcc2.address, 1000)
                 await distToken.mint(benture.address, 1000)
-                
+
                 expect(await origToken.balanceOf(clientAcc1.address)).to.be.equal(1000)
                 expect(await origToken.balanceOf(clientAcc2.address)).to.be.equal(1000)
 
@@ -234,7 +234,7 @@ describe("Benture Dividend-Paying Token", () => {
 
                 expect(lockers.toString()).to.be.equal(expectedLockers.toString())
 
-                
+
                 expect(await origToken.balanceOf(clientAcc1.address)).to.be.equal(400)
                 expect(await origToken.balanceOf(clientAcc2.address)).to.be.equal(600)
 
@@ -243,7 +243,7 @@ describe("Benture Dividend-Paying Token", () => {
                 await benture.distributeDividends(origToken.address, distToken.address, 1000, false)
 
                 let result = await benture.getDistribution(1)
-                
+
                 let expected = [
                     BigNumber.from("1"),
                     origToken.address,
@@ -299,7 +299,7 @@ describe("Benture Dividend-Paying Token", () => {
 
                 await benture.distributeDividends(origToken.address, distToken.address, 1000, false)
 
-                
+
                 await benture.connect(clientAcc2).claimMultipleDividends([1,2])
 
                 expect(await distToken.balanceOf(clientAcc1.address)).to.be.equal(600)
@@ -363,20 +363,20 @@ describe("Benture Dividend-Paying Token", () => {
             expect(await distToken.balanceOf(clientAcc2.address)).to.be.equal(0)
 
             await benture.distributeDividends(origToken.address, distToken.address, 1000, true)
-            
+
             await benture.connect(clientAcc2).claimMultipleDividendsAndUnlock([1,2], origToken.address)
 
             expect(await benture.isLocker(origToken.address, clientAcc2.address)).to.be.equal(false)
 
             expect(await distToken.balanceOf(clientAcc1.address)).to.be.equal(500)
-            expect(await distToken.balanceOf(clientAcc2.address)).to.be.equal(10000)
+            expect(await distToken.balanceOf(clientAcc2.address)).to.be.equal(1000)
         })
 
         it("Dist tokens equally with uneven balance" , async () => {
             await origToken.mint(clientAcc1.address, 1000)
             await origToken.mint(clientAcc2.address, 1000)
             await origToken.mint(clientAcc3.address, 1000)
-            await distToken.mint(benture.address, 1000)
+
 
             await origToken.connect(clientAcc1).approve(benture.address, 1000)
             await origToken.connect(clientAcc2).approve(benture.address, 1000)
@@ -398,15 +398,14 @@ describe("Benture Dividend-Paying Token", () => {
 
             expect(await distToken.balanceOf(clientAcc1.address)).to.be.equal(333)
             expect(await distToken.balanceOf(clientAcc2.address)).to.be.equal(333)
-            expect(await distToken.balanceOf(clientAcc2.address)).to.be.equal(333)
+            expect(await distToken.balanceOf(clientAcc3.address)).to.be.equal(333)
             expect(await distToken.balanceOf(benture.address)).to.be.equal(1)
         })
 
-        xit("Change dist ratio when lock more tokens" , async () => {
+        it("Change dist ratio when lock more tokens" , async () => {
             await origToken.mint(clientAcc1.address, 1000)
             await origToken.mint(clientAcc2.address, 1000)
             await origToken.mint(clientAcc3.address, 1000)
-            await distToken.mint(benture.address, 10000)
 
             await origToken.connect(clientAcc1).approve(benture.address, 1000)
             await origToken.connect(clientAcc2).approve(benture.address, 1000)
@@ -418,6 +417,7 @@ describe("Benture Dividend-Paying Token", () => {
 
             expect(await benture.isLocker(origToken.address, clientAcc1.address)).to.be.equal(true)
             expect(await benture.isLocker(origToken.address, clientAcc2.address)).to.be.equal(true)
+            expect(await benture.isLocker(origToken.address, clientAcc3.address)).to.be.equal(true)
 
             await benture.distributeDividends(origToken.address, distToken.address, 1000, false)
 
@@ -463,7 +463,7 @@ describe("Benture Dividend-Paying Token", () => {
             expect(await distToken.balanceOf(clientAcc2.address)).to.be.equal(1300)
 
             expect(await benture.getCurrentLock(origToken.address, clientAcc1.address)).to.be.equal(600)
-            expect(await benture.getCurrentLock(origToken.address, clientAcc2.address)).to.be.equal(400)  
+            expect(await benture.getCurrentLock(origToken.address, clientAcc2.address)).to.be.equal(400)
         })
     });
 
@@ -475,7 +475,7 @@ describe("Benture Dividend-Paying Token", () => {
 
             await origToken.mint(clientAcc1.address, 1000)
             await origToken.mint(clientAcc2.address, 1000)
-            
+
             expect(await origToken.balanceOf(clientAcc1.address)).to.be.equal(1000)
             expect(await origToken.balanceOf(clientAcc2.address)).to.be.equal(1000)
 
@@ -500,7 +500,7 @@ describe("Benture Dividend-Paying Token", () => {
 
             expect(lockers.toString()).to.be.equal(expectedLockers.toString())
 
-            
+
             expect(await origToken.balanceOf(clientAcc1.address)).to.be.equal(400)
             expect(await origToken.balanceOf(clientAcc2.address)).to.be.equal(600)
 
@@ -512,7 +512,7 @@ describe("Benture Dividend-Paying Token", () => {
             await benture.distributeDividends(origToken.address, zeroAddress, "10000000000000000000", true, {value: "10000000000000000000"})
 
             let result = await benture.getDistribution(1)
-            
+
             let expected = [
                 BigNumber.from("1"),
                 origToken.address,
@@ -538,11 +538,6 @@ describe("Benture Dividend-Paying Token", () => {
             expect(await benture.hasClaimed(1, clientAcc1.address)).to.be.equal(true)
             expect(await benture.hasClaimed(1, clientAcc2.address)).to.be.equal(true)
 
-            console.log("Native Tokens ACC1 Balance Before Claim: ", acc1BalanceBefore)
-            console.log("Native Tokens ACC1 Balance After Claim: ", await ethers.provider.getBalance(clientAcc1.address))
-
-            console.log("Native Tokens ACC2 Balance Before Claim: ", acc2BalanceBefore)
-            console.log("Native Tokens ACC2 Balance After Claim: ", await ethers.provider.getBalance(clientAcc2.address))
         })});
 
         describe("Weighted dividends", () => {});
@@ -553,7 +548,7 @@ describe("Benture Dividend-Paying Token", () => {
             await expect(benture.connect(clientAcc1).createPool(distToken.address)).to.be.revertedWith("Benture: caller is neither admin nor factory!")
         });
 
-        xit("Should revert createPool with Benture: caller is neither admin nor factory!", async () => {
+        it("Should revert createPool with Benture: caller is neither admin nor factory!", async () => {
             await expect(benture.connect(ownerAcc).createPool(zeroAddress)).to.be.revertedWith("Benture: caller is neither admin nor factory!")
         });
 
