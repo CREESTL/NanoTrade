@@ -13,6 +13,8 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
+import "hardhat/console.sol";
+
 /// @title Dividends distributing contract
 contract Benture is IBenture, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
@@ -31,6 +33,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // The amount of locked tokens
         uint256 totalLocked;
         // Mapping from user address to his last lock amount (current one)
+        // Could be 0 if user has unlocked all his tokens
         mapping(address => uint256) lastLock;
         // Mapping from user address to distribution ID to locked tokens amount
         // Shows "to what amount was the user's locked changed before the distribution with the given ID"
@@ -74,8 +77,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         uint256 formulaLocked;
         // The number of calls of `claimDividends` function
         uint256 numCalls;
-        // Current status of distribution
-        DistStatus status;
     }
 
     /// @notice Address of the factory used for projects creation
@@ -93,7 +94,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     mapping(address => uint256[]) internal adminsToDistributions;
     /// @dev Mapping from distribution ID to the distribution
     mapping(uint256 => Distribution) distributions;
-    
+
     error NativeTokenDividendsTransferFailed();
     error PoolsCanNotHoldZeroAddressTokens();
     error PoolAlreadyExists();
@@ -117,26 +118,27 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     error AdminCanNotHaveAZeroAddress();
     error IDOfDistributionMustBeGreaterThanOne();
     error DistributionWithTheGivenIDHasNotBeenAnnoucedYet();
+    error DistriburionNotContainTokenToWithdraw();
 
     /// @dev Checks that caller is either an admin of a project or a factory
     modifier onlyAdminOrFactory(address token) {
         // If caller is neither a factory nor an admin - revert
         if (
-            !(token == factory) &&
-            !(IBentureAdmin(token).verifyAdminToken(msg.sender, token) == true)
+            !(msg.sender == factory) &&
+            !(IBentureProducedToken(token).verifiedAdmin(msg.sender) == true)
         ) {
             revert("Benture: caller is neither admin nor factory!");
         }
         _;
     }
 
-    /// @dev Checks that caller is an admin of a project
+/*     /// @dev Checks that caller is an admin of a project
     modifier onlyAdmin(address token) {
         if (IBentureAdmin(token).verifyAdminToken(msg.sender, token) == false) {
             revert("Benture: caller is not an admin!");
         }
         _;
-    }
+    } */
 
     /// @dev The contract must be able to receive ether to pay dividends with it
     receive() external payable {}
@@ -275,6 +277,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
 
         // Decrease the amount of locked tokens
         pool.lockHistory[msg.sender][distributionIds.current() + 1] -= amount;
+        pool.totalLocked -= amount;
         // Mark that the lock amount was changed before the next distribution
         // NOTE: These is no need to check if set already contain the ID because
         //       it's done in the `add` method implicitly
@@ -302,9 +305,9 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @notice Unlocks all locked tokens of the user in the pool
     /// @param origToken The address of the token to unlock
     function unlockAllTokens(address origToken) public {
-        uint256 wholeBalance = IBentureProducedToken(origToken).balanceOf(
-            msg.sender
-        );
+        // Get the last lock of the user
+        uint256 wholeBalance = pools[origToken].lastLock[msg.sender];
+        // Unlock that amount (could be 0)
         unlockTokens(origToken, wholeBalance);
     }
 
@@ -367,7 +370,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // `hasClaimed` is initialized with default value
         newDistribution.formulaLockers = pools[origToken].lockers.length();
         newDistribution.formulaLocked = pools[origToken].totalLocked;
-        newDistribution.status = DistStatus.inProgress;
     }
 
     /// @dev Searches for the distribution that has an ID less than the `id`
@@ -520,8 +522,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // than we can say that the distribution was fulfilled
         if (distribution.numCalls == distribution.formulaLockers) {
             emit DividendsFulfilled(id);
-
-            distribution.status = DistStatus.fulfilled;
         }
         // Increment the number of calls of this function
         distribution.numCalls++;
@@ -535,8 +535,9 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             }
         } else {
             // Send ERC20 tokens
-            IERC20(distribution.distToken).safeTransferFrom(
-                address(this),
+            //TODO check if it works well
+            IERC20(distribution.distToken).safeTransfer(
+                //address(this),
                 msg.sender,
                 share
             );
@@ -547,7 +548,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     ///         WARNING: Potentially can exceed block gas limit!
     /// @param ids The array of IDs of distributions to claim
     function claimMultipleDividends(uint256[] calldata ids) public {
-        uint256 gasToSpend = (gasleft() * 2) / 3;
+        uint256 gasToSpend = (block.gaslimit * 2) / 3;
         uint256 lastID = 0;
 
         for (uint i = 0; i < ids.length; i++) {
@@ -566,13 +567,16 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     ///         and unlock his tokens after that
     ///         WARNING: Potentially can exceed block gas limit!
     /// @param ids The array of IDs of distributions to claim
-    function claimMultipleDividendsAndUnlock(uint256[] calldata ids) public {
-        uint256 gasToSpend = (gasleft() * 2) / 3;
+    /// @param tokenToWithdraw Token to unlock
+    function claimMultipleDividendsAndUnlock(uint256[] calldata ids, address tokenToWithdraw) public {
+        uint256 gasToSpend = (block.gaslimit * 2) / 3;
         uint256 lastID = 0;
 
         for (uint i = 0; i < ids.length; i++) {
+            if (tokenToWithdraw != distributions[ids[i]].origToken) {
+                    revert DistriburionNotContainTokenToWithdraw();
+                }
             claimDividends(ids[i]);
-            //unlockAllTokens(distributions[ids[i]].origToken);
             if(gasleft() <= gasToSpend) {
                 lastID = i;
                 break;
@@ -626,7 +630,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         }
         // User is a locker if his lock is not a zero and he is in the lockers list
         return
-            (pools[token].lastLock[msg.sender] != 0) &&
+            (pools[token].lastLock[user] != 0) &&
             (pools[token].lockers.contains(user));
     }
 
@@ -668,7 +672,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     )
         public
         view
-        returns (uint256, address, address, uint256, bool, DistStatus)
+        returns (uint256, address, address, uint256, bool)
     {
         if (id < 1) {
             revert IDOfDistributionMustBeGreaterThanOne();
@@ -682,8 +686,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             distribution.origToken,
             distribution.distToken,
             distribution.amount,
-            distribution.isEqual,
-            distribution.status
+            distribution.isEqual
         );
     }
 

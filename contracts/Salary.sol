@@ -152,10 +152,21 @@ contract Salary is ISalary {
         employeeToAdmins[employeeAddress].remove(msg.sender);
     }
 
+    function withdrawAllSalaries() external {
+        uint256 adminsLength = employeeToAdmins[msg.sender].length();
+        uint256 salariesLength; 
+        for (uint256 i = 0; i < adminsLength; i++) {
+            salariesLength = employeeToAdminToSalaryId[msg.sender][employeeToAdmins[msg.sender].at(i)].length();
+            for (uint256 k = 0; k < salariesLength; k++) {
+                withdrawSalary(employeeToAdminToSalaryId[msg.sender][employeeToAdmins[msg.sender].at(i)].at(k));
+            }
+        }
+    }
+
     /// @notice Withdraws employee's salary.
     /// @param salaryId IDs of employee salaries.
     /// @dev Anyone can call this method. No restrictions.
-    function withdrawSalary(uint256 salaryId) external {
+    function withdrawSalary(uint256 salaryId) public {
         SalaryInfo storage _salary = salaryById[salaryId];
         if (_salary.employee != msg.sender) {
             revert NotEmployeeForThisSalary();

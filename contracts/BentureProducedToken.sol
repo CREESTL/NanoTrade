@@ -25,6 +25,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
     error TheTokenIsNotMintable();
     error UserDoesNotHaveAnAdminToken();
     error InitialTokenNameCanNotBeEmpty();
+    error InitialTokenSymbolCanNotBeEmpty();
     error InitialDecimalsCanNotBeZero();
     error AdminTokenAddressCanNotBeAZeroAddress();
     error MaxTotalSupplyMustBeZeroForUnmintableTokens();
@@ -37,7 +38,6 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
     error ReceiverCanNotBeAZeroAddress();
     error SenderCanNotBeAReceiver();
     error SenderDoesNotHaveAnyTokensToTransfer();
-    error InitialTokenSymbolCanNotBeEmpty();
 
     /// @dev Checks if mintability is activated
     modifier WhenMintable() {
@@ -107,6 +107,17 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         _mintable = mintable_;
         _maxTotalSupply = maxTotalSupply_;
         _adminToken = adminToken_;
+    }
+
+    function verifiedAdmin(address user) external view returns(bool) {
+        if (!IBentureAdmin(_adminToken).verifyAdminToken(
+                user,
+                address(this)
+            )) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     /// @notice Returns the name of the token

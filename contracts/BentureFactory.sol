@@ -15,7 +15,9 @@ contract BentureFactory is IBentureFactory {
 
     address private bentureAddress;
 
-    constructor (address bentureAddress_) {
+    error BentureAddressIsZero();
+
+    function setBentureAddress(address bentureAddress_) external {
         bentureAddress = bentureAddress_;
     }
 
@@ -41,6 +43,10 @@ contract BentureFactory is IBentureFactory {
         uint256 maxTotalSupply,
         address adminToken_
     ) external {
+        if (bentureAddress == address(0)) {
+            revert BentureAddressIsZero();
+        }
+
         BentureProducedToken newToken = new BentureProducedToken(
             name,
             symbol,
@@ -49,8 +55,6 @@ contract BentureFactory is IBentureFactory {
             maxTotalSupply,
             adminToken_
         );
-
-        IBenture(bentureAddress).createPool(address(newToken));
 
         emit CreateERC20Token(
             name,
@@ -68,5 +72,7 @@ contract BentureFactory is IBentureFactory {
             msg.sender,
             address(newToken)
         );
+
+        IBenture(bentureAddress).createPool(address(newToken));
     }
 }

@@ -18,6 +18,13 @@ describe("Benture Produced Token", () => {
         factory = await factoryTx.deploy();
         await factory.deployed();
 
+        // Deploy dividend-distribution contract
+        let bentureTx = await ethers.getContractFactory("Benture");
+        benture = await bentureTx.deploy(factory.address);
+        await benture.deployed();
+
+        await factory.setBentureAddress(benture.address);
+
         // Deploy an admin token (ERC721)
         let adminTx = await ethers.getContractFactory("BentureAdmin");
         adminToken = await adminTx.deploy(factory.address);
@@ -125,15 +132,17 @@ describe("Benture Produced Token", () => {
             let amount = 1_000_000_000;
             await expect(
                 token.mint(clientAcc1.address, amount)
-            ).to.be.revertedWith(
-                "BentureProducedToken: supply exceeds maximum supply!"
+            ).to.be.revertedWithCustomError(
+                token,
+                "SupplyExceedsMaximumSupply"
             );
         });
 
         it("Should fail to mint to zero address", async () => {
             let amount = 1000;
-            await expect(token.mint(zeroAddress, amount)).to.be.revertedWith(
-                "BentureProducedToken: can not mint to zero address!"
+            await expect(token.mint(zeroAddress, amount)).to.be.revertedWithCustomError(
+                token,
+                "CanNotMintToZeroAddress"
             );
         });
 
@@ -141,8 +150,9 @@ describe("Benture Produced Token", () => {
             let amount = 1000;
             await expect(
                 token.connect(clientAcc1).mint(clientAcc2.address, amount)
-            ).to.be.revertedWith(
-                "BentureProducedToken: user does not have an admin token!"
+            ).to.be.revertedWithCustomError(
+                token,
+                "UserDoesNotHaveAnAdminToken"
             );
         });
 
@@ -155,8 +165,9 @@ describe("Benture Produced Token", () => {
             // Try to call mint funcion from owner account
             await expect(
                 token.connect(ownerAcc).mint(clientAcc1.address, amount)
-            ).to.be.revertedWith(
-                "BentureProducedToken: user does not have an admin token!"
+            ).to.be.revertedWithCustomError(
+                token,
+                "UserDoesNotHaveAnAdminToken"
             );
         });
 
@@ -180,8 +191,9 @@ describe("Benture Produced Token", () => {
             let amount = 1000;
             await expect(
                 newToken.mint(clientAcc2.address, amount)
-            ).to.be.revertedWith(
-                "BentureProducedToken: the token is not mintable!"
+            ).to.be.revertedWithCustomError(
+                token,
+                "TheTokenIsNotMintable"
             );
         });
 
@@ -233,8 +245,9 @@ describe("Benture Produced Token", () => {
             let amount = 1000;
             await expect(
                 token.connect(clientAcc1).burn(amount)
-            ).to.be.revertedWith(
-                "BentureProducedToken: caller does not have any tokens to burn!"
+            ).to.be.revertedWithCustomError(
+                token,
+                "CallerDoesNotHaveAnyTokensToBurn"
             );
         });
 
@@ -242,8 +255,9 @@ describe("Benture Produced Token", () => {
             let amount = 0;
             await expect(
                 token.connect(clientAcc1).burn(amount)
-            ).to.be.revertedWith(
-                "BentureProducedToken: the amount of tokens to burn must be greater than zero!"
+            ).to.be.revertedWithCustomError(
+                token,
+                "TheAmountOfTokensToBurnMustBeGreaterThanZero"
             );
         });
 
@@ -341,8 +355,9 @@ describe("Benture Produced Token", () => {
             await token.mint(clientAcc1.address, amount);
             await expect(
                 token.connect(clientAcc1).transfer(clientAcc1.address, amount)
-            ).to.be.revertedWith(
-                "BentureProducedToken: sender can not be a receiver!"
+            ).to.be.revertedWithCustomError(
+                token,
+                "SenderCanNotBeAReceiver"
             );
         });
 
@@ -351,8 +366,9 @@ describe("Benture Produced Token", () => {
             await token.mint(clientAcc1.address, amount);
             await expect(
                 token.connect(clientAcc1).transfer(zeroAddress, amount)
-            ).to.be.revertedWith(
-                "BentureProducedToken: receiver can not be a zero address!"
+            ).to.be.revertedWithCustomError(
+                token,
+                "ReceiverCanNotBeAZeroAddress"
             );
         });
 
@@ -360,8 +376,9 @@ describe("Benture Produced Token", () => {
             let amount = 1000;
             await expect(
                 token.connect(clientAcc1).transfer(clientAcc2.address, amount)
-            ).to.be.revertedWith(
-                "BentureProducedToken: sender does not have any tokens to transfer!"
+            ).to.be.revertedWithCustomError(
+                token,
+                "SenderDoesNotHaveAnyTokensToTransfer"
             );
         });
     });
@@ -377,8 +394,9 @@ describe("Benture Produced Token", () => {
                     1_000_000,
                     adminToken.address
                 )
-            ).to.be.revertedWith(
-                "BentureProducedToken: initial token name can not be empty!"
+            ).to.be.revertedWithCustomError(
+                token,
+                "InitialTokenNameCanNotBeEmpty"
             );
         });
 
@@ -392,8 +410,9 @@ describe("Benture Produced Token", () => {
                     1_000_000,
                     adminToken.address
                 )
-            ).to.be.revertedWith(
-                "BentureProducedToken: initial token symbol can not be empty!"
+            ).to.be.revertedWithCustomError(
+                token,
+                "InitialTokenSymbolCanNotBeEmpty"
             );
         });
 
@@ -407,8 +426,9 @@ describe("Benture Produced Token", () => {
                     1_000_000,
                     adminToken.address
                 )
-            ).to.be.revertedWith(
-                "BentureProducedToken: initial decimals can not be zero!"
+            ).to.be.revertedWithCustomError(
+                token,
+                "InitialDecimalsCanNotBeZero"
             );
         });
 
@@ -422,8 +442,9 @@ describe("Benture Produced Token", () => {
                     1_000_000,
                     zeroAddress
                 )
-            ).to.be.revertedWith(
-                "BentureProducedToken: admin token address can not be a zero address!"
+            ).to.be.revertedWithCustomError(
+                token,
+                "AdminTokenAddressCanNotBeAZeroAddress"
             );
         });
 
@@ -437,8 +458,9 @@ describe("Benture Produced Token", () => {
                     1_000_000,
                     adminToken.address
                 )
-            ).to.be.revertedWith(
-                "BentureProducedToken: max total supply must be zero for unmintable tokens!"
+            ).to.be.revertedWithCustomError(
+                token,
+                "MaxTotalSupplyMustBeZeroForUnmintableTokens"
             );
         });
     });

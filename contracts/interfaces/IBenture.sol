@@ -6,12 +6,6 @@ pragma solidity ^0.8.9;
 
 /// @dev An interface for dividends distributing contract
 interface IBenture {
-    /// @dev Status of a distribution
-    enum DistStatus {
-        inProgress,
-        fulfilled
-    }
-
     /// @notice Creates a new pool
     /// @param token The token that will be locked in the pool
     function createPool(address token) external;
@@ -60,7 +54,8 @@ interface IBenture {
     ///         and unlock his tokens after that
     ///         WARNING: Potentially can exceed block gas limit!
     /// @param ids The array of IDs of distributions to claim
-    function claimMultipleDividendsAndUnlock(uint256[] calldata ids) external;
+    /// @param tokenToWithdraw Address of token to withdraw
+    function claimMultipleDividendsAndUnlock(uint256[] calldata ids, address tokenToWithdraw) external;
 
     /// @notice Returns info about the pool of a given token
     /// @param token The address of the token of the pool
@@ -106,7 +101,7 @@ interface IBenture {
     )
         external
         view
-        returns (uint256, address, address, uint256, bool, DistStatus);
+        returns (uint256, address, address, uint256, bool);
 
     /// @notice Checks if user has claimed dividends of the provided distribution
     /// @param id The ID of the distribution to check

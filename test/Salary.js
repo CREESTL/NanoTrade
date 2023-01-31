@@ -32,6 +32,13 @@ describe("Salary", () => {
         adminToken = await adminTx.deploy(factory.address);
         await adminToken.deployed();
 
+        // Deploy dividend-distribution contract
+        let bentureTx = await ethers.getContractFactory("Benture");
+        benture = await bentureTx.deploy(factory.address);
+        await benture.deployed();
+
+        await factory.setBentureAddress(benture.address);
+
         // Create new ERC20 and ERC721 and assign them to caller (owner)
         await factory.createERC20Token(
             "Dummy",
@@ -49,11 +56,6 @@ describe("Salary", () => {
             "BentureProducedToken",
             origTokenAddress
         );
-
-        // Deploy dividend-distribution contract
-        let bentureTx = await ethers.getContractFactory("Benture");
-        benture = await bentureTx.deploy(factory.address);
-        await benture.deployed();
 
         // Deploy another ERC20 in order to have a distToken
         await factory.createERC20Token(
@@ -455,6 +457,52 @@ describe("Salary", () => {
             expect(await mockERC20.balanceOf(adminAcc1.address)).to.be.equal(
                 initOwnerBalance - expectedBalance
             );
+        });
+
+        it("Should let withdraw all salaries to Employee", async () => {
+            let initOwnerBalance = 2400;
+            await mockERC20.mint(adminAcc1.address, initOwnerBalance);
+            await mockERC20.approve(salary.address, initOwnerBalance);
+
+            await mockERC20.connect(adminAcc1).mint(adminAcc2.address, initOwnerBalance);
+            await mockERC20.connect(adminAcc2).approve(salary.address, initOwnerBalance);
+
+            await salary.addEmployee(clientAcc1.address);
+            await salary.connect(adminAcc2).addEmployee(clientAcc1.address);
+            let periodDuration = 60;
+            let amountOfPeriods = 10;
+            let tokenAddress = mockERC20.address;
+            let tokensAmountPerPeriod = [
+                60, 60, 60, 60, 60, 60, 60, 60, 60, 60,
+            ];
+            await salary.addSalaryToEmployee(
+                clientAcc1.address,
+                periodDuration,
+                amountOfPeriods,
+                tokenAddress,
+                tokensAmountPerPeriod
+            );
+
+            await salary.addSalaryToEmployee(
+                clientAcc1.address,
+                periodDuration,
+                amountOfPeriods,
+                tokenAddress,
+                tokensAmountPerPeriod
+            );
+
+            await salary.connect(adminAcc2).addSalaryToEmployee(
+                clientAcc1.address,
+                periodDuration,
+                amountOfPeriods,
+                tokenAddress,
+                tokensAmountPerPeriod
+            );
+
+            //Already spent 1 sec
+            await increaseTime(300);
+            await salary.connect(clientAcc1).withdrawAllSalaries();
+            console.log(await mockERC20.balanceOf(clientAcc1.address))
         });
 
         it("Should let withdraw salary to Employee through Employee removal", async () => {
@@ -1667,7 +1715,7 @@ describe("Salary", () => {
     });
 
     describe("Salary reverts", () => {
-        it("Should revert addPeriodsToSalary with Salary: not enough tokens allowed!", async () => {
+        it("Should revert addPeriodsToSalary with NotEnoughTokensAllowed", async () => {
             let initOwnerBalance = 909;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -1692,11 +1740,13 @@ describe("Salary", () => {
             await salary.connect(clientAcc1).withdrawSalary(1);
             await expect(
                 salary.addPeriodsToSalary(1, [110, 120, 130])
-            ).to.be.revertedWith("Salary: not enough tokens allowed!");
+            ).to.be.revertedWithCustomError(
+                salary,
+                "NotEnoughTokensAllowed");
             await increaseTime(30);
         });
 
-        it("Should revert addPeriodsToSalary with Salary: not an admin for employee!", async () => {
+        it("Should revert addPeriodsToSalary with NotAnAdminForEmployee", async () => {
             let initOwnerBalance = 910;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -1721,11 +1771,13 @@ describe("Salary", () => {
             await salary.connect(clientAcc1).withdrawSalary(1);
             await expect(
                 salary.connect(adminAcc2).addPeriodsToSalary(1, [110, 120, 130])
-            ).to.be.revertedWith("Salary: not an admin for employee!");
+            ).to.be.revertedWithCustomError(
+                salary,
+                "NotAnAdminForEmployee");
             await increaseTime(30);
         });
 
-        it("Should revert removePeriodsFromSalary with Salary: not an admin for employee!", async () => {
+        it("Should revert removePeriodsFromSalary with NotAnAdminForEmployee", async () => {
             let initOwnerBalance = 910;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -1750,55 +1802,65 @@ describe("Salary", () => {
             await salary.connect(clientAcc1).withdrawSalary(1);
             await expect(
                 salary.connect(adminAcc2).removePeriodsFromSalary(1, 1)
-            ).to.be.revertedWith("Salary: not an admin for employee!");
+            ).to.be.revertedWithCustomError(
+                salary,
+                "NotAnAdminForEmployee");
             await increaseTime(30);
         });
 
-        it("Should revert setNameToEmployee with BentureAdmin: user does not have an admin token!", async () => {
+        it("Should revert setNameToEmployee with UserDoesNotHaveAnAdminToken", async () => {
             await salary.addEmployee(clientAcc1.address);
             await expect(
                 salary
                     .connect(clientAcc1)
                     .setNameToEmployee(clientAcc1.address, "Alice")
-            ).to.be.revertedWith(
-                "BentureAdmin: user does not have an admin token!"
+            ).to.be.revertedWithCustomError(
+                adminToken,
+                "UserDoesNotHaveAnAdminToken"
             );
         });
 
-        it("Should revert setNameToEmployee with Salary: empty name!", async () => {
+        it("Should revert setNameToEmployee with EmptyName", async () => {
             await salary.addEmployee(clientAcc1.address);
             await expect(
                 salary.setNameToEmployee(clientAcc1.address, "")
-            ).to.be.revertedWith("Salary: empty name!");
+            ).to.be.revertedWithCustomError(
+                salary,
+                "EmptyName");
         });
 
-        it("Should revert setNameToEmployee with Salary: not allowed to set name!", async () => {
+        it("Should revert setNameToEmployee with NotAllowedToSetName", async () => {
             await salary.addEmployee(clientAcc1.address);
             await expect(
                 salary
                     .connect(adminAcc2)
                     .setNameToEmployee(clientAcc1.address, "Alice")
-            ).to.be.revertedWith("Salary: not allowed to set name!");
+            ).to.be.revertedWithCustomError(
+                salary,
+                "NotAllowedToSetName");
         });
 
-        it("Should revert removeNameFromEmployee with BentureAdmin: user does not have an admin token!", async () => {
+        it("Should revert removeNameFromEmployee with UserDoesNotHaveAnAdminToken", async () => {
             await salary.addEmployee(clientAcc1.address);
             await expect(
                 salary
                     .connect(clientAcc1)
                     .removeNameFromEmployee(clientAcc1.address)
-            ).to.be.revertedWith(
-                "BentureAdmin: user does not have an admin token!"
+            ).to.be.revertedWithCustomError(
+                adminToken,
+                "UserDoesNotHaveAnAdminToken"
             );
         });
 
-        it("Should revert removeNameFromEmployee with Salary: not allowed to set name!", async () => {
+        it("Should revert removeNameFromEmployee with NotAllowedToRemoveName", async () => {
             await salary.addEmployee(clientAcc1.address);
             await expect(
                 salary
                     .connect(adminAcc2)
                     .removeNameFromEmployee(clientAcc1.address)
-            ).to.be.revertedWith("Salary: not allowed to remove name!");
+            ).to.be.revertedWithCustomError(
+                salary,
+                "NotAllowedToRemoveName");
         });
 
         it("Should return false when user is not Employee", async () => {
@@ -1812,25 +1874,30 @@ describe("Salary", () => {
             ).to.be.equal(false);
         });
 
-        it("Should revert addEmployee with Salary: user already is employee!", async () => {
+        it("Should revert addEmployee with UserAllreadyIsEmployee", async () => {
             await salary.addEmployee(clientAcc1.address);
             await expect(
                 salary.addEmployee(clientAcc1.address)
-            ).to.be.revertedWith("Salary: user already is employee!");
+            ).to.be.revertedWithCustomError(
+                salary,
+                "UserAllreadyIsEmployee");
         });
 
-        it("Should revert addEmployee with BentureAdmin: user does not have an admin token!", async () => {
+        it("Should revert addEmployee with UserDoesNotHaveAnAdminToken", async () => {
             await expect(
                 salary.connect(clientAcc1).addEmployee(clientAcc2.address)
-            ).to.be.revertedWith(
-                "BentureAdmin: user does not have an admin token!"
+            ).to.be.revertedWithCustomError(
+                adminToken,
+                "UserDoesNotHaveAnAdminToken"
             );
         });
 
-        it("Should revert removeEmployee with Salary: already not an employee!", async () => {
+        it("Should revert removeEmployee with AlreadyNotAnEmployee", async () => {
             await expect(
                 salary.removeEmployee(clientAcc1.address)
-            ).to.be.revertedWith("Salary: already not an employee!");
+            ).to.be.revertedWithCustomError(
+                salary,
+                "AlreadyNotAnEmployee");
         });
 
         it("Should removeEmployee without different admin salary removal", async () => {
@@ -1884,7 +1951,7 @@ describe("Salary", () => {
             expect(id.toString()).to.be.equal("1");
         });
 
-        it("Should revert addSalaryToEmployee with Salary: not enough tokens allowed!", async () => {
+        it("Should revert addSalaryToEmployee with NotEnoughTokensAllowed", async () => {
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 100);
             await salary.connect(adminAcc1).addEmployee(clientAcc1.address);
@@ -1904,10 +1971,12 @@ describe("Salary", () => {
                     tokenAddress,
                     tokensAmountPerPeriod
                 )
-            ).to.be.revertedWith("Salary: not enough tokens allowed!");
+            ).to.be.revertedWithCustomError(
+                salary,
+                "NotEnoughTokensAllowed");
         });
 
-        it("Should revert withdrawSalary with Salary: not employee for this salary!", async () => {
+        it("Should revert withdrawSalary with NotEmployeeForThisSalary", async () => {
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 600);
             await salary.connect(adminAcc1).addEmployee(clientAcc1.address);
@@ -1932,10 +2001,12 @@ describe("Salary", () => {
 
             await expect(
                 salary.connect(clientAcc2).withdrawSalary(1)
-            ).to.be.revertedWith("Salary: not employee for this salary!");
+            ).to.be.revertedWithCustomError(
+                salary,
+                "NotEmployeeForThisSalary");
         });
 
-        it("Should revert removeSalaryFromEmployee with Salary: not an admin for employee!", async () => {
+        it("Should revert removeSalaryFromEmployee with NotAnAdminForEmployee", async () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -1957,10 +2028,12 @@ describe("Salary", () => {
 
             await expect(
                 salary.connect(adminAcc2).removeSalaryFromEmployee("1")
-            ).to.be.revertedWith("Salary: not an admin for employee!");
+            ).to.be.revertedWithCustomError(
+                salary,
+                "NotAnAdminForEmployee");
         });
 
-        it("Should revert addSalaryToEmployee with Salary: not an admin for employee!", async () => {
+        it("Should revert addSalaryToEmployee with NotAnAdminForEmployee", async () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -1982,10 +2055,12 @@ describe("Salary", () => {
                         tokenAddress,
                         tokensAmountPerPeriod
                     )
-            ).to.be.revertedWith("Salary: not an admin for employee!");
+            ).to.be.revertedWithCustomError(
+                salary,
+                "NotAnAdminForEmployee");
         });
 
-        it("Should revert removeSalaryFromEmployee with Salary: not an admin of salary!", async () => {
+        it("Should revert removeSalaryFromEmployee with NotAnAdminForThisSalary", async () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -2027,17 +2102,21 @@ describe("Salary", () => {
 
             await expect(
                 salary.connect(adminAcc2).removeSalaryFromEmployee("1")
-            ).to.be.revertedWith("Salary: not an admin of salary!");
+            ).to.be.revertedWithCustomError(
+                salary,
+                "NotAnAdminForThisSalary");
         });
 
-        it("Should revert constructor with", async () => {
+        it("Should revert constructor with ZeroAddress", async () => {
             let salaryTx2 = await ethers.getContractFactory("Salary");
             await expect(
                 salaryTx2.deploy("0x0000000000000000000000000000000000000000")
-            ).to.be.revertedWith("Salary: Zero address!");
+            ).to.be.revertedWithCustomError(
+                salary,
+                "ZeroAddress");
         });
 
-        it("Should revert addPeriodsToSalary with Salary: salary ended!", async () => {
+        it("Should revert addPeriodsToSalary with SalaryEnded", async () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -2063,10 +2142,12 @@ describe("Salary", () => {
             console.log(await mockERC20.balanceOf(clientAcc1.address));
             await expect(
                 salary.addPeriodsToSalary(1, [110, 120, 130])
-            ).to.be.revertedWith("Salary: salary ended!");
+            ).to.be.revertedWithCustomError(
+                salary,
+                "SalaryEnded");
         });
 
-        it("Should revert removePeriodsFromSalary with Salary: salary ended!", async () => {
+        it("Should revert removePeriodsFromSalary with SalaryEnded", async () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -2092,10 +2173,12 @@ describe("Salary", () => {
             console.log(await mockERC20.balanceOf(clientAcc1.address));
             await expect(
                 salary.removePeriodsFromSalary(1, 1)
-            ).to.be.revertedWith("Salary: salary ended!");
+            ).to.be.revertedWithCustomError(
+                salary,
+                "SalaryEnded");
         });
 
-        it("Should revert addSalaryToEmployee with Salary: amount of periods != tokens amount per period!", async () => {
+        it("Should revert addSalaryToEmployee with AmountOfPeriodsNotEqualTokensAmmountPerPeriod", async () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -2112,8 +2195,9 @@ describe("Salary", () => {
                     tokenAddress,
                     tokensAmountPerPeriod
                 )
-            ).to.be.revertedWith(
-                "Salary: amount of periods != tokens amount per period!"
+            ).to.be.revertedWithCustomError(
+                salary,
+                "AmountOfPeriodsNotEqualTokensAmmountPerPeriod"
             );
         });
     });

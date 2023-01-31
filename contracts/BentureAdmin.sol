@@ -167,7 +167,7 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
             revert AdminTokenMintToZeroAddressIsNotAllowed();
         }
         if (ERC20Address == address(0)) {
-            revert ControlledTokenCanNotHaveAZeroAddress();;
+            revert ControlledTokenCanNotHaveAZeroAddress();
         }
         if (_usedControlled[ERC20Address]) {
             revert OnlyASingleAdminTokenIsAllowedForASingleControlledToken();

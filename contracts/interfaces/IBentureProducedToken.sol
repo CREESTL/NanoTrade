@@ -5,6 +5,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @title An interface for a custom ERC20 contract used in the bridge
 interface IBentureProducedToken is IERC20 {
+
+    function verifiedAdmin(address user) external view returns(bool);
     /// @notice Returns the name of the token
     /// @return The name of the token
     function name() external view returns (string memory);

@@ -19,6 +19,13 @@ describe("Benture Admin Token", () => {
         factory = await factoryTx.deploy();
         await factory.deployed();
 
+        // Deploy dividend-distribution contract
+        let bentureTx = await ethers.getContractFactory("Benture");
+        benture = await bentureTx.deploy(factory.address);
+        await benture.deployed();
+        
+        await factory.setBentureAddress(benture.address);
+
         // Deploy an admin token (ERC721)
         let adminTx = await ethers.getContractFactory("BentureAdmin");
         adminToken = await adminTx.deploy(factory.address);
@@ -66,8 +73,9 @@ describe("Benture Admin Token", () => {
 
         it("Should fail to initialize with zero factory address", async () => {
             let tx = await ethers.getContractFactory("BentureAdmin");
-            await expect(tx.deploy(zeroAddress)).to.be.revertedWith(
-                "BentureAdmin: factory address can not be zero address!"
+            await expect(tx.deploy(zeroAddress)).to.be.revertedWithCustomError(
+                adminToken,
+                "FactoryAddressCanNotBeZeroAddress"
             );
         });
     });
@@ -80,8 +88,9 @@ describe("Benture Admin Token", () => {
 
         it("Should fail to check that zero address owns admin token", async () => {
             // It should not revert
-            await expect(adminToken.checkOwner(zeroAddress)).to.be.revertedWith(
-                "BentureAdmin: zero address is an invalid user!"
+            await expect(adminToken.checkOwner(zeroAddress)).to.be.revertedWithCustomError(
+                adminToken,
+                "ZeroAddressIsAnInvalidUser"
             );
         });
 
@@ -103,16 +112,18 @@ describe("Benture Admin Token", () => {
         it("Should fail to verify that zero address controls provided ERC20 token", async () => {
             await expect(
                 adminToken.verifyAdminToken(zeroAddress, token.address)
-            ).to.be.revertedWith(
-                "BentureAdmin: user can not have a zero address!"
+            ).to.be.revertedWithCustomError(
+                adminToken,
+                "UserCanNotHaveAZeroAddress"
             );
         });
 
         it("Should fail to verify that user controls provided token with zero address", async () => {
             await expect(
                 adminToken.verifyAdminToken(clientAcc1.address, zeroAddress)
-            ).to.be.revertedWith(
-                "BentureAdmin: token can not have a zero address!"
+            ).to.be.revertedWithCustomError(
+                adminToken,
+                "TokenCanNotHaveAZeroAddress"
             );
         });
 
@@ -125,8 +136,9 @@ describe("Benture Admin Token", () => {
         it("Should fail to get the address of controlled ERC20 token by invalid admin token ID", async () => {
             await expect(
                 adminToken.getControlledAddressById(777)
-            ).to.be.revertedWith(
-                "BentureAdmin: no controlled token exists for this admin token!"
+            ).to.be.revertedWithCustomError(
+                adminToken,
+                "NoControlledTokenExistsForThisAdminToken"
             );
         });
 
@@ -153,8 +165,9 @@ describe("Benture Admin Token", () => {
         it("Should fail to get the list of admin tokens for zero address", async () => {
             await expect(
                 adminToken.getAdminTokenIds(zeroAddress)
-            ).to.be.revertedWith(
-                "BentureAdmin: admin address can not be a zero address!"
+            ).to.be.revertedWithCustomError(
+                adminToken,
+                "AdminAddressCanNotBeAZeroAddress"
             );
         });
 
@@ -220,8 +233,9 @@ describe("Benture Admin Token", () => {
                 adminToken
                     .connect(factorySigner)
                     .mintWithERC20Address(zeroAddress, rummy.address)
-            ).to.be.revertedWith(
-                "BentureAdmin: admin token mint to zero address is not allowed!"
+            ).to.be.revertedWithCustomError(
+                adminToken,
+                "AdminTokenMintToZeroAddressIsNotAllowed"
             );
         });
 
@@ -230,8 +244,9 @@ describe("Benture Admin Token", () => {
                 adminToken
                     .connect(factorySigner)
                     .mintWithERC20Address(clientAcc1.address, zeroAddress)
-            ).to.be.revertedWith(
-                "BentureAdmin: controlled token can not have a zero address!"
+            ).to.be.revertedWithCustomError(
+                adminToken,
+                "ControlledTokenCanNotHaveAZeroAddress"
             );
         });
 
@@ -243,8 +258,9 @@ describe("Benture Admin Token", () => {
                 adminToken
                     .connect(factorySigner)
                     .mintWithERC20Address(clientAcc1.address, rummy.address)
-            ).to.be.revertedWith(
-                "BentureAdmin: only a single admin token is allowed for a single controlled token!"
+            ).to.be.revertedWithCustomError(
+                adminToken,
+                "OnlyASingleAdminTokenIsAllowedForASingleControlledToken"
             );
         });
 
@@ -254,7 +270,8 @@ describe("Benture Admin Token", () => {
                     clientAcc1.address,
                     rummy.address
                 )
-            ).to.be.revertedWith("BentureAdmin: caller is not a factory!");
+            ).to.be.revertedWithCustomError(
+                adminToken,"CallerIsNotAFactory");
         });
     });
 
@@ -272,8 +289,9 @@ describe("Benture Admin Token", () => {
             // Check that user does not have any admin tokens
             await expect(
                 adminToken.checkOwner(clientAcc1.address)
-            ).to.be.revertedWith(
-                "BentureAdmin: user does not have an admin token!"
+            ).to.be.revertedWithCustomError(
+                adminToken,
+                "UserDoesNotHaveAnAdminToken"
             );
             expect(
                 await adminToken.verifyAdminToken(
@@ -284,8 +302,9 @@ describe("Benture Admin Token", () => {
             // Check that it is impossible to get the controlled address for burnt admin token
             await expect(
                 adminToken.getControlledAddressById(2)
-            ).to.be.revertedWith(
-                "BentureAdmin: no controlled token exists for this admin token!"
+            ).to.be.revertedWithCustomError(
+                adminToken,
+                "NoControlledTokenExistsForThisAdminToken"
             );
         });
 
@@ -295,7 +314,8 @@ describe("Benture Admin Token", () => {
                 .mintWithERC20Address(clientAcc1.address, rummy.address);
             await expect(
                 adminToken.connect(clientAcc1).burn(777)
-            ).to.be.revertedWith("ERC721: invalid token ID");
+            ).to.be.revertedWith(
+                "ERC721: invalid token ID");
         });
 
         it("Should fail to burn token if caller is not an owner", async () => {
@@ -304,8 +324,9 @@ describe("Benture Admin Token", () => {
                 .mintWithERC20Address(clientAcc1.address, rummy.address);
             await expect(
                 adminToken.connect(clientAcc2).burn(2)
-            ).to.be.revertedWith(
-                "BentureAdmin: only owner of the token is allowed to burn it!"
+            ).to.be.revertedWithCustomError(
+                adminToken,
+                "OnlyOwnerOfTheTokenIsAllowedToBurnIt"
             );
         });
 
@@ -342,8 +363,9 @@ describe("Benture Admin Token", () => {
             // Check that it is impossible to get the controlled address for burnt admin token
             await expect(
                 adminToken.getControlledAddressById(2)
-            ).to.be.revertedWith(
-                "BentureAdmin: no controlled token exists for this admin token!"
+            ).to.be.revertedWithCustomError(
+                adminToken,
+                "NoControlledTokenExistsForThisAdminToken"
             );
         });
     });
@@ -367,8 +389,9 @@ describe("Benture Admin Token", () => {
             // Check that the first user does not have any admin tokens
             await expect(
                 adminToken.checkOwner(clientAcc1.address)
-            ).to.be.revertedWith(
-                "BentureAdmin: user does not have an admin token!"
+            ).to.be.revertedWithCustomError(
+                adminToken,
+                "UserDoesNotHaveAnAdminToken"
             );
             expect(
                 await adminToken.verifyAdminToken(
@@ -398,7 +421,8 @@ describe("Benture Admin Token", () => {
                 adminToken
                     .connect(clientAcc1)
                     .transferFrom(clientAcc1.address, clientAcc2.address, 777)
-            ).to.be.revertedWith("ERC721: invalid token ID");
+            ).to.be.revertedWith(
+                "ERC721: invalid token ID");
         });
 
         it("Should fail to transfer from zero address", async () => {
@@ -409,8 +433,9 @@ describe("Benture Admin Token", () => {
                 adminToken
                     .connect(clientAcc1)
                     .transferFrom(zeroAddress, clientAcc2.address, 2)
-            ).to.be.revertedWith(
-                "BentureAdmin: sender can not be a zero address!"
+            ).to.be.revertedWithCustomError(
+                adminToken,
+                "SenderCanNotBeAZeroAddress"
             );
         });
 
@@ -422,8 +447,9 @@ describe("Benture Admin Token", () => {
                 adminToken
                     .connect(clientAcc1)
                     .transferFrom(clientAcc1.address, zeroAddress, 2)
-            ).to.be.revertedWith(
-                "BentureAdmin: receiver can not be a zero address!"
+            ).to.be.revertedWithCustomError(
+                adminToken,
+                "ReceiverCanNotBeAZeroAddress"
             );
         });
 
