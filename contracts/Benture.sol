@@ -99,6 +99,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     error NativeTokenDividendsTransferFailed();
     error PoolsCanNotHoldZeroAddressTokens();
     error PoolAlreadyExists();
+    error CanNotWorkWithZeroAddressTokens();
+    error CallerNotAdminOrFactory();
     error InvalidLockAmount();
     error CanNotLockZeroAddressTokens();
     error PoolDoesNotExist();
@@ -123,15 +125,23 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
 
     /// @dev Checks that caller is either an admin of a project or a factory
     modifier onlyAdminOrFactory(address token) {
+        // Check if token has a zero address. If so, there is no way to
+        // verify that caller is admin because it's impossible to
+        // call verification method on zero address
+        if (token == address(0)) {
+            revert CanNotWorkWithZeroAddressTokens();
+        }
         // If caller is neither a factory nor an admin - revert
         if (
             !(msg.sender == factory) &&
-            !(IBentureProducedToken(token).verifiedAdmin(msg.sender) == true)
+            !(IBentureProducedToken(token).verifiedAdmin(msg.sender))
         ) {
-            revert("Benture: caller is neither admin nor factory!");
+            revert CallerNotAdminOrFactory();
         }
         _;
     }
+
+    // TODO do I need this?
 
 /*     /// @dev Checks that caller is an admin of a project
     modifier onlyAdmin(address token) {

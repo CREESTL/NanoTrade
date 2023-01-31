@@ -543,13 +543,13 @@ describe("Benture Dividend-Distributing Contract", () => {
         describe("Weighted dividends", () => {});
     });
 
-    xdescribe("Reverts", () => {
+    describe("Reverts", () => {
         it("Should revert createPool with Benture: caller is neither admin nor factory!", async () => {
-            await expect(benture.connect(clientAcc1).createPool(distToken.address)).to.be.revertedWith("Benture: caller is neither admin nor factory!")
+            await expect(benture.connect(clientAcc1).createPool(distToken.address)).to.be.revertedWithCustomError(benture, "CallerNotAdminOrFactory")
         });
 
         it("Should revert createPool with Benture: caller is neither admin nor factory!", async () => {
-            await expect(benture.connect(ownerAcc).createPool(zeroAddress)).to.be.revertedWith("Benture: caller is neither admin nor factory!")
+            await expect(benture.connect(ownerAcc).createPool(zeroAddress)).to.be.revertedWithCustomError(benture, "CanNotWorkWithZeroAddressTokens")
         });
 
         it("Should revert lockTokens with customError InvalidLockAmount", async () => {
