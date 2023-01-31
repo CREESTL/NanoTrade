@@ -76,8 +76,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         uint256 formulaLockers;
         // Copies the value of Pool.totalLocked when creating a distribution
         uint256 formulaLocked;
-        // The number of calls of `claimDividends` function
-        uint256 numCalls;
     }
 
     /// @notice Address of the factory used for projects creation
@@ -514,15 +512,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
 
         distribution.hasClaimed[msg.sender] = true;
 
-        // Each user can claim dividends with a given ID only once
-        // So if a number of calls of that function is equal to `formulaLockers`
-        // than we can say that the distribution was fulfilled
-        if (distribution.numCalls == distribution.formulaLockers) {
-            emit DividendsFulfilled(id);
-        }
-        // Increment the number of calls of this function
-        distribution.numCalls++;
-
         // Send the share to the user
         if (distribution.distToken == address(0)) {
             // Send native tokens
@@ -548,6 +537,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         uint256 gasToSpend = (block.gaslimit * 2) / 3;
         uint256 lastID = 0;
 
+        emit MultipleDividendsClaimed(ids[0:lastID], msg.sender);
+
         for (uint i = 0; i < ids.length; i++) {
             claimDividends(ids[i]);
             if(gasleft() <= gasToSpend) {
@@ -557,7 +548,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             lastID = i;
         }
 
-        emit MultiplyDividendsClaimed(ids[0:lastID], msg.sender);
     }
 
     /// @notice Allows user to claim dividends from multiple distributions
@@ -581,7 +571,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             lastID = i;
         }
         unlockAllTokens(distributions[ids[0]].origToken);
-        emit MultiplyDividendsClaimed(ids[0:lastID], msg.sender);
+        emit MultipleDividendsClaimed(ids[0:lastID], msg.sender);
     }
 
     // ===== GETTERS =====

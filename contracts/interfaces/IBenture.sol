@@ -155,9 +155,8 @@ interface IBenture {
     /// @param user The address of the user who claimed the distribution
     event DividendsClaimed(uint256 indexed id, address user);
 
-    /// @dev Indicates that dividends distribution was fulfilled
-    /// @param id The ID of the fulfilled distribution
-    event DividendsFulfilled(uint256 indexed id);
-
-    event MultiplyDividendsClaimed(uint256[] ids, address user);
+    /// @dev Indicates that multiple dividends were claimed by a user
+    /// @param ids The array of IDs of distributions that were claimed
+    /// @param user The address of the user who claimed the distributions
+    event MultipleDividendsClaimed(uint256[] ids, address user);
 }
