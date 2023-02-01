@@ -324,6 +324,17 @@ Sets new or changes current name of the employee.
 | employeeAddress | address | Address of employee. |
 | name | string | New name of employee. |
 
+### withdrawAllSalaries
+
+```solidity
+function withdrawAllSalaries() external nonpayable
+```
+
+
+
+
+
+
 ### withdrawSalary
 
 ```solidity
@@ -500,6 +511,141 @@ Emits when Admin removes periods from salary
 | employeeAddress `indexed` | address | undefined |
 | adminAddress `indexed` | address | undefined |
 | salary `indexed` | ISalary.SalaryInfo | undefined |
+
+
+
+## Errors
+
+### AlreadyNotAnEmployee
+
+```solidity
+error AlreadyNotAnEmployee()
+```
+
+
+
+
+
+
+### AmountOfPeriodsNotEqualTokensAmmountPerPeriod
+
+```solidity
+error AmountOfPeriodsNotEqualTokensAmmountPerPeriod()
+```
+
+
+
+
+
+
+### EmptyName
+
+```solidity
+error EmptyName()
+```
+
+
+
+
+
+
+### NotAllowedToRemoveName
+
+```solidity
+error NotAllowedToRemoveName()
+```
+
+
+
+
+
+
+### NotAllowedToSetName
+
+```solidity
+error NotAllowedToSetName()
+```
+
+
+
+
+
+
+### NotAnAdminForEmployee
+
+```solidity
+error NotAnAdminForEmployee()
+```
+
+
+
+
+
+
+### NotAnAdminForThisSalary
+
+```solidity
+error NotAnAdminForThisSalary()
+```
+
+
+
+
+
+
+### NotEmployeeForThisSalary
+
+```solidity
+error NotEmployeeForThisSalary()
+```
+
+
+
+
+
+
+### NotEnoughTokensAllowed
+
+```solidity
+error NotEnoughTokensAllowed()
+```
+
+
+
+
+
+
+### SalaryEnded
+
+```solidity
+error SalaryEnded()
+```
+
+
+
+
+
+
+### UserAllreadyIsEmployee
+
+```solidity
+error UserAllreadyIsEmployee()
+```
+
+
+
+
+
+
+### ZeroAddress
+
+```solidity
+error ZeroAddress()
+```
+
+
+
+
 
 
 

@@ -68,7 +68,7 @@ Allows user to claim dividends from multiple distributions         WARNING: Pote
 ### claimMultipleDividendsAndUnlock
 
 ```solidity
-function claimMultipleDividendsAndUnlock(uint256[] ids) external nonpayable
+function claimMultipleDividendsAndUnlock(uint256[] ids, address tokenToWithdraw) external nonpayable
 ```
 
 Allows user to claim dividends from multiple distributions         and unlock his tokens after that         WARNING: Potentially can exceed block gas limit!
@@ -80,6 +80,7 @@ Allows user to claim dividends from multiple distributions         and unlock hi
 | Name | Type | Description |
 |---|---|---|
 | ids | uint256[] | The array of IDs of distributions to claim |
+| tokenToWithdraw | address | Address of token to withdraw |
 
 ### createPool
 
@@ -96,22 +97,6 @@ Creates a new pool
 | Name | Type | Description |
 |---|---|---|
 | token | address | The token that will be locked in the pool |
-
-### deletePool
-
-```solidity
-function deletePool(address token) external nonpayable
-```
-
-Deletes a pool         After that all operations with the pool will fail
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| token | address | The token of the pool |
 
 ### distributeDividends
 
@@ -158,7 +143,7 @@ Returns the current lock amount of the user
 ### getDistribution
 
 ```solidity
-function getDistribution(uint256 id) external view returns (uint256, address, address, uint256, bool, enum IBenture.DistStatus)
+function getDistribution(uint256 id) external view returns (uint256, address, address, uint256, bool)
 ```
 
 Returns the distribution with the given ID
@@ -180,7 +165,6 @@ Returns the distribution with the given ID
 | _2 | address | undefined |
 | _3 | uint256 | undefined |
 | _4 | bool | undefined |
-| _5 | enum IBenture.DistStatus | undefined |
 
 ### getDistributions
 
@@ -383,22 +367,6 @@ event DividendsClaimed(uint256 indexed id, address user)
 | id `indexed` | uint256 | The ID of the distribution that was claimed |
 | user  | address | The address of the user who claimed the distribution |
 
-### DividendsFulfilled
-
-```solidity
-event DividendsFulfilled(uint256 indexed id)
-```
-
-
-
-*Indicates that dividends distribution was fulfilled*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| id `indexed` | uint256 | The ID of the fulfilled distribution |
-
 ### DividendsStarted
 
 ```solidity
@@ -417,6 +385,23 @@ event DividendsStarted(address indexed origToken, address indexed distToken, uin
 | distToken `indexed` | address | The token that will be paid |
 | amount `indexed` | uint256 | The amount of tokens that will be paid |
 | isEqual  | bool | Indicates whether distribution will be equal |
+
+### MultipleDividendsClaimed
+
+```solidity
+event MultipleDividendsClaimed(uint256[] ids, address user)
+```
+
+
+
+*Indicates that multiple dividends were claimed by a user*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| ids  | uint256[] | The array of IDs of distributions that were claimed |
+| user  | address | The address of the user who claimed the distributions |
 
 ### PoolCreated
 

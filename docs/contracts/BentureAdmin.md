@@ -571,3 +571,171 @@ event Transfer(address indexed from, address indexed to, uint256 indexed tokenId
 
 
 
+## Errors
+
+### AdminAddressCanNotBeAZeroAddress
+
+```solidity
+error AdminAddressCanNotBeAZeroAddress()
+```
+
+
+
+
+
+
+### AdminTokenMintToZeroAddressIsNotAllowed
+
+```solidity
+error AdminTokenMintToZeroAddressIsNotAllowed()
+```
+
+
+
+
+
+
+### CallerIsNotAFactory
+
+```solidity
+error CallerIsNotAFactory()
+```
+
+
+
+
+
+
+### ControlledTokenCanNotHaveAZeroAddress
+
+```solidity
+error ControlledTokenCanNotHaveAZeroAddress()
+```
+
+
+
+
+
+
+### FactoryAddressCanNotBeZeroAddress
+
+```solidity
+error FactoryAddressCanNotBeZeroAddress()
+```
+
+
+
+
+
+
+### FailedToDeleteTokenID
+
+```solidity
+error FailedToDeleteTokenID()
+```
+
+
+
+
+
+
+### NoControlledTokenExistsForThisAdminToken
+
+```solidity
+error NoControlledTokenExistsForThisAdminToken()
+```
+
+
+
+
+
+
+### OnlyASingleAdminTokenIsAllowedForASingleControlledToken
+
+```solidity
+error OnlyASingleAdminTokenIsAllowedForASingleControlledToken()
+```
+
+
+
+
+
+
+### OnlyOwnerOfTheTokenIsAllowedToBurnIt
+
+```solidity
+error OnlyOwnerOfTheTokenIsAllowedToBurnIt()
+```
+
+
+
+
+
+
+### ReceiverCanNotBeAZeroAddress
+
+```solidity
+error ReceiverCanNotBeAZeroAddress()
+```
+
+
+
+
+
+
+### SenderCanNotBeAZeroAddress
+
+```solidity
+error SenderCanNotBeAZeroAddress()
+```
+
+
+
+
+
+
+### TokenCanNotHaveAZeroAddress
+
+```solidity
+error TokenCanNotHaveAZeroAddress()
+```
+
+
+
+
+
+
+### UserCanNotHaveAZeroAddress
+
+```solidity
+error UserCanNotHaveAZeroAddress()
+```
+
+
+
+
+
+
+### UserDoesNotHaveAnAdminToken
+
+```solidity
+error UserDoesNotHaveAnAdminToken()
+```
+
+
+
+
+
+
+### ZeroAddressIsAnInvalidUser
+
+```solidity
+error ZeroAddressIsAnInvalidUser()
+```
+
+
+
+
+
+
+

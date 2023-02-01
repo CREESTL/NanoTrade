@@ -48,6 +48,22 @@ Returns the address of the produced ERC20 token
 |---|---|---|
 | _0 | address | The address of the produced ERC20 token |
 
+### setBentureAddress
+
+```solidity
+function setBentureAddress(address bentureAddress_) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| bentureAddress_ | address | undefined |
+
 
 
 ## Events
@@ -71,6 +87,20 @@ event CreateERC20Token(string indexed name, string indexed symbol, address index
 | tokenAddress `indexed` | address | undefined |
 | decimals  | uint8 | undefined |
 | mintable  | bool | undefined |
+
+
+
+## Errors
+
+### BentureAddressIsZero
+
+```solidity
+error BentureAddressIsZero()
+```
+
+
+
+
 
 
 

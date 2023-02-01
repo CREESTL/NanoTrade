@@ -367,6 +367,28 @@ function transferFrom(address from, address to, uint256 amount) external nonpaya
 |---|---|---|
 | _0 | bool | undefined |
 
+### verifiedAdmin
+
+```solidity
+function verifiedAdmin(address user) external view returns (bool)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| user | address | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | undefined |
+
 
 
 ## Events
@@ -458,6 +480,185 @@ event Transfer(address indexed from, address indexed to, uint256 value)
 | from `indexed` | address | undefined |
 | to `indexed` | address | undefined |
 | value  | uint256 | undefined |
+
+
+
+## Errors
+
+### AdminTokenAddressCanNotBeAZeroAddress
+
+```solidity
+error AdminTokenAddressCanNotBeAZeroAddress()
+```
+
+
+
+
+
+
+### CallerDoesNotHaveAnyTokensToBurn
+
+```solidity
+error CallerDoesNotHaveAnyTokensToBurn()
+```
+
+
+
+
+
+
+### CanNotMintToZeroAddress
+
+```solidity
+error CanNotMintToZeroAddress()
+```
+
+
+
+
+
+
+### DeletingHolderWithZeroBalanceFailed
+
+```solidity
+error DeletingHolderWithZeroBalanceFailed()
+```
+
+
+
+
+
+
+### InitialDecimalsCanNotBeZero
+
+```solidity
+error InitialDecimalsCanNotBeZero()
+```
+
+
+
+
+
+
+### InitialTokenNameCanNotBeEmpty
+
+```solidity
+error InitialTokenNameCanNotBeEmpty()
+```
+
+
+
+
+
+
+### InitialTokenSymbolCanNotBeEmpty
+
+```solidity
+error InitialTokenSymbolCanNotBeEmpty()
+```
+
+
+
+
+
+
+### MaxTotalSupplyMustBeZeroForUnmintableTokens
+
+```solidity
+error MaxTotalSupplyMustBeZeroForUnmintableTokens()
+```
+
+
+
+
+
+
+### ReceiverCanNotBeAZeroAddress
+
+```solidity
+error ReceiverCanNotBeAZeroAddress()
+```
+
+
+
+
+
+
+### SenderCanNotBeAReceiver
+
+```solidity
+error SenderCanNotBeAReceiver()
+```
+
+
+
+
+
+
+### SenderCanNotBeAZeroAddress
+
+```solidity
+error SenderCanNotBeAZeroAddress()
+```
+
+
+
+
+
+
+### SenderDoesNotHaveAnyTokensToTransfer
+
+```solidity
+error SenderDoesNotHaveAnyTokensToTransfer()
+```
+
+
+
+
+
+
+### SupplyExceedsMaximumSupply
+
+```solidity
+error SupplyExceedsMaximumSupply()
+```
+
+
+
+
+
+
+### TheAmountOfTokensToBurnMustBeGreaterThanZero
+
+```solidity
+error TheAmountOfTokensToBurnMustBeGreaterThanZero()
+```
+
+
+
+
+
+
+### TheTokenIsNotMintable
+
+```solidity
+error TheTokenIsNotMintable()
+```
+
+
+
+
+
+
+### UserDoesNotHaveAnAdminToken
+
+```solidity
+error UserDoesNotHaveAnAdminToken()
+```
+
+
+
+
 
 
 
