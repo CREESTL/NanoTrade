@@ -22,7 +22,7 @@ describe("Benture Factory", () => {
         let bentureTx = await ethers.getContractFactory("Benture");
         benture = await bentureTx.deploy(factory.address);
         await benture.deployed();
-                
+
         await factory.setBentureAddress(benture.address);
 
         // Deploy an admin token (ERC721)

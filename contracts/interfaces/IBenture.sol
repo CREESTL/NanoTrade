@@ -55,7 +55,10 @@ interface IBenture {
     ///         WARNING: Potentially can exceed block gas limit!
     /// @param ids The array of IDs of distributions to claim
     /// @param tokenToWithdraw Address of token to withdraw
-    function claimMultipleDividendsAndUnlock(uint256[] calldata ids, address tokenToWithdraw) external;
+    function claimMultipleDividendsAndUnlock(
+        uint256[] calldata ids,
+        address tokenToWithdraw
+    ) external;
 
     /// @notice Returns info about the pool of a given token
     /// @param token The address of the token of the pool
@@ -98,10 +101,7 @@ interface IBenture {
     /// @return All information about the distribution
     function getDistribution(
         uint256 id
-    )
-        external
-        view
-        returns (uint256, address, address, uint256, bool);
+    ) external view returns (uint256, address, address, uint256, bool);
 
     /// @notice Checks if user has claimed dividends of the provided distribution
     /// @param id The ID of the distribution to check

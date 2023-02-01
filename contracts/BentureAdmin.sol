@@ -30,7 +30,7 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
     mapping(address => bool) private _usedControlled;
     /// @dev The address of the factory minting admin tokens
     address private _factoryAddress;
-    
+
     error CallerIsNotAFactory();
     error FactoryAddressCanNotBeZeroAddress();
     error ZeroAddressIsAnInvalidUser();
@@ -106,7 +106,7 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
     function getControlledAddressById(
         uint256 tokenId
     ) external view returns (address) {
-        if ( _adminToControlled[tokenId] == address(0)) {
+        if (_adminToControlled[tokenId] == address(0)) {
             revert NoControlledTokenExistsForThisAdminToken();
         }
         _requireMinted(tokenId);

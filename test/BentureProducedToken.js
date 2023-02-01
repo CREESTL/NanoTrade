@@ -140,10 +140,9 @@ describe("Benture Produced Token", () => {
 
         it("Should fail to mint to zero address", async () => {
             let amount = 1000;
-            await expect(token.mint(zeroAddress, amount)).to.be.revertedWithCustomError(
-                token,
-                "CanNotMintToZeroAddress"
-            );
+            await expect(
+                token.mint(zeroAddress, amount)
+            ).to.be.revertedWithCustomError(token, "CanNotMintToZeroAddress");
         });
 
         it("Should fail to mint if caller is not an admin", async () => {
@@ -191,10 +190,7 @@ describe("Benture Produced Token", () => {
             let amount = 1000;
             await expect(
                 newToken.mint(clientAcc2.address, amount)
-            ).to.be.revertedWithCustomError(
-                token,
-                "TheTokenIsNotMintable"
-            );
+            ).to.be.revertedWithCustomError(token, "TheTokenIsNotMintable");
         });
 
         it("Should fail to increase the number of holders if mint to the same address", async () => {
@@ -355,10 +351,7 @@ describe("Benture Produced Token", () => {
             await token.mint(clientAcc1.address, amount);
             await expect(
                 token.connect(clientAcc1).transfer(clientAcc1.address, amount)
-            ).to.be.revertedWithCustomError(
-                token,
-                "SenderCanNotBeAReceiver"
-            );
+            ).to.be.revertedWithCustomError(token, "SenderCanNotBeAReceiver");
         });
 
         it("Should fail to transfer tokens if receiver has zero address", async () => {

@@ -154,11 +154,17 @@ contract Salary is ISalary {
 
     function withdrawAllSalaries() external {
         uint256 adminsLength = employeeToAdmins[msg.sender].length();
-        uint256 salariesLength; 
+        uint256 salariesLength;
         for (uint256 i = 0; i < adminsLength; i++) {
-            salariesLength = employeeToAdminToSalaryId[msg.sender][employeeToAdmins[msg.sender].at(i)].length();
+            salariesLength = employeeToAdminToSalaryId[msg.sender][
+                employeeToAdmins[msg.sender].at(i)
+            ].length();
             for (uint256 k = 0; k < salariesLength; k++) {
-                withdrawSalary(employeeToAdminToSalaryId[msg.sender][employeeToAdmins[msg.sender].at(i)].at(k));
+                withdrawSalary(
+                    employeeToAdminToSalaryId[msg.sender][
+                        employeeToAdmins[msg.sender].at(i)
+                    ].at(k)
+                );
             }
         }
     }
@@ -275,8 +281,10 @@ contract Salary is ISalary {
         uint256 amountOfPeriodsToDelete
     ) external onlyAdmin {
         SalaryInfo storage _salary = salaryById[salaryId];
-        if (block.timestamp - _salary.salaryStartTime >
-                _salary.periodDuration * _salary.amountOfPeriods) {
+        if (
+            block.timestamp - _salary.salaryStartTime >
+            _salary.periodDuration * _salary.amountOfPeriods
+        ) {
             revert SalaryEnded();
         }
         if (!checkIfUserIsAdminOfEmployee(_salary.employee, msg.sender)) {
@@ -308,8 +316,10 @@ contract Salary is ISalary {
         uint256[] memory tokensAmountPerPeriod
     ) external onlyAdmin {
         SalaryInfo storage _salary = salaryById[salaryId];
-        if (block.timestamp - _salary.salaryStartTime >
-                _salary.periodDuration * _salary.amountOfPeriods) {
+        if (
+            block.timestamp - _salary.salaryStartTime >
+            _salary.periodDuration * _salary.amountOfPeriods
+        ) {
             revert SalaryEnded();
         }
         if (!checkIfUserIsAdminOfEmployee(_salary.employee, msg.sender)) {
@@ -332,8 +342,10 @@ contract Salary is ISalary {
             totalTokenAmount = totalTokenAmount + tokensAmountPerPeriod[i];
         }
 
-        if (IERC20(_salary.tokenAddress).allowance(msg.sender, address(this)) <
-                totalTokenAmount - alreadyPayed) {
+        if (
+            IERC20(_salary.tokenAddress).allowance(msg.sender, address(this)) <
+            totalTokenAmount - alreadyPayed
+        ) {
             revert NotEnoughTokensAllowed();
         }
 
@@ -373,8 +385,10 @@ contract Salary is ISalary {
             totalTokenAmount = totalTokenAmount + tokensAmountPerPeriod[i];
         }
 
-        if (IERC20(tokenAddress).allowance(msg.sender, address(this)) <
-                totalTokenAmount) {
+        if (
+            IERC20(tokenAddress).allowance(msg.sender, address(this)) <
+            totalTokenAmount
+        ) {
             revert NotEnoughTokensAllowed();
         }
         SalaryInfo memory _salary;

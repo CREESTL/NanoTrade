@@ -23,7 +23,7 @@ describe("Benture Admin Token", () => {
         let bentureTx = await ethers.getContractFactory("Benture");
         benture = await bentureTx.deploy(factory.address);
         await benture.deployed();
-        
+
         await factory.setBentureAddress(benture.address);
 
         // Deploy an admin token (ERC721)
@@ -88,7 +88,9 @@ describe("Benture Admin Token", () => {
 
         it("Should fail to check that zero address owns admin token", async () => {
             // It should not revert
-            await expect(adminToken.checkOwner(zeroAddress)).to.be.revertedWithCustomError(
+            await expect(
+                adminToken.checkOwner(zeroAddress)
+            ).to.be.revertedWithCustomError(
                 adminToken,
                 "ZeroAddressIsAnInvalidUser"
             );
@@ -270,8 +272,7 @@ describe("Benture Admin Token", () => {
                     clientAcc1.address,
                     rummy.address
                 )
-            ).to.be.revertedWithCustomError(
-                adminToken,"CallerIsNotAFactory");
+            ).to.be.revertedWithCustomError(adminToken, "CallerIsNotAFactory");
         });
     });
 
@@ -314,8 +315,7 @@ describe("Benture Admin Token", () => {
                 .mintWithERC20Address(clientAcc1.address, rummy.address);
             await expect(
                 adminToken.connect(clientAcc1).burn(777)
-            ).to.be.revertedWith(
-                "ERC721: invalid token ID");
+            ).to.be.revertedWith("ERC721: invalid token ID");
         });
 
         it("Should fail to burn token if caller is not an owner", async () => {
@@ -421,8 +421,7 @@ describe("Benture Admin Token", () => {
                 adminToken
                     .connect(clientAcc1)
                     .transferFrom(clientAcc1.address, clientAcc2.address, 777)
-            ).to.be.revertedWith(
-                "ERC721: invalid token ID");
+            ).to.be.revertedWith("ERC721: invalid token ID");
         });
 
         it("Should fail to transfer from zero address", async () => {

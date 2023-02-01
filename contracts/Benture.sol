@@ -141,7 +141,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
 
     // TODO do I need this?
 
-/*     /// @dev Checks that caller is an admin of a project
+    /*     /// @dev Checks that caller is an admin of a project
     modifier onlyAdmin(address token) {
         if (IBentureAdmin(token).verifyAdminToken(msg.sender, token) == false) {
             revert("Benture: caller is not an admin!");
@@ -212,9 +212,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
 
         // Get user's current lock, increase it and copy to the history
         pool.lockedByUser[msg.sender] += amount;
-        pool.lockHistory[msg.sender][
-            distributionIds.current() + 1
-        ] = pool.lockedByUser[msg.sender];
+        pool.lockHistory[msg.sender][distributionIds.current() + 1] = pool
+            .lockedByUser[msg.sender];
 
         // Mark that the lock amount was changed before the next distribution
         pool.lockChangesIds[msg.sender].push(distributionIds.current() + 1);
@@ -269,8 +268,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         }
 
         // Make sure that user is trying to withdraw no more tokens than he has locked for now
-        if (pool.lockedByUser[msg.sender] <
-                amount) {
+        if (pool.lockedByUser[msg.sender] < amount) {
             revert WithdrawAmountIsTooBig();
         }
 
@@ -279,7 +277,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
 
         // Get the current user's lock, decrease it and copy to the history
         pool.lockedByUser[msg.sender] -= amount;
-        pool.lockHistory[msg.sender][distributionIds.current() + 1] = pool.lockedByUser[msg.sender];
+        pool.lockHistory[msg.sender][distributionIds.current() + 1] = pool
+            .lockedByUser[msg.sender];
         // Mark that the lock amount was changed before the next distribution
         pool.lockChangesIds[msg.sender].push(distributionIds.current() + 1);
         // Mark that current ID is in the array now
@@ -343,9 +342,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         } else {
             // Check that enough native tokens were provided
             if (msg.value < amount) {
-            revert NotEnoughNativeTokensWereProvided();
-        }
-
+                revert NotEnoughNativeTokensWereProvided();
+            }
         }
 
         emit DividendsStarted(origToken, distToken, amount, isEqual);
@@ -541,13 +539,12 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
 
         for (uint i = 0; i < ids.length; i++) {
             claimDividends(ids[i]);
-            if(gasleft() <= gasToSpend) {
+            if (gasleft() <= gasToSpend) {
                 lastID = i;
                 break;
             }
             lastID = i;
         }
-
     }
 
     /// @notice Allows user to claim dividends from multiple distributions
@@ -555,16 +552,19 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     ///         WARNING: Potentially can exceed block gas limit!
     /// @param ids The array of IDs of distributions to claim
     /// @param tokenToWithdraw Token to unlock
-    function claimMultipleDividendsAndUnlock(uint256[] calldata ids, address tokenToWithdraw) public {
+    function claimMultipleDividendsAndUnlock(
+        uint256[] calldata ids,
+        address tokenToWithdraw
+    ) public {
         uint256 gasToSpend = (block.gaslimit * 2) / 3;
         uint256 lastID = 0;
 
         for (uint i = 0; i < ids.length; i++) {
             if (tokenToWithdraw != distributions[ids[i]].origToken) {
-                    revert DistriburionNotContainTokenToWithdraw();
-                }
+                revert DistriburionNotContainTokenToWithdraw();
+            }
             claimDividends(ids[i]);
-            if(gasleft() <= gasToSpend) {
+            if (gasleft() <= gasToSpend) {
                 lastID = i;
                 break;
             }
@@ -656,11 +656,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @return All information about the distribution
     function getDistribution(
         uint256 id
-    )
-        public
-        view
-        returns (uint256, address, address, uint256, bool)
-    {
+    ) public view returns (uint256, address, address, uint256, bool) {
         if (id < 1) {
             revert IDOfDistributionMustBeGreaterThanOne();
         }

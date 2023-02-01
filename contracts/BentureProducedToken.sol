@@ -49,10 +49,12 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
 
     /// @dev Checks if caller is an admin token holder
     modifier hasAdminToken() {
-        if (!IBentureAdmin(_adminToken).verifyAdminToken(
+        if (
+            !IBentureAdmin(_adminToken).verifyAdminToken(
                 msg.sender,
                 address(this)
-            )) {
+            )
+        ) {
             revert UserDoesNotHaveAnAdminToken();
         }
         _;
@@ -98,7 +100,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
             }
         } else {
             if (maxTotalSupply_ != 0) {
-            revert MaxTotalSupplyMustBeZeroForUnmintableTokens();
+                revert MaxTotalSupplyMustBeZeroForUnmintableTokens();
             }
         }
         _tokenName = name_;
@@ -109,11 +111,8 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         _adminToken = adminToken_;
     }
 
-    function verifiedAdmin(address user) external view returns(bool) {
-        if (!IBentureAdmin(_adminToken).verifyAdminToken(
-                user,
-                address(this)
-            )) {
+    function verifiedAdmin(address user) external view returns (bool) {
+        if (!IBentureAdmin(_adminToken).verifyAdminToken(user, address(this))) {
             return false;
         } else {
             return true;
@@ -216,7 +215,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         if (amount == 0) {
             revert TheAmountOfTokensToBurnMustBeGreaterThanZero();
         }
-        if ( balanceOf(caller) == 0) {
+        if (balanceOf(caller) == 0) {
             revert CallerDoesNotHaveAnyTokensToBurn();
         }
         emit ControlledTokenBurnt(caller, amount);
@@ -225,7 +224,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         if (balanceOf(msg.sender) == 0) {
             bool removed = _holders.remove(caller);
             if (!removed) {
-            revert DeletingHolderWithZeroBalanceFailed();
+                revert DeletingHolderWithZeroBalanceFailed();
             }
         }
     }
@@ -261,7 +260,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         if (amount >= fromBalance) {
             bool removed = _holders.remove(from);
             if (!removed) {
-            revert DeletingHolderWithZeroBalanceFailed();
+                revert DeletingHolderWithZeroBalanceFailed();
             }
         }
         super._transfer(from, to, amount);
