@@ -241,6 +241,100 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         lockTokens(origToken, wholeBalance);
     }
 
+    /// @notice Shows which distributions the user took part in and hasn't claimed them
+    /// @param user The address of the user to get distributions for
+    /// @param token The address of the token that was distributed
+    /// @return The list of IDs of distributions the user took part in
+    function getParticipatedNotClaimed(address user, address token) private view returns(uint256[] memory) {
+        Pool storage pool = pools[token];
+        // Get the list of distributions before which user's lock was changed
+        uint256[] storage allIds = pool.lockChangesIds[user];
+        // If there are no such distributions - return empty array
+        if (allIds.length == 0) {
+            return new uint256[](0);
+        }
+        // If there is only one such distribution that means that user
+        // only participated in that one distribution
+        // Check that he hasn't claimed it and if so - return
+        if (allIds.length == 1) {
+            if (!distributions[allIds[0]].hasClaimed[user]) {
+                return allIds;
+            } else {
+                // Else return an empty array
+                return new uint256[](0);
+            }
+        }
+        // Get the history of user's lock amount changes
+        mapping(uint256 => uint256) storage amounts = pool.lockHistory[user];
+
+        // First iteration: just *count* the amount of distributions the user took part in
+        // Left and right borders of search
+        uint256 low = allIds[0];
+        uint256 high = low;
+        // Flag indicates wheter to set `low` equal to the ID that corresponds to the positive lock amount or not
+        bool changeLow = false;
+        uint256 counter = 0;
+        // Start search with the index 1
+        for (uint256 i = 1; i < allIds.length; i++) {
+            high = allIds[i];
+            // This block works only after the first interval of IDs was found (in the next block)
+            // If it's allowed, set `low` to the ID that corresponds for positive lock amount
+            if (changeLow) {
+                if (amounts[high] != 0) {
+                    low = high;
+                    // Forbid to change it for now
+                    changeLow = false;
+                }
+            }
+            // If lock amount of some distribution is 0 that means that user had a positive lock amount between
+            // the previous distribution before which he changed his lock, and the current one (before which he unlocked
+            // all his tokens), i.e. he took part in all distributions between these two
+            if (amounts[high] == 0) {
+                for (uint256 j = low; j < high; j++) {
+                    // Count the number of distributions that user took part in
+                    counter++;
+                }
+                // Allow to change the `low` up until the next ID corresponding to the positive lock amount
+                changeLow = true;
+            }
+        }
+
+        // The array of IDs of distributions the user actually took part in
+        // It has a previoulsy calculated langth
+        uint256[] memory tookPart = new uint256[](counter);
+
+        // Second iteration: now place all IDs of these distributions into the created array
+        low = allIds[0];
+        high = low;
+        changeLow = false;
+        counter = 0;
+        for (uint256 i = 1; i < allIds.length; i++) {
+            high = allIds[i];
+            if (changeLow) {
+                if (amounts[high] != 0) {
+                    low = high;
+                    changeLow = false;
+                }
+            }
+            if (amounts[high] == 0) {
+                for (uint256 j = low; j < high; j++) {
+                    // Only add IDs that were not claimed
+                    if (!distributions[allIds[j]].hasClaimed[user]) {
+                        // Fill IDs into the array
+                        tookPart[counter] = allIds[j];
+                    }
+                    counter++;
+                }
+                changeLow = true;
+            }
+        }
+
+        // TODO check it in tests:
+        // Now `tookPart` should be an array of IDS with no zeros at any position
+
+        return tookPart;
+    }
+
     /// @notice Unlocks the provided amount of user's tokens from the pool
     /// @param origToken The address of the token to unlock
     /// @param amount The amount of tokens to unlock
@@ -272,6 +366,14 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             revert WithdrawAmountIsTooBig();
         }
 
+        // Any unlock triggers claim of all dividends inside the pool for that user
+
+        // Get the list of distributions the user took part in and hasn't claimed them
+        uint256[] memory notClaimedIds = getParticipatedNotClaimed(msg.sender, origToken);
+
+        // Now claim all dividends of these distributions
+        claimMultipleDividends(notClaimedIds);
+
         // Decrease the total amount of locked tokens in the pool
         pool.totalLocked -= amount;
 
@@ -294,6 +396,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
 
         // Transfer unlocked tokens from contract to the user
         IBentureProducedToken(origToken).safeTransfer(msg.sender, amount);
+
     }
 
     /// @notice Unlocks all locked tokens of the user in the pool
@@ -445,8 +548,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // Calculate shares if equal distribution
         if (distribution.isEqual) {
             // NOTE: result gets rounded towards zero
-            share = distribution.amount / pool.lockers.length();
-            // Calculate shares in weighted distribution
+            share = distribution.amount / distribution.formulaLockers;
+        // Calculate shares in weighted distribution
         } else {
             // Get the amount locked by the user before the given distribution
             uint256 lock = pool.lockHistory[user][id];
@@ -477,7 +580,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
                 }
             }
 
-            share = (distribution.amount * lock) / pool.totalLocked;
+            share = (distribution.amount * lock) / distribution.formulaLocked;
         }
 
         return share;
@@ -519,7 +622,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             }
         } else {
             // Send ERC20 tokens
-            //TODO check if it works well
+            // TODO check if it works well
             IERC20(distribution.distToken).safeTransfer(
                 //address(this),
                 msg.sender,
@@ -531,11 +634,9 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @notice Allows user to claim dividends from multiple distributions
     ///         WARNING: Potentially can exceed block gas limit!
     /// @param ids The array of IDs of distributions to claim
-    function claimMultipleDividends(uint256[] calldata ids) public {
+    function claimMultipleDividends(uint256[] memory ids) public {
         uint256 gasToSpend = (block.gaslimit * 2) / 3;
         uint256 lastID = 0;
-
-        emit MultipleDividendsClaimed(ids[0:lastID], msg.sender);
 
         for (uint i = 0; i < ids.length; i++) {
             claimDividends(ids[i]);
@@ -545,33 +646,13 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             }
             lastID = i;
         }
-    }
 
-    /// @notice Allows user to claim dividends from multiple distributions
-    ///         and unlock his tokens after that
-    ///         WARNING: Potentially can exceed block gas limit!
-    /// @param ids The array of IDs of distributions to claim
-    /// @param tokenToWithdraw Token to unlock
-    function claimMultipleDividendsAndUnlock(
-        uint256[] calldata ids,
-        address tokenToWithdraw
-    ) public {
-        uint256 gasToSpend = (block.gaslimit * 2) / 3;
-        uint256 lastID = 0;
-
-        for (uint i = 0; i < ids.length; i++) {
-            if (tokenToWithdraw != distributions[ids[i]].origToken) {
-                revert DistriburionNotContainTokenToWithdraw();
-            }
-            claimDividends(ids[i]);
-            if (gasleft() <= gasToSpend) {
-                lastID = i;
-                break;
-            }
-            lastID = i;
+        // Form an array of IDs that were claimed
+        uint256[] memory resultArr = new uint256[](lastID);
+        for (uint256 i = 0; i < resultArr.length; i++) {
+            resultArr[i] = i;
         }
-        unlockAllTokens(distributions[ids[0]].origToken);
-        emit MultipleDividendsClaimed(ids[0:lastID], msg.sender);
+        emit MultipleDividendsClaimed(resultArr, msg.sender);
     }
 
     // ===== GETTERS =====

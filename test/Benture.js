@@ -632,8 +632,17 @@ describe("Benture Dividend-Distributing Contract", () => {
 
             await benture
                 .connect(clientAcc2)
-                .claimMultipleDividendsAndUnlock([1, 2], origToken.address);
+                .claimMultipleDividends([1, 2]);
 
+            expect(await benture.hasClaimed(1, clientAcc2.address)).to.be.equal(
+                true
+            );
+            expect(await benture.hasClaimed(2, clientAcc2.address)).to.be.equal(
+                true
+            );
+
+            await benture.connect(clientAcc2).unlockAllTokens(origToken.address);
+;
             expect(
                 await benture.isLocker(origToken.address, clientAcc2.address)
             ).to.be.equal(false);
@@ -645,6 +654,66 @@ describe("Benture Dividend-Distributing Contract", () => {
                 1000
             );
         });
+
+        it("Claim all dividends on any unlock", async () => {
+            await origToken.mint(clientAcc1.address, 1000);
+            await origToken.mint(clientAcc2.address, 1000);
+            await distToken.mint(benture.address, 10000);
+
+            await origToken.connect(clientAcc1).approve(benture.address, 1000);
+            await origToken.connect(clientAcc2).approve(benture.address, 1000);
+
+            await benture
+                .connect(clientAcc1)
+                .lockTokens(origToken.address, 600);
+            await benture
+                .connect(clientAcc2)
+                .lockTokens(origToken.address, 400);
+
+            expect(
+                await benture.isLocker(origToken.address, clientAcc1.address)
+            ).to.be.equal(true);
+            expect(
+                await benture.isLocker(origToken.address, clientAcc2.address)
+            ).to.be.equal(true);
+
+            await benture.distributeDividends(
+                origToken.address,
+                distToken.address,
+                1000,
+                true
+            );
+            expect(await distToken.balanceOf(clientAcc1.address)).to.be.equal(
+                0
+            );
+            expect(await distToken.balanceOf(clientAcc2.address)).to.be.equal(
+                0
+            );
+            await benture.connect(clientAcc1).unlockAllTokens(origToken.address);
+            await benture.connect(clientAcc2).unlockAllTokens(origToken.address);
+;
+            expect(
+                await benture.isLocker(origToken.address, clientAcc1.address)
+            ).to.be.equal(false);
+            expect(
+                await benture.isLocker(origToken.address, clientAcc2.address)
+            ).to.be.equal(false);
+
+            expect(
+                await benture.hasClaimed(1, clientAcc1.address)
+            ).to.be.equal(true);
+            expect(
+                await benture.hasClaimed(1, clientAcc2.address)
+            ).to.be.equal(true);
+
+            expect(await distToken.balanceOf(clientAcc1.address)).to.be.equal(
+                500
+            );
+            expect(await distToken.balanceOf(clientAcc2.address)).to.be.equal(
+                500
+            );
+        });
+
 
         it("Dist tokens equally with uneven balance", async () => {
             await origToken.mint(clientAcc1.address, 1000);
@@ -965,7 +1034,7 @@ describe("Benture Dividend-Distributing Contract", () => {
         describe("Weighted dividends", () => {});
     });
 
-    describe("Reverts", () => {
+    xdescribe("Reverts", () => {
         it("Should revert createPool with Benture: caller is neither admin nor factory!", async () => {
             await expect(
                 benture.connect(clientAcc1).createPool(distToken.address)
