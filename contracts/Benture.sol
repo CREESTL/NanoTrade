@@ -132,7 +132,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // If caller is neither a factory nor an admin - revert
         if (
             !(msg.sender == factory) &&
-            !(IBentureProducedToken(token).verifiedAdmin(msg.sender))
+            !(IBentureProducedToken(token).checkAdmin(msg.sender))
         ) {
             revert CallerNotAdminOrFactory();
         }

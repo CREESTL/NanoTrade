@@ -152,6 +152,8 @@ contract Salary is ISalary {
         employeeToAdmins[employeeAddress].remove(msg.sender);
     }
 
+    /// @notice Withdraws all of employee's salary.
+    /// @dev Anyone can call this method. No restrictions.
     function withdrawAllSalaries() external {
         uint256 adminsLength = employeeToAdmins[msg.sender].length();
         uint256 salariesLength;

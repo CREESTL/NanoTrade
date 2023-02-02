@@ -111,14 +111,6 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         _adminToken = adminToken_;
     }
 
-    function verifiedAdmin(address user) external view returns (bool) {
-        if (!IBentureAdmin(_adminToken).verifyAdminToken(user, address(this))) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
     /// @notice Returns the name of the token
     /// @return The name of the token
     function name()
