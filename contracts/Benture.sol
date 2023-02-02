@@ -13,8 +13,6 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
-// TODO delete it!
-import "hardhat/console.sol";
 
 /// @title Dividends distributing contract
 contract Benture is IBenture, Ownable, ReentrancyGuard {
@@ -139,15 +137,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         _;
     }
 
-    // TODO do I need this?
-
-    /*     /// @dev Checks that caller is an admin of a project
-    modifier onlyAdmin(address token) {
-        if (IBentureAdmin(token).verifyAdminToken(msg.sender, token) == false) {
-            revert("Benture: caller is not an admin!");
-        }
-        _;
-    } */
 
     /// @dev The contract must be able to receive ether to pay dividends with it
     receive() external payable {}
@@ -622,9 +611,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             }
         } else {
             // Send ERC20 tokens
-            // TODO check if it works well
             IERC20(distribution.distToken).safeTransfer(
-                //address(this),
                 msg.sender,
                 share
             );
