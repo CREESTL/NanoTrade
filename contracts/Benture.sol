@@ -13,7 +13,6 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
-
 /// @title Dividends distributing contract
 contract Benture is IBenture, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
@@ -100,8 +99,11 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     error InvalidLockAmount();
     error CanNotLockZeroAddressTokens();
     error PoolDoesNotExist();
+    error CanNotWorkWithEmptyLists();
+    error ListsLengthDiffers();
     error WrongTokenInsideThePool();
     error UserDoesNotHaveProjectTokens();
+    error TransferFailed();
     error InvalidUnlockAmount();
     error CanNotUnlockZeroAddressTokens();
     error UserDoesNotHaveAnyLockedTokens();
@@ -622,24 +624,79 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     ///         WARNING: Potentially can exceed block gas limit!
     /// @param ids The array of IDs of distributions to claim
     function claimMultipleDividends(uint256[] memory ids) public {
-        uint256 gasToSpend = (block.gaslimit * 2) / 3;
-        uint256 lastID = 0;
+
+        // Only 2/3 of block gas limit could be spent. So 1/3 should be left.
+        uint256 gasThreshold = (block.gaslimit * 1) / 3;
+
+        uint256 count;
 
         for (uint i = 0; i < ids.length; i++) {
             claimDividends(ids[i]);
-            if (gasleft() <= gasToSpend) {
-                lastID = i;
+            // Increase the number of users who received their shares
+            count++;
+            // Check that no more than 2/3 of block gas limit was spent
+            if (gasleft() <= gasThreshold) {
                 break;
             }
-            lastID = i;
         }
 
-        // Form an array of IDs that were claimed
-        uint256[] memory resultArr = new uint256[](lastID);
-        for (uint256 i = 0; i < resultArr.length; i++) {
-            resultArr[i] = i;
+        emit MultipleDividendsClaimed (msg.sender, count);
+    }
+
+
+    /// @notice Allows admin to distribute provided amounts of tokens to the provided list of users
+    /// @param token The address of the token to be distributed
+    /// @param users The list of addresses of users to receive tokens
+    /// @param amounts The list of amounts each user has to receive
+    /// @param totalAmount The total amount of `token`s to be distributed. Sum of `amounts` array.
+    function distributeDividendsCustom(address token, address[] calldata users, uint256[] calldata amounts, uint256 totalAmount) public payable {
+        // Lists can't be empty
+        if ((users.length == 0) || (amounts.length == 0)) {
+            revert CanNotWorkWithEmptyLists();
         }
-        emit MultipleDividendsClaimed(resultArr, msg.sender);
+        // Lists length should be the same
+        if (users.length != amounts.length) {
+            revert ListsLengthDiffers();
+        }
+        // If dividends are to be paid in native tokens, check that enough native tokens were provided
+        if ((token == address(0)) && (msg.value < totalAmount)) {
+            revert NotEnoughNativeTokensWereProvided();
+        }
+        // If dividends are to be paid in ERC20 tokens, transfer ERC20 tokens from caller
+        // to this contract first
+        // NOTE: Caller must approve transfer of at least `totalAmount` of tokens to this contract
+        if (token != address(0)) {
+            IERC20(token).safeTransferFrom(msg.sender, address(this), totalAmount);
+        }
+
+
+        // Only 2/3 of block gas limit could be spent. So 1/3 should be left.
+        uint256 gasThreshold = (block.gaslimit * 1) / 3;
+
+        uint256 count;
+
+        // Distribute dividends to each of the holders
+        for (uint256 i = 0; i < users.length; i++) {
+            if (token == address(0)){
+                // Native tokens (wei)
+                (bool success, ) = users[i].call{value: amounts[i]}("");
+                if (!success) {
+                    revert TransferFailed();
+                }
+            } else {
+                // Other ERC20 tokens
+                IERC20(token).safeTransfer(users[i], amounts[i]);
+            }
+            // Increase the number of users who received their shares
+            count++;
+            // Check that no more than 2/3 of block gas limit was spent
+            if (gasleft() <= gasThreshold) {
+                break;
+            }
+        }
+
+        emit CustomDividendsDistributed(token, count);
+
     }
 
     // ===== GETTERS =====

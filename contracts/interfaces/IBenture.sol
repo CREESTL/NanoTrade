@@ -50,6 +50,13 @@ interface IBenture {
     /// @param ids The array of IDs of distributions to claim
     function claimMultipleDividends(uint256[] calldata ids) external;
 
+    /// @notice Allows admin to distribute provided amounts of tokens to the provided list of users
+    /// @param token The address of the token to be distributed
+    /// @param users The list of addresses of users to receive tokens
+    /// @param amounts The list of amounts each user has to receive
+    /// @param totalAmount The total amount of `token`s to be distributed. Sum of `amounts` array.
+    function distributeDividendsCustom(address token, address[] calldata users, uint256[] calldata amounts, uint256 totalAmount) external payable;
+
     /// @notice Returns info about the pool of a given token
     /// @param token The address of the token of the pool
     /// @return The address of the tokens in the pool.
@@ -146,7 +153,13 @@ interface IBenture {
     event DividendsClaimed(uint256 indexed id, address user);
 
     /// @dev Indicates that multiple dividends were claimed by a user
-    /// @param ids The array of IDs of distributions that were claimed
     /// @param user The address of the user who claimed the distributions
-    event MultipleDividendsClaimed(uint256[] ids, address user);
+    /// @param count The total number of claimed dividends
+    event MultipleDividendsClaimed(address user, uint256 count);
+
+    /// @dev Indicates that custom dividends were sent to the list of users
+    /// @param token The token distributed
+    /// @param count The total number of users who received their shares
+    ///              Counting starts from the first user and does not skip any users
+    event CustomDividendsDistributed(address indexed token, uint256 count);
 }
