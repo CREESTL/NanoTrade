@@ -7,9 +7,10 @@ import "./interfaces/IBentureSalary.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /// @title Salary contract. A contract to manage salaries
-contract BentureSalary is IBentureSalary {
+contract BentureSalary is IBentureSalary, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
@@ -104,7 +105,7 @@ contract BentureSalary is IBentureSalary {
     /// @dev Only admin can call this method.
     function addEmployee(address employeeAddress) external onlyAdmin {
         if (checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender)) {
-            revert UserAllreadyIsEmployee();
+            revert AllreadyEmployee();
         }
         adminToEmployees[msg.sender].add(employeeAddress);
         employeeToAdmins[employeeAddress].add(msg.sender);
@@ -149,7 +150,7 @@ contract BentureSalary is IBentureSalary {
                 employeeToAdmins[msg.sender].at(i)
             ].length();
             for (uint256 k = 0; k < salariesLength; k++) {
-                withdrawSalary(
+                _withdrawSalary(
                     employeeToAdminToSalaryId[msg.sender][
                         employeeToAdmins[msg.sender].at(i)
                     ].at(k)
@@ -161,7 +162,11 @@ contract BentureSalary is IBentureSalary {
     /// @notice Withdraws employee's salary.
     /// @param salaryId IDs of employee salaries.
     /// @dev Anyone can call this method. No restrictions.
-    function withdrawSalary(uint256 salaryId) public {
+    function withdrawSalary(uint256 salaryId) external nonReentrant {
+        _withdrawSalary(salaryId);
+    }
+
+    function _withdrawSalary(uint256 salaryId) public {
         SalaryInfo storage _salary = salaryById[salaryId];
         if (_salary.employee != msg.sender) {
             revert NotEmployeeForThisSalary();
@@ -268,7 +273,7 @@ contract BentureSalary is IBentureSalary {
     function removePeriodsFromSalary(
         uint256 salaryId,
         uint256 amountOfPeriodsToDelete
-    ) external onlyAdmin {
+    ) external onlyAdmin nonReentrant {
         SalaryInfo storage _salary = salaryById[salaryId];
         if (
             block.timestamp - _salary.salaryStartTime >
@@ -277,7 +282,7 @@ contract BentureSalary is IBentureSalary {
             revert SalaryEnded();
         }
         if (!checkIfUserIsAdminOfEmployee(_salary.employee, msg.sender)) {
-            revert NotAnAdminForEmployee();
+            revert NotAdminForEmployee();
         }
         uint256 remainingTime = _salary.periodDuration *
             _salary.amountOfPeriods -
@@ -303,7 +308,7 @@ contract BentureSalary is IBentureSalary {
     function addPeriodsToSalary(
         uint256 salaryId,
         uint256[] memory tokensAmountPerPeriod
-    ) external onlyAdmin {
+    ) external onlyAdmin nonReentrant {
         SalaryInfo storage _salary = salaryById[salaryId];
         if (
             block.timestamp - _salary.salaryStartTime >
@@ -312,7 +317,7 @@ contract BentureSalary is IBentureSalary {
             revert SalaryEnded();
         }
         if (!checkIfUserIsAdminOfEmployee(_salary.employee, msg.sender)) {
-            revert NotAnAdminForEmployee();
+            revert NotAdminForEmployee();
         }
 
         uint256 alreadyPayed;
@@ -360,13 +365,13 @@ contract BentureSalary is IBentureSalary {
         uint256 amountOfPeriods,
         address tokenAddress,
         uint256[] memory tokensAmountPerPeriod
-    ) external onlyAdmin {
+    ) external onlyAdmin nonReentrant {
         if (amountOfPeriods != tokensAmountPerPeriod.length) {
-            revert AmountOfPeriodsNotEqualTokensAmmountPerPeriod();
+            revert InvalidAmountOfPeriods();
         }
 
         if (!checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender)) {
-            revert NotAnAdminForEmployee();
+            revert NotAdminForEmployee();
         }
 
         uint256 totalTokenAmount;
@@ -479,10 +484,10 @@ contract BentureSalary is IBentureSalary {
     function removeSalaryFromEmployee(uint256 salaryId) public onlyAdmin {
         SalaryInfo memory _salary = salaryById[salaryId];
         if (!checkIfUserIsAdminOfEmployee(_salary.employee, msg.sender)) {
-            revert NotAnAdminForEmployee();
+            revert NotAdminForEmployee();
         }
         if (_salary.employer != msg.sender) {
-            revert NotAnAdminForThisSalary();
+            revert NotAdminForThisSalary();
         }
 
         uint256 amountToPay = getSalaryAmount(salaryId);

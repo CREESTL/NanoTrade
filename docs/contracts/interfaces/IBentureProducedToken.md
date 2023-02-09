@@ -321,28 +321,6 @@ function transferFrom(address from, address to, uint256 amount) external nonpaya
 |---|---|---|
 | _0 | bool | undefined |
 
-### verifiedAdmin
-
-```solidity
-function verifiedAdmin(address user) external view returns (bool)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| user | address | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
-
 
 
 ## Events
@@ -434,6 +412,163 @@ event Transfer(address indexed from, address indexed to, uint256 value)
 | from `indexed` | address | undefined |
 | to `indexed` | address | undefined |
 | value  | uint256 | undefined |
+
+
+
+## Errors
+
+### DeletingHolderFailed
+
+```solidity
+error DeletingHolderFailed()
+```
+
+
+
+
+
+
+### EmptyTokenDecimals
+
+```solidity
+error EmptyTokenDecimals()
+```
+
+
+
+
+
+
+### EmptyTokenName
+
+```solidity
+error EmptyTokenName()
+```
+
+
+
+
+
+
+### EmptyTokenSymbol
+
+```solidity
+error EmptyTokenSymbol()
+```
+
+
+
+
+
+
+### InvalidAdminTokenAddress
+
+```solidity
+error InvalidAdminTokenAddress()
+```
+
+
+
+
+
+
+### InvalidBurnAmount
+
+```solidity
+error InvalidBurnAmount()
+```
+
+
+
+
+
+
+### InvalidUserAddress
+
+```solidity
+error InvalidUserAddress()
+```
+
+
+
+
+
+
+### NoTokensToBurn
+
+```solidity
+error NoTokensToBurn()
+```
+
+
+
+
+
+
+### NoTokensToTransfer
+
+```solidity
+error NoTokensToTransfer()
+```
+
+
+
+
+
+
+### NotZeroMaxTotalSupply
+
+```solidity
+error NotZeroMaxTotalSupply()
+```
+
+
+
+
+
+
+### SenderCanNotBeAReceiver
+
+```solidity
+error SenderCanNotBeAReceiver()
+```
+
+
+
+
+
+
+### SupplyExceedsMaximumSupply
+
+```solidity
+error SupplyExceedsMaximumSupply()
+```
+
+
+
+
+
+
+### TheTokenIsNotMintable
+
+```solidity
+error TheTokenIsNotMintable()
+```
+
+
+
+
+
+
+### UserDoesNotHaveAnAdminToken
+
+```solidity
+error UserDoesNotHaveAnAdminToken()
+```
+
+
+
+
 
 
 

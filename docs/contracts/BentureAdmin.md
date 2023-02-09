@@ -573,54 +573,10 @@ event Transfer(address indexed from, address indexed to, uint256 indexed tokenId
 
 ## Errors
 
-### AdminAddressCanNotBeAZeroAddress
-
-```solidity
-error AdminAddressCanNotBeAZeroAddress()
-```
-
-
-
-
-
-
-### AdminTokenMintToZeroAddressIsNotAllowed
-
-```solidity
-error AdminTokenMintToZeroAddressIsNotAllowed()
-```
-
-
-
-
-
-
 ### CallerIsNotAFactory
 
 ```solidity
 error CallerIsNotAFactory()
-```
-
-
-
-
-
-
-### ControlledTokenCanNotHaveAZeroAddress
-
-```solidity
-error ControlledTokenCanNotHaveAZeroAddress()
-```
-
-
-
-
-
-
-### FactoryAddressCanNotBeZeroAddress
-
-```solidity
-error FactoryAddressCanNotBeZeroAddress()
 ```
 
 
@@ -639,10 +595,10 @@ error FailedToDeleteTokenID()
 
 
 
-### NoControlledTokenExistsForThisAdminToken
+### InvalidAdminAddress
 
 ```solidity
-error NoControlledTokenExistsForThisAdminToken()
+error InvalidAdminAddress()
 ```
 
 
@@ -650,10 +606,10 @@ error NoControlledTokenExistsForThisAdminToken()
 
 
 
-### OnlyASingleAdminTokenIsAllowedForASingleControlledToken
+### InvalidFactoryAddress
 
 ```solidity
-error OnlyASingleAdminTokenIsAllowedForASingleControlledToken()
+error InvalidFactoryAddress()
 ```
 
 
@@ -661,10 +617,10 @@ error OnlyASingleAdminTokenIsAllowedForASingleControlledToken()
 
 
 
-### OnlyOwnerOfTheTokenIsAllowedToBurnIt
+### InvalidTokenAddress
 
 ```solidity
-error OnlyOwnerOfTheTokenIsAllowedToBurnIt()
+error InvalidTokenAddress()
 ```
 
 
@@ -672,10 +628,10 @@ error OnlyOwnerOfTheTokenIsAllowedToBurnIt()
 
 
 
-### ReceiverCanNotBeAZeroAddress
+### InvalidUserAddress
 
 ```solidity
-error ReceiverCanNotBeAZeroAddress()
+error InvalidUserAddress()
 ```
 
 
@@ -683,10 +639,10 @@ error ReceiverCanNotBeAZeroAddress()
 
 
 
-### SenderCanNotBeAZeroAddress
+### MintToZeroAddressNotAllowed
 
 ```solidity
-error SenderCanNotBeAZeroAddress()
+error MintToZeroAddressNotAllowed()
 ```
 
 
@@ -694,10 +650,10 @@ error SenderCanNotBeAZeroAddress()
 
 
 
-### TokenCanNotHaveAZeroAddress
+### NoControlledToken
 
 ```solidity
-error TokenCanNotHaveAZeroAddress()
+error NoControlledToken()
 ```
 
 
@@ -705,10 +661,21 @@ error TokenCanNotHaveAZeroAddress()
 
 
 
-### UserCanNotHaveAZeroAddress
+### NotAnOwner
 
 ```solidity
-error UserCanNotHaveAZeroAddress()
+error NotAnOwner()
+```
+
+
+
+
+
+
+### OnlyOneAdminTokenForProjectToken
+
+```solidity
+error OnlyOneAdminTokenForProjectToken()
 ```
 
 
@@ -720,17 +687,6 @@ error UserCanNotHaveAZeroAddress()
 
 ```solidity
 error UserDoesNotHaveAnAdminToken()
-```
-
-
-
-
-
-
-### ZeroAddressIsAnInvalidUser
-
-```solidity
-error ZeroAddressIsAnInvalidUser()
 ```
 
 

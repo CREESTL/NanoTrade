@@ -3,23 +3,18 @@
 pragma solidity ^0.8.9;
 
 interface IBentureProducedTokenErrors {
-
     error TheTokenIsNotMintable();
     error UserDoesNotHaveAnAdminToken();
-    error InitialTokenNameCanNotBeEmpty();
-    error InitialTokenSymbolCanNotBeEmpty();
-    error InitialDecimalsCanNotBeZero();
-    error AdminTokenAddressCanNotBeAZeroAddress();
-    error MaxTotalSupplyMustBeZeroForUnmintableTokens();
-    error CanNotMintToZeroAddress();
+    error EmptyTokenName();
+    error EmptyTokenSymbol();
+    error EmptyTokenDecimals();
+    error InvalidAdminTokenAddress();
+    error NotZeroMaxTotalSupply();
+    error InvalidUserAddress();
     error SupplyExceedsMaximumSupply();
-    error TheAmountOfTokensToBurnMustBeGreaterThanZero();
-    error CallerDoesNotHaveAnyTokensToBurn();
-    error DeletingHolderWithZeroBalanceFailed();
-    error SenderCanNotBeAZeroAddress();
-    error ReceiverCanNotBeAZeroAddress();
+    error InvalidBurnAmount();
+    error NoTokensToBurn();
+    error DeletingHolderFailed();
     error SenderCanNotBeAReceiver();
-    error SenderDoesNotHaveAnyTokensToTransfer();
-
-
+    error NoTokensToTransfer();
 }

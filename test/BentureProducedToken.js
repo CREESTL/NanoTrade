@@ -142,7 +142,7 @@ describe("Benture Produced Token", () => {
             let amount = 1000;
             await expect(
                 token.mint(zeroAddress, amount)
-            ).to.be.revertedWithCustomError(token, "CanNotMintToZeroAddress");
+            ).to.be.revertedWithCustomError(token, "InvalidUserAddress");
         });
 
         it("Should fail to mint if caller is not an admin", async () => {
@@ -241,20 +241,14 @@ describe("Benture Produced Token", () => {
             let amount = 1000;
             await expect(
                 token.connect(clientAcc1).burn(amount)
-            ).to.be.revertedWithCustomError(
-                token,
-                "CallerDoesNotHaveAnyTokensToBurn"
-            );
+            ).to.be.revertedWithCustomError(token, "NoTokensToBurn");
         });
 
         it("Should fail to burn zero amount of tokens", async () => {
             let amount = 0;
             await expect(
                 token.connect(clientAcc1).burn(amount)
-            ).to.be.revertedWithCustomError(
-                token,
-                "TheAmountOfTokensToBurnMustBeGreaterThanZero"
-            );
+            ).to.be.revertedWithCustomError(token, "InvalidBurnAmount");
         });
 
         it("Should indicate that account is no longer a holder after burning tokens", async () => {
@@ -359,20 +353,14 @@ describe("Benture Produced Token", () => {
             await token.mint(clientAcc1.address, amount);
             await expect(
                 token.connect(clientAcc1).transfer(zeroAddress, amount)
-            ).to.be.revertedWithCustomError(
-                token,
-                "ReceiverCanNotBeAZeroAddress"
-            );
+            ).to.be.revertedWithCustomError(token, "InvalidUserAddress");
         });
 
         it("Should fail to transfer tokens if sender has no tokens", async () => {
             let amount = 1000;
             await expect(
                 token.connect(clientAcc1).transfer(clientAcc2.address, amount)
-            ).to.be.revertedWithCustomError(
-                token,
-                "SenderDoesNotHaveAnyTokensToTransfer"
-            );
+            ).to.be.revertedWithCustomError(token, "NoTokensToTransfer");
         });
     });
 
@@ -387,10 +375,7 @@ describe("Benture Produced Token", () => {
                     1_000_000,
                     adminToken.address
                 )
-            ).to.be.revertedWithCustomError(
-                token,
-                "InitialTokenNameCanNotBeEmpty"
-            );
+            ).to.be.revertedWithCustomError(token, "EmptyTokenName");
         });
 
         it("Should fail to initialize with wrong symbol", async () => {
@@ -403,10 +388,7 @@ describe("Benture Produced Token", () => {
                     1_000_000,
                     adminToken.address
                 )
-            ).to.be.revertedWithCustomError(
-                token,
-                "InitialTokenSymbolCanNotBeEmpty"
-            );
+            ).to.be.revertedWithCustomError(token, "EmptyTokenSymbol");
         });
 
         it("Should fail to initialize with wrong decimals", async () => {
@@ -419,10 +401,7 @@ describe("Benture Produced Token", () => {
                     1_000_000,
                     adminToken.address
                 )
-            ).to.be.revertedWithCustomError(
-                token,
-                "InitialDecimalsCanNotBeZero"
-            );
+            ).to.be.revertedWithCustomError(token, "EmptyTokenDecimals");
         });
 
         it("Should fail to initialize with wrong admin token address", async () => {
@@ -435,10 +414,7 @@ describe("Benture Produced Token", () => {
                     1_000_000,
                     zeroAddress
                 )
-            ).to.be.revertedWithCustomError(
-                token,
-                "AdminTokenAddressCanNotBeAZeroAddress"
-            );
+            ).to.be.revertedWithCustomError(token, "InvalidAdminTokenAddress");
         });
 
         it("Should fail to initialize with any max total supply if non-mintable", async () => {
@@ -451,10 +427,7 @@ describe("Benture Produced Token", () => {
                     1_000_000,
                     adminToken.address
                 )
-            ).to.be.revertedWithCustomError(
-                token,
-                "MaxTotalSupplyMustBeZeroForUnmintableTokens"
-            );
+            ).to.be.revertedWithCustomError(token, "NotZeroMaxTotalSupply");
         });
     });
 });

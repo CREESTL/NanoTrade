@@ -8,9 +8,10 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IBentureProducedToken.sol";
 import "./interfaces/IBentureAdmin.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /// @title A custom ERC721 contract that allows to mint controlled ERC20 tokens
-contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
+contract BentureAdmin is IBentureAdmin, ERC721, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
     using EnumerableSet for EnumerableSet.UintSet;
     using Strings for uint256;
@@ -45,7 +46,7 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
         address factoryAddress_
     ) ERC721("Benture Manager Token", "BMNG") {
         if (factoryAddress_ == address(0)) {
-            revert FactoryAddressCanNotBeZeroAddress();
+            revert InvalidFactoryAddress();
         }
         _factoryAddress = factoryAddress_;
     }
@@ -53,7 +54,7 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
     /// @notice Checks it the provided address owns any admin token
     function checkOwner(address user) external view {
         if (user == address(0)) {
-            revert ZeroAddressIsAnInvalidUser();
+            revert InvalidUserAddress();
         }
         if (_holderToIds[user].length() == 0) {
             revert UserDoesNotHaveAnAdminToken();
@@ -69,10 +70,10 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
         address ERC20Address
     ) external view returns (bool) {
         if (user == address(0)) {
-            revert UserCanNotHaveAZeroAddress();
+            revert InvalidUserAddress();
         }
         if (ERC20Address == address(0)) {
-            revert TokenCanNotHaveAZeroAddress();
+            revert InvalidTokenAddress();
         }
         // Get the ID of the admin token for the provided ERC20 token address
         // No need to check if ID is 0 here
@@ -91,7 +92,7 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
         uint256 tokenId
     ) external view returns (address) {
         if (_adminToControlled[tokenId] == address(0)) {
-            revert NoControlledTokenExistsForThisAdminToken();
+            revert NoControlledToken();
         }
         _requireMinted(tokenId);
 
@@ -104,7 +105,7 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
         address admin
     ) external view returns (uint256[] memory) {
         if (admin == address(0)) {
-            revert AdminAddressCanNotBeAZeroAddress();
+            revert InvalidAdminAddress();
         }
         return _holderToIds[admin].values();
     }
@@ -123,7 +124,7 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
         address ERC20Address
     ) internal onlyFactory {
         if (ERC20Address == address(0)) {
-            revert ControlledTokenCanNotHaveAZeroAddress();
+            revert InvalidTokenAddress();
         }
         _requireMinted(tokenId);
         _adminToControlled[tokenId] = ERC20Address;
@@ -146,15 +147,15 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
     function mintWithERC20Address(
         address to,
         address ERC20Address
-    ) external onlyFactory {
+    ) external onlyFactory nonReentrant {
         if (to == address(0)) {
-            revert AdminTokenMintToZeroAddressIsNotAllowed();
+            revert MintToZeroAddressNotAllowed();
         }
         if (ERC20Address == address(0)) {
-            revert ControlledTokenCanNotHaveAZeroAddress();
+            revert InvalidTokenAddress();
         }
         if (_usedControlled[ERC20Address]) {
-            revert OnlyASingleAdminTokenIsAllowedForASingleControlledToken();
+            revert OnlyOneAdminTokenForProjectToken();
         }
         _tokenIds.increment();
         // NOTE The lowest token ID is 1
@@ -177,7 +178,7 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
     /// @param tokenId The ID of the token to burn
     function burn(uint256 tokenId) external {
         if (ownerOf(tokenId) != msg.sender) {
-            revert OnlyOwnerOfTheTokenIsAllowedToBurnIt();
+            revert NotAnOwner();
         }
         _requireMinted(tokenId);
         // NOTE: `delete` does not change the length of any array. It replaces a "deleted" item
@@ -203,10 +204,10 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
         uint256 tokenId
     ) internal override {
         if (from == address(0)) {
-            revert SenderCanNotBeAZeroAddress();
+            revert InvalidUserAddress();
         }
         if (to == address(0)) {
-            revert ReceiverCanNotBeAZeroAddress();
+            revert InvalidUserAddress();
         }
         _requireMinted(tokenId);
         // No need to check if sender has any admin tokens here because it is checked

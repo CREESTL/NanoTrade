@@ -367,28 +367,6 @@ function transferFrom(address from, address to, uint256 amount) external nonpaya
 |---|---|---|
 | _0 | bool | undefined |
 
-### verifiedAdmin
-
-```solidity
-function verifiedAdmin(address user) external view returns (bool)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| user | address | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
-
 
 
 ## Events
@@ -485,10 +463,10 @@ event Transfer(address indexed from, address indexed to, uint256 value)
 
 ## Errors
 
-### AdminTokenAddressCanNotBeAZeroAddress
+### DeletingHolderFailed
 
 ```solidity
-error AdminTokenAddressCanNotBeAZeroAddress()
+error DeletingHolderFailed()
 ```
 
 
@@ -496,10 +474,10 @@ error AdminTokenAddressCanNotBeAZeroAddress()
 
 
 
-### CallerDoesNotHaveAnyTokensToBurn
+### EmptyTokenDecimals
 
 ```solidity
-error CallerDoesNotHaveAnyTokensToBurn()
+error EmptyTokenDecimals()
 ```
 
 
@@ -507,10 +485,10 @@ error CallerDoesNotHaveAnyTokensToBurn()
 
 
 
-### CanNotMintToZeroAddress
+### EmptyTokenName
 
 ```solidity
-error CanNotMintToZeroAddress()
+error EmptyTokenName()
 ```
 
 
@@ -518,10 +496,10 @@ error CanNotMintToZeroAddress()
 
 
 
-### DeletingHolderWithZeroBalanceFailed
+### EmptyTokenSymbol
 
 ```solidity
-error DeletingHolderWithZeroBalanceFailed()
+error EmptyTokenSymbol()
 ```
 
 
@@ -529,10 +507,10 @@ error DeletingHolderWithZeroBalanceFailed()
 
 
 
-### InitialDecimalsCanNotBeZero
+### InvalidAdminTokenAddress
 
 ```solidity
-error InitialDecimalsCanNotBeZero()
+error InvalidAdminTokenAddress()
 ```
 
 
@@ -540,10 +518,10 @@ error InitialDecimalsCanNotBeZero()
 
 
 
-### InitialTokenNameCanNotBeEmpty
+### InvalidBurnAmount
 
 ```solidity
-error InitialTokenNameCanNotBeEmpty()
+error InvalidBurnAmount()
 ```
 
 
@@ -551,10 +529,10 @@ error InitialTokenNameCanNotBeEmpty()
 
 
 
-### InitialTokenSymbolCanNotBeEmpty
+### InvalidUserAddress
 
 ```solidity
-error InitialTokenSymbolCanNotBeEmpty()
+error InvalidUserAddress()
 ```
 
 
@@ -562,10 +540,10 @@ error InitialTokenSymbolCanNotBeEmpty()
 
 
 
-### MaxTotalSupplyMustBeZeroForUnmintableTokens
+### NoTokensToBurn
 
 ```solidity
-error MaxTotalSupplyMustBeZeroForUnmintableTokens()
+error NoTokensToBurn()
 ```
 
 
@@ -573,10 +551,21 @@ error MaxTotalSupplyMustBeZeroForUnmintableTokens()
 
 
 
-### ReceiverCanNotBeAZeroAddress
+### NoTokensToTransfer
 
 ```solidity
-error ReceiverCanNotBeAZeroAddress()
+error NoTokensToTransfer()
+```
+
+
+
+
+
+
+### NotZeroMaxTotalSupply
+
+```solidity
+error NotZeroMaxTotalSupply()
 ```
 
 
@@ -595,43 +584,10 @@ error SenderCanNotBeAReceiver()
 
 
 
-### SenderCanNotBeAZeroAddress
-
-```solidity
-error SenderCanNotBeAZeroAddress()
-```
-
-
-
-
-
-
-### SenderDoesNotHaveAnyTokensToTransfer
-
-```solidity
-error SenderDoesNotHaveAnyTokensToTransfer()
-```
-
-
-
-
-
-
 ### SupplyExceedsMaximumSupply
 
 ```solidity
 error SupplyExceedsMaximumSupply()
-```
-
-
-
-
-
-
-### TheAmountOfTokensToBurnMustBeGreaterThanZero
-
-```solidity
-error TheAmountOfTokensToBurnMustBeGreaterThanZero()
 ```
 
 

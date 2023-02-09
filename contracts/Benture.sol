@@ -13,9 +13,6 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
-// TODO delete it
-import "hardhat/console.sol";
-
 /// @title Dividends distributing contract
 contract Benture is IBenture, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
@@ -82,7 +79,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     address public factory;
 
     /// @dev All pools
-    mapping(address => Pool) pools;
+    mapping(address => Pool) private pools;
 
     /// @dev Incrementing IDs of distributions
     Counters.Counter internal distributionIds;
@@ -92,7 +89,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @dev Mapping from admin address to the list of IDs of active distributions he started
     mapping(address => uint256[]) internal adminsToDistributions;
     /// @dev Mapping from distribution ID to the distribution
-    mapping(uint256 => Distribution) distributions;
+    mapping(uint256 => Distribution) private distributions;
 
     /// @dev Checks that caller is either an admin of a project or a factory
     modifier onlyAdminOrFactory(address token) {
@@ -100,7 +97,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // verify that caller is admin because it's impossible to
         // call verification method on zero address
         if (token == address(0)) {
-            revert CanNotWorkWithZeroAddressTokens();
+            revert InvalidTokenAddress();
         }
         // If factory address is zero, that means that it hasn't been set
         if (factory == address(0)) {
@@ -125,7 +122,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @param token The token that will be locked in the pool
     function createPool(address token) external onlyAdminOrFactory(token) {
         if (token == address(0)) {
-            revert PoolsCanNotHoldZeroAddressTokens();
+            revert InvalidTokenAddress();
         }
 
         emit PoolCreated(token);
@@ -149,7 +146,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         }
         // Token must have npn-zero address
         if (origToken == address(0)) {
-            revert CanNotLockZeroAddressTokens();
+            revert InvalidTokenAddress();
         }
 
         Pool storage pool = pools[origToken];
@@ -241,7 +238,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             }
         }
 
-
         // If there are more than 1 IDs in the array, that means that at least
         // one distribution has started
 
@@ -263,7 +259,11 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
                 if (amounts[allIds[i - 1]] != 0) {
                     // If lock for the ID is not 0 and for previous ID it's not 0 as well
                     // than means that user took part in all IDs between these two
-                    for (uint256 j = allIds[i - 1] + 1; j < allIds[i] + 1; j++) {
+                    for (
+                        uint256 j = allIds[i - 1] + 1;
+                        j < allIds[i] + 1;
+                        j++
+                    ) {
                         if (!hasClaimed(j, user)) {
                             counter++;
                         }
@@ -292,7 +292,11 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         if (amounts[allIds[allIds.length - 1]] != 0) {
             // If lock for the last ID isn't zero, that means that the user still has lock
             // in the pool till this moment and he took part in all IDs since then
-            for (uint256 j = allIds[allIds.length - 1] + 1; j < distributionIds.current() + 1; j++) {
+            for (
+                uint256 j = allIds[allIds.length - 1] + 1;
+                j < distributionIds.current() + 1;
+                j++
+            ) {
                 if (!hasClaimed(j, user)) {
                     counter++;
                 }
@@ -312,7 +316,11 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         for (uint256 i = 1; i < allIds.length; i++) {
             if (amounts[allIds[i]] != 0) {
                 if (amounts[allIds[i - 1]] != 0) {
-                    for (uint256 j = allIds[i - 1] + 1; j < allIds[i] + 1; j++) {
+                    for (
+                        uint256 j = allIds[i - 1] + 1;
+                        j < allIds[i] + 1;
+                        j++
+                    ) {
                         if (!hasClaimed(j, user)) {
                             tookPart[counter] = j;
                             counter++;
@@ -337,7 +345,11 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         }
 
         if (amounts[allIds[allIds.length - 1]] != 0) {
-            for (uint256 j = allIds[allIds.length - 1] + 1; j < distributionIds.current() + 1; j++) {
+            for (
+                uint256 j = allIds[allIds.length - 1] + 1;
+                j < distributionIds.current() + 1;
+                j++
+            ) {
                 if (!hasClaimed(j, user)) {
                     tookPart[counter] = j;
                     counter++;
@@ -350,13 +362,23 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @notice Unlocks the provided amount of user's tokens from the pool
     /// @param origToken The address of the token to unlock
     /// @param amount The amount of tokens to unlock
-    function unlockTokens(address origToken, uint256 amount) public nonReentrant {
+    function unlockTokens(
+        address origToken,
+        uint256 amount
+    ) external nonReentrant {
+        _unlockTokens(origToken, amount);
+    }
+
+    /// @notice Unlocks the provided amount of user's tokens from the pool
+    /// @param origToken The address of the token to unlock
+    /// @param amount The amount of tokens to unlock
+    function _unlockTokens(address origToken, uint256 amount) private {
         if (amount == 0) {
             revert InvalidUnlockAmount();
         }
         // Token must have npn-zero address
         if (origToken == address(0)) {
-            revert CanNotUnlockZeroAddressTokens();
+            revert InvalidTokenAddress();
         }
 
         Pool storage pool = pools[origToken];
@@ -370,12 +392,12 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         }
         // Make sure that user has locked some tokens before
         if (!isLocker(pool.token, msg.sender)) {
-            revert UserDoesNotHaveAnyLockedTokens();
+            revert NoLockedTokens();
         }
 
         // Make sure that user is trying to withdraw no more tokens than he has locked for now
         if (pool.lockedByUser[msg.sender] < amount) {
-            revert WithdrawAmountIsTooBig();
+            revert WithdrawTooBig();
         }
 
         // Any unlock triggers claim of all dividends inside the pool for that user
@@ -386,9 +408,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             origToken
         );
 
-
         // Now claim all dividends of these distributions
-        claimMultipleDividends(notClaimedIds);
+        _claimMultipleDividends(notClaimedIds);
 
         // Decrease the total amount of locked tokens in the pool
         pool.totalLocked -= amount;
@@ -420,7 +441,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // Get the last lock of the user
         uint256 wholeBalance = pools[origToken].lockedByUser[msg.sender];
         // Unlock that amount (could be 0)
-        unlockTokens(origToken, wholeBalance);
+        _unlockTokens(origToken, wholeBalance);
     }
 
     // ===== DISTRIBUTIONS =====
@@ -436,9 +457,9 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         address distToken,
         uint256 amount,
         bool isEqual
-    ) external payable {
+    ) external payable nonReentrant {
         if (origToken == address(0)) {
-            revert OriginalTokenCanNotHaveAZeroAddress();
+            revert InvalidTokenAddress();
         }
         // Check that caller is an admin of `origToken`
         if (!IBentureProducedToken(origToken).checkAdmin(msg.sender)) {
@@ -446,7 +467,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         }
         // Amount can not be zero
         if (amount == 0) {
-            revert DividendsAmountCanNotBeZero();
+            revert InvalidDividendsAmount();
         }
         if (distToken != address(0)) {
             // NOTE: Caller should approve transfer of at least `amount` of tokens with `ERC20.approve()`
@@ -460,7 +481,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         } else {
             // Check that enough native tokens were provided
             if (msg.value < amount) {
-                revert NotEnoughNativeTokensWereProvided();
+                revert NotEnoughNativeTokens();
             }
         }
 
@@ -605,7 +626,11 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
 
     /// @notice Allows a user to claim dividends from a single distribution
     /// @param id The ID of the distribution to claim
-    function claimDividends(uint256 id) public {
+    function claimDividends(uint256 id) external nonReentrant {
+        _claimDividends(id);
+    }
+
+    function _claimDividends(uint256 id) private {
         // Can't claim a distribution that has not started yet
         if (id > distributionIds.current()) {
             revert DistributionHasNotStartedYet();
@@ -615,11 +640,11 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
 
         // User must be a locker of the `origToken` of the distribution he's trying to claim
         if (!isLocker(distribution.origToken, msg.sender)) {
-            revert UserHasNoLockedTokens();
+            revert UserDoesNotHaveLockedTokens();
         }
 
         // User can't claim the same distribution more than once
-        if (distribution.hasClaimed[msg.sender] == true) {
+        if (distribution.hasClaimed[msg.sender]) {
             revert AlreadyClaimed();
         }
 
@@ -628,7 +653,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
 
         // If user's share is 0, that means he doesn't have any locked tokens
         if (share == 0) {
-            revert UserHasNoLockedTokens();
+            revert UserDoesNotHaveLockedTokens();
         }
 
         emit DividendsClaimed(id, msg.sender);
@@ -640,7 +665,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             // Send native tokens
             (bool success, ) = msg.sender.call{value: share}("");
             if (!success) {
-                revert NativeTokenDividendsTransferFailed();
+                revert NativeTokenTransferFailed();
             }
         } else {
             // Send ERC20 tokens
@@ -651,14 +676,20 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @notice Allows user to claim dividends from multiple distributions
     ///         WARNING: Potentially can exceed block gas limit!
     /// @param ids The array of IDs of distributions to claim
-    function claimMultipleDividends(uint256[] memory ids) public {
+    function claimMultipleDividends(
+        uint256[] memory ids
+    ) external nonReentrant {
+        _claimMultipleDividends(ids);
+    }
+
+    function _claimMultipleDividends(uint256[] memory ids) private {
         // Only 2/3 of block gas limit could be spent. So 1/3 should be left.
         uint256 gasThreshold = (block.gaslimit * 1) / 3;
 
         uint256 count;
 
         for (uint i = 0; i < ids.length; i++) {
-            claimDividends(ids[i]);
+            _claimDividends(ids[i]);
             // Increase the number of users who received their shares
             count++;
             // Check that no more than 2/3 of block gas limit was spent
@@ -680,10 +711,10 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         address[] calldata users,
         uint256[] calldata amounts,
         uint256 totalAmount
-    ) public payable {
+    ) public payable nonReentrant {
         // Lists can't be empty
         if ((users.length == 0) || (amounts.length == 0)) {
-            revert CanNotWorkWithEmptyLists();
+            revert EmptyList();
         }
         // Lists length should be the same
         if (users.length != amounts.length) {
@@ -691,7 +722,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         }
         // If dividends are to be paid in native tokens, check that enough native tokens were provided
         if ((token == address(0)) && (msg.value < totalAmount)) {
-            revert NotEnoughNativeTokensWereProvided();
+            revert NotEnoughNativeTokens();
         }
         // If dividends are to be paid in ERC20 tokens, transfer ERC20 tokens from caller
         // to this contract first
@@ -713,11 +744,11 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         for (uint256 i = 0; i < users.length; i++) {
             // Users cannot have zero addresses
             if (users[i] == address(0)) {
-                revert UserCanNotHaveZeroAddress();
+                revert InvalidUserAddress();
             }
             // Amount for any user cannot be 0
             if (amounts[i] == 0) {
-                revert DividendsAmountCanNotBeZero();
+                revert InvalidDividendsAmount();
             }
             if (token == address(0)) {
                 // Native tokens (wei)
@@ -762,7 +793,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         address token
     ) public view returns (address, uint256, uint256) {
         if (token == address(0)) {
-            revert PoolsCanNotHoldZeroAddressTokens();
+            revert InvalidTokenAddress();
         }
 
         Pool storage pool = pools[token];
@@ -774,7 +805,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @return The array of lockers of the pool
     function getLockers(address token) public view returns (address[] memory) {
         if (token == address(0)) {
-            revert PoolsCanNotHoldZeroAddressTokens();
+            revert InvalidTokenAddress();
         }
 
         return pools[token].lockers.values();
@@ -786,11 +817,11 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @return True if user is a locker in the pool. Otherwise - false.
     function isLocker(address token, address user) public view returns (bool) {
         if (token == address(0)) {
-            revert PoolsCanNotHoldZeroAddressTokens();
+            revert InvalidTokenAddress();
         }
 
         if (user == address(0)) {
-            revert UserCanNotHaveZeroAddress();
+            revert InvalidUserAddress();
         }
         // User is a locker if his lock is not a zero and he is in the lockers list
         return
@@ -807,10 +838,10 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         address user
     ) public view returns (uint256) {
         if (token == address(0)) {
-            revert PoolsCanNotHoldZeroAddressTokens();
+            revert InvalidTokenAddress();
         }
         if (user == address(0)) {
-            revert UserCanNotHaveZeroAddress();
+            revert InvalidUserAddress();
         }
         return pools[token].lockedByUser[user];
     }
@@ -823,7 +854,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     ) public view returns (uint256[] memory) {
         // Do not check wheter the given address is actually an admin
         if (admin == address(0)) {
-            revert AdminCanNotHaveAZeroAddress();
+            revert InvalidAdminAddress();
         }
         return adminsToDistributions[admin];
     }
@@ -835,7 +866,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         uint256 id
     ) public view returns (uint256, address, address, uint256, bool) {
         if (id < 1) {
-            revert IDOfDistributionMustBeGreaterThanOne();
+            revert InvalidDistributionId();
         }
         if (distributionsToAdmins[id] == address(0)) {
             revert DistributionNotStarted();
@@ -856,13 +887,13 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @return True if user has claimed dividends. Otherwise - false
     function hasClaimed(uint256 id, address user) public view returns (bool) {
         if (id < 1) {
-            revert IDOfDistributionMustBeGreaterThanOne();
+            revert InvalidDistributionId();
         }
         if (distributionsToAdmins[id] == address(0)) {
             revert DistributionNotStarted();
         }
         if (user == address(0)) {
-            revert UserCanNotHaveZeroAddress();
+            revert InvalidUserAddress();
         }
         return distributions[id].hasClaimed[user];
     }
@@ -876,20 +907,19 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         address admin
     ) public view returns (bool) {
         if (id < 1) {
-            revert IDOfDistributionMustBeGreaterThanOne();
+            revert InvalidDistributionId();
         }
         if (distributionsToAdmins[id] == address(0)) {
             revert DistributionNotStarted();
         }
         if (admin == address(0)) {
-            revert AdminCanNotHaveAZeroAddress();
+            revert InvalidAdminAddress();
         }
         if (distributionsToAdmins[id] == admin) {
             return true;
         }
         return false;
     }
-
 
     /// @notice Returns the share of the user in a given distribution
     /// @param id The ID of the distribution to calculate share in
