@@ -36,5 +36,6 @@ interface IBentureErrors {
     error DistributionNotStarted();
     error DistriburionNotContainTokenToWithdraw();
     error FactoryAddressNotSet();
+    error InvalidFactoryAddress();
 
 }

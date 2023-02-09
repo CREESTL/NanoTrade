@@ -745,6 +745,9 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @dev NOTICE: This address can't be set the constructor because
     ///      `Benture` is deployed *before* factory contract.
     function setFactoryAddress(address factoryAddress) external {
+        if (factoryAddress == address(0)) {
+            revert InvalidFactoryAddress();
+        }
         factory = factoryAddress;
     }
 
