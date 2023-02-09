@@ -2,7 +2,7 @@
 
 
 
-> An interface of a factory of custom ERC20 tokens
+> An interface of a factory of custom ERC20 tokens;
 
 
 
@@ -197,6 +197,130 @@ event AdminTokenTransferred(address indexed from, address indexed to, uint256 to
 | from `indexed` | address | undefined |
 | to `indexed` | address | undefined |
 | tokenId  | uint256 | undefined |
+
+
+
+## Errors
+
+### CallerIsNotAFactory
+
+```solidity
+error CallerIsNotAFactory()
+```
+
+
+
+
+
+
+### FailedToDeleteTokenID
+
+```solidity
+error FailedToDeleteTokenID()
+```
+
+
+
+
+
+
+### InvalidAdminAddress
+
+```solidity
+error InvalidAdminAddress()
+```
+
+
+
+
+
+
+### InvalidFactoryAddress
+
+```solidity
+error InvalidFactoryAddress()
+```
+
+
+
+
+
+
+### InvalidTokenAddress
+
+```solidity
+error InvalidTokenAddress()
+```
+
+
+
+
+
+
+### InvalidUserAddress
+
+```solidity
+error InvalidUserAddress()
+```
+
+
+
+
+
+
+### MintToZeroAddressNotAllowed
+
+```solidity
+error MintToZeroAddressNotAllowed()
+```
+
+
+
+
+
+
+### NoControlledToken
+
+```solidity
+error NoControlledToken()
+```
+
+
+
+
+
+
+### NotAnOwner
+
+```solidity
+error NotAnOwner()
+```
+
+
+
+
+
+
+### OnlyOneAdminTokenForProjectToken
+
+```solidity
+error OnlyOneAdminTokenForProjectToken()
+```
+
+
+
+
+
+
+### UserDoesNotHaveAnAdminToken
+
+```solidity
+error UserDoesNotHaveAnAdminToken()
+```
+
+
+
+
 
 
 

@@ -3,38 +3,32 @@
 pragma solidity ^0.8.9;
 
 interface IBentureErrors {
-
-    error NativeTokenDividendsTransferFailed();
-    error PoolsCanNotHoldZeroAddressTokens();
+    error NativeTokenTransferFailed();
+    error InvalidTokenAddress();
     error PoolAlreadyExists();
-    error CanNotWorkWithZeroAddressTokens();
     error CallerNotAdminOrFactory();
     error InvalidLockAmount();
     error CallerIsNotLocker();
-    error CanNotLockZeroAddressTokens();
     error PoolDoesNotExist();
-    error CanNotWorkWithEmptyLists();
+    error EmptyList();
     error ListsLengthDiffers();
     error WrongTokenInsideThePool();
     error UserDoesNotHaveProjectTokens();
+    error UserDoesNotHaveAnAdminToken();
     error TransferFailed();
     error InvalidUnlockAmount();
-    error CanNotUnlockZeroAddressTokens();
-    error UserDoesNotHaveAnyLockedTokens();
-    error WithdrawAmountIsTooBig();
-    error OriginalTokenCanNotHaveAZeroAddress();
-    error UserDoesNotHaveAnAdminToken();
-    error DividendsAmountCanNotBeZero();
-    error NotEnoughNativeTokensWereProvided();
+    error NoLockedTokens();
+    error WithdrawTooBig();
+    error InvalidDividendsAmount();
+    error NotEnoughNativeTokens();
     error DistributionHasNotStartedYet();
     error InvalidDistribution();
-    error UserHasNoLockedTokens();
+    error UserDoesNotHaveLockedTokens();
     error AlreadyClaimed();
-    error UserCanNotHaveZeroAddress();
-    error AdminCanNotHaveAZeroAddress();
-    error IDOfDistributionMustBeGreaterThanOne();
+    error InvalidUserAddress();
+    error InvalidAdminAddress();
+    error InvalidDistributionId();
     error DistributionNotStarted();
-    error DistriburionNotContainTokenToWithdraw();
     error FactoryAddressNotSet();
-
+    error InvalidFactoryAddress();
 }

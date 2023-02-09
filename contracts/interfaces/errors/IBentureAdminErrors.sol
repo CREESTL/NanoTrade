@@ -3,21 +3,15 @@
 pragma solidity ^0.8.9;
 
 interface IBentureAdminErrors {
-
     error CallerIsNotAFactory();
-    error FactoryAddressCanNotBeZeroAddress();
-    error ZeroAddressIsAnInvalidUser();
+    error InvalidFactoryAddress();
+    error InvalidUserAddress();
+    error InvalidAdminAddress();
     error UserDoesNotHaveAnAdminToken();
-    error UserCanNotHaveAZeroAddress();
-    error TokenCanNotHaveAZeroAddress();
-    error NoControlledTokenExistsForThisAdminToken();
-    error AdminAddressCanNotBeAZeroAddress();
-    error ControlledTokenCanNotHaveAZeroAddress();
+    error InvalidTokenAddress();
+    error NoControlledToken();
     error FailedToDeleteTokenID();
-    error AdminTokenMintToZeroAddressIsNotAllowed();
-    error OnlyASingleAdminTokenIsAllowedForASingleControlledToken();
-    error OnlyOwnerOfTheTokenIsAllowedToBurnIt();
-    error SenderCanNotBeAZeroAddress();
-    error ReceiverCanNotBeAZeroAddress();
-
+    error MintToZeroAddressNotAllowed();
+    error OnlyOneAdminTokenForProjectToken();
+    error NotAnOwner();
 }

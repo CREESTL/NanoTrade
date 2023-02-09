@@ -74,3 +74,17 @@ event CreateERC20Token(string indexed name, string indexed symbol, address index
 
 
 
+## Errors
+
+### BentureAddressIsZero
+
+```solidity
+error BentureAddressIsZero()
+```
+
+
+
+
+
+
+

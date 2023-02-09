@@ -65,23 +65,6 @@ Allows user to claim dividends from multiple distributions         WARNING: Pote
 |---|---|---|
 | ids | uint256[] | The array of IDs of distributions to claim |
 
-### claimMultipleDividendsAndUnlock
-
-```solidity
-function claimMultipleDividendsAndUnlock(uint256[] ids, address tokenToWithdraw) external nonpayable
-```
-
-Allows user to claim dividends from multiple distributions         and unlock his tokens after that         WARNING: Potentially can exceed block gas limit!
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| ids | uint256[] | The array of IDs of distributions to claim |
-| tokenToWithdraw | address | Address of token to withdraw |
-
 ### createPool
 
 ```solidity
@@ -116,6 +99,25 @@ Allows admin to distribute dividends among lockers
 | distToken | address | The token that will be paid        Use zero address for native tokens |
 | amount | uint256 | The amount of ERC20 tokens that will be paid |
 | isEqual | bool | Indicates whether distribution will be equal |
+
+### distributeDividendsCustom
+
+```solidity
+function distributeDividendsCustom(address token, address[] users, uint256[] amounts, uint256 totalAmount) external payable
+```
+
+Allows admin to distribute provided amounts of tokens to the provided list of users
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| token | address | The address of the token to be distributed |
+| users | address[] | The list of addresses of users to receive tokens |
+| amounts | uint256[] | The list of amounts each user has to receive |
+| totalAmount | uint256 | The total amount of `token`s to be distributed. Sum of `amounts` array. |
 
 ### getCurrentLock
 
@@ -209,6 +211,28 @@ Returns the array of lockers of the pool
 | Name | Type | Description |
 |---|---|---|
 | _0 | address[] | The array of lockers of the pool |
+
+### getMyShare
+
+```solidity
+function getMyShare(uint256 id) external view returns (uint256)
+```
+
+Returns the share of the user in a given distribution
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| id | uint256 | The ID of the distribution to calculate share in |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | The share of the caller |
 
 ### getPool
 
@@ -313,6 +337,22 @@ Locks the provided amount of user&#39;s tokens in the pool
 | origToken | address | The address of the token to lock |
 | amount | uint256 | The amount of tokens to lock |
 
+### setFactoryAddress
+
+```solidity
+function setFactoryAddress(address factoryAddress) external nonpayable
+```
+
+Sets the token factory contract address
+
+*NOTICE: This address can&#39;t be set the constructor because      `Benture` is deployed *before* factory contract.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| factoryAddress | address | The address of the factory |
+
 ### unlockAllTokens
 
 ```solidity
@@ -349,6 +389,23 @@ Unlocks the provided amount of user&#39;s tokens from the pool
 
 
 ## Events
+
+### CustomDividendsDistributed
+
+```solidity
+event CustomDividendsDistributed(address indexed token, uint256 count)
+```
+
+
+
+*Indicates that custom dividends were sent to the list of users*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| token `indexed` | address | The token distributed |
+| count  | uint256 | The total number of users who received their shares              Counting starts from the first user and does not skip any users |
 
 ### DividendsClaimed
 
@@ -389,7 +446,7 @@ event DividendsStarted(address indexed origToken, address indexed distToken, uin
 ### MultipleDividendsClaimed
 
 ```solidity
-event MultipleDividendsClaimed(uint256[] ids, address user)
+event MultipleDividendsClaimed(address user, uint256 count)
 ```
 
 
@@ -400,8 +457,8 @@ event MultipleDividendsClaimed(uint256[] ids, address user)
 
 | Name | Type | Description |
 |---|---|---|
-| ids  | uint256[] | The array of IDs of distributions that were claimed |
 | user  | address | The address of the user who claimed the distributions |
+| count  | uint256 | The total number of claimed dividends |
 
 ### PoolCreated
 
@@ -470,6 +527,317 @@ event TokensUnlocked(address indexed user, address indexed token, uint256 amount
 | user `indexed` | address | undefined |
 | token `indexed` | address | undefined |
 | amount  | uint256 | undefined |
+
+
+
+## Errors
+
+### AlreadyClaimed
+
+```solidity
+error AlreadyClaimed()
+```
+
+
+
+
+
+
+### CallerIsNotLocker
+
+```solidity
+error CallerIsNotLocker()
+```
+
+
+
+
+
+
+### CallerNotAdminOrFactory
+
+```solidity
+error CallerNotAdminOrFactory()
+```
+
+
+
+
+
+
+### DistributionHasNotStartedYet
+
+```solidity
+error DistributionHasNotStartedYet()
+```
+
+
+
+
+
+
+### DistributionNotStarted
+
+```solidity
+error DistributionNotStarted()
+```
+
+
+
+
+
+
+### EmptyList
+
+```solidity
+error EmptyList()
+```
+
+
+
+
+
+
+### FactoryAddressNotSet
+
+```solidity
+error FactoryAddressNotSet()
+```
+
+
+
+
+
+
+### InvalidAdminAddress
+
+```solidity
+error InvalidAdminAddress()
+```
+
+
+
+
+
+
+### InvalidDistribution
+
+```solidity
+error InvalidDistribution()
+```
+
+
+
+
+
+
+### InvalidDistributionId
+
+```solidity
+error InvalidDistributionId()
+```
+
+
+
+
+
+
+### InvalidDividendsAmount
+
+```solidity
+error InvalidDividendsAmount()
+```
+
+
+
+
+
+
+### InvalidFactoryAddress
+
+```solidity
+error InvalidFactoryAddress()
+```
+
+
+
+
+
+
+### InvalidLockAmount
+
+```solidity
+error InvalidLockAmount()
+```
+
+
+
+
+
+
+### InvalidTokenAddress
+
+```solidity
+error InvalidTokenAddress()
+```
+
+
+
+
+
+
+### InvalidUnlockAmount
+
+```solidity
+error InvalidUnlockAmount()
+```
+
+
+
+
+
+
+### InvalidUserAddress
+
+```solidity
+error InvalidUserAddress()
+```
+
+
+
+
+
+
+### ListsLengthDiffers
+
+```solidity
+error ListsLengthDiffers()
+```
+
+
+
+
+
+
+### NativeTokenTransferFailed
+
+```solidity
+error NativeTokenTransferFailed()
+```
+
+
+
+
+
+
+### NoLockedTokens
+
+```solidity
+error NoLockedTokens()
+```
+
+
+
+
+
+
+### NotEnoughNativeTokens
+
+```solidity
+error NotEnoughNativeTokens()
+```
+
+
+
+
+
+
+### PoolAlreadyExists
+
+```solidity
+error PoolAlreadyExists()
+```
+
+
+
+
+
+
+### PoolDoesNotExist
+
+```solidity
+error PoolDoesNotExist()
+```
+
+
+
+
+
+
+### TransferFailed
+
+```solidity
+error TransferFailed()
+```
+
+
+
+
+
+
+### UserDoesNotHaveAnAdminToken
+
+```solidity
+error UserDoesNotHaveAnAdminToken()
+```
+
+
+
+
+
+
+### UserDoesNotHaveLockedTokens
+
+```solidity
+error UserDoesNotHaveLockedTokens()
+```
+
+
+
+
+
+
+### UserDoesNotHaveProjectTokens
+
+```solidity
+error UserDoesNotHaveProjectTokens()
+```
+
+
+
+
+
+
+### WithdrawTooBig
+
+```solidity
+error WithdrawTooBig()
+```
+
+
+
+
+
+
+### WrongTokenInsideThePool
+
+```solidity
+error WrongTokenInsideThePool()
+```
+
+
+
+
 
 
 

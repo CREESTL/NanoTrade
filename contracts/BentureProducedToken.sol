@@ -61,16 +61,16 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         address adminToken_
     ) ERC20(name_, symbol_) {
         if (bytes(name_).length == 0) {
-            revert InitialTokenNameCanNotBeEmpty();
+            revert EmptyTokenName();
         }
         if (bytes(symbol_).length == 0) {
-            revert InitialTokenSymbolCanNotBeEmpty();
+            revert EmptyTokenSymbol();
         }
         if (decimals_ == 0) {
-            revert InitialDecimalsCanNotBeZero();
+            revert EmptyTokenDecimals();
         }
         if (adminToken_ == address(0)) {
-            revert AdminTokenAddressCanNotBeAZeroAddress();
+            revert InvalidAdminTokenAddress();
         }
         if (mintable_) {
             // If token is mintable it could either have a fixed maxTotalSupply or
@@ -83,7 +83,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
             }
         } else {
             if (maxTotalSupply_ != 0) {
-                revert MaxTotalSupplyMustBeZeroForUnmintableTokens();
+                revert NotZeroMaxTotalSupply();
             }
         }
         _tokenName = name_;
@@ -171,7 +171,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         uint256 amount
     ) external override hasAdminToken WhenMintable {
         if (to == address(0)) {
-            revert CanNotMintToZeroAddress();
+            revert InvalidUserAddress();
         }
         if (totalSupply() + amount > _maxTotalSupply) {
             revert SupplyExceedsMaximumSupply();
@@ -188,10 +188,10 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
     function burn(uint256 amount) external override {
         address caller = msg.sender;
         if (amount == 0) {
-            revert TheAmountOfTokensToBurnMustBeGreaterThanZero();
+            revert InvalidBurnAmount();
         }
         if (balanceOf(caller) == 0) {
-            revert CallerDoesNotHaveAnyTokensToBurn();
+            revert NoTokensToBurn();
         }
         emit ControlledTokenBurnt(caller, amount);
         _burn(caller, amount);
@@ -199,7 +199,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         if (balanceOf(msg.sender) == 0) {
             bool removed = _holders.remove(caller);
             if (!removed) {
-                revert DeletingHolderWithZeroBalanceFailed();
+                revert DeletingHolderFailed();
             }
         }
     }
@@ -216,16 +216,16 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         uint256 amount
     ) internal override {
         if (from == address(0)) {
-            revert SenderCanNotBeAZeroAddress();
+            revert InvalidUserAddress();
         }
         if (to == address(0)) {
-            revert ReceiverCanNotBeAZeroAddress();
+            revert InvalidUserAddress();
         }
         if (to == from) {
             revert SenderCanNotBeAReceiver();
         }
         if (!isHolder(from)) {
-            revert SenderDoesNotHaveAnyTokensToTransfer();
+            revert NoTokensToTransfer();
         }
         emit ControlledTokenTransferred(from, to, amount);
         // If the receiver is not yet a holder, he becomes a holder
@@ -235,7 +235,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         if (amount >= fromBalance) {
             bool removed = _holders.remove(from);
             if (!removed) {
-                revert DeletingHolderWithZeroBalanceFailed();
+                revert DeletingHolderFailed();
             }
         }
         super._transfer(from, to, amount);

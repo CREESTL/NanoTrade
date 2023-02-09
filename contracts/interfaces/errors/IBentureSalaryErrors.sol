@@ -3,19 +3,16 @@
 pragma solidity ^0.8.9;
 
 interface IBentureSalaryErrors {
-
     error ZeroAddress();
     error NotAllowedToSetName();
     error EmptyName();
     error NotAllowedToRemoveName();
-    error UserAllreadyIsEmployee();
+    error AllreadyEmployee();
     error AlreadyNotAnEmployee();
     error NotEmployeeForThisSalary();
-    error NotAnAdminForEmployee();
+    error NotAdminForEmployee();
     error SalaryEnded();
     error NotEnoughTokensAllowed();
-    error AmountOfPeriodsNotEqualTokensAmmountPerPeriod();
-    error NotAnAdminForThisSalary();
-
-
+    error InvalidAmountOfPeriods();
+    error NotAdminForThisSalary();
 }

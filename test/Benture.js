@@ -41,7 +41,6 @@ describe("Benture Dividend Distributing Contract", () => {
             "DMM",
             18,
             true,
-            // TODO change decimals here and in all other places like that?
             parseUnits("1000000000", 18),
             // Provide the address of the previously deployed ERC721
             adminToken.address
@@ -91,7 +90,6 @@ describe("Benture Dividend Distributing Contract", () => {
                     "GRM",
                     18,
                     true,
-                    // TODO change decimals here and in all other places like that?
                     parseUnits("1000000000", 18),
                     adminToken.address
                 )
@@ -117,10 +115,7 @@ describe("Benture Dividend Distributing Contract", () => {
         it("Should fail to get pool of zero address tokens", async () => {
             await expect(
                 benture.getPool(zeroAddress)
-            ).to.be.revertedWithCustomError(
-                benture,
-                "PoolsCanNotHoldZeroAddressTokens"
-            );
+            ).to.be.revertedWithCustomError(benture, "InvalidTokenAddress");
         });
     });
 
@@ -241,10 +236,7 @@ describe("Benture Dividend Distributing Contract", () => {
             let lockAmount = parseUnits("1000", 6);
             await expect(
                 benture.lockTokens(zeroAddress, lockAmount)
-            ).to.be.revertedWithCustomError(
-                benture,
-                "CanNotLockZeroAddressTokens"
-            );
+            ).to.be.revertedWithCustomError(benture, "InvalidTokenAddress");
         });
         it("Should fail to lock zero address tokens", async () => {
             let lockAmount = parseUnits("1000", 6);
@@ -373,10 +365,7 @@ describe("Benture Dividend Distributing Contract", () => {
             let unlockAmount = parseUnits("1000", 6);
             await expect(
                 benture.unlockTokens(zeroAddress, unlockAmount)
-            ).to.be.revertedWithCustomError(
-                benture,
-                "CanNotUnlockZeroAddressTokens"
-            );
+            ).to.be.revertedWithCustomError(benture, "InvalidTokenAddress");
         });
         it("Should fail to unlock if no pool exists", async () => {
             let unlockAmount = parseUnits("1000", 6);
@@ -388,10 +377,7 @@ describe("Benture Dividend Distributing Contract", () => {
             let unlockAmount = parseUnits("1000", 6);
             await expect(
                 benture.unlockTokens(origToken.address, unlockAmount)
-            ).to.be.revertedWithCustomError(
-                benture,
-                "UserDoesNotHaveAnyLockedTokens"
-            );
+            ).to.be.revertedWithCustomError(benture, "NoLockedTokens");
         });
         it("Should fail to unlock if amount is greater than lock", async () => {
             let mintAmount = parseUnits("1000000", 6);
@@ -401,7 +387,7 @@ describe("Benture Dividend Distributing Contract", () => {
             let unlockAmount = parseUnits("100000", 6);
             await expect(
                 benture.unlockTokens(origToken.address, unlockAmount)
-            ).to.be.revertedWithCustomError(benture, "WithdrawAmountIsTooBig");
+            ).to.be.revertedWithCustomError(benture, "WithdrawTooBig");
         });
     });
 
@@ -547,7 +533,10 @@ describe("Benture Dividend Distributing Contract", () => {
                     ).to.equal(parseUnits("100", 6));
                     await expect(
                         benture.connect(clientAcc2).getMyShare(1)
-                    ).to.be.revertedWithCustomError(benture, "CallerIsNotLocker");
+                    ).to.be.revertedWithCustomError(
+                        benture,
+                        "CallerIsNotLocker"
+                    );
                 });
             });
 
@@ -692,7 +681,10 @@ describe("Benture Dividend Distributing Contract", () => {
                     ).to.equal(parseUnits("100", 6));
                     await expect(
                         benture.connect(clientAcc2).getMyShare(1)
-                    ).to.be.revertedWithCustomError(benture, "CallerIsNotLocker");
+                    ).to.be.revertedWithCustomError(
+                        benture,
+                        "CallerIsNotLocker"
+                    );
                 });
             });
         });
@@ -837,7 +829,10 @@ describe("Benture Dividend Distributing Contract", () => {
                     ).to.equal(claimAmount);
                     await expect(
                         benture.connect(clientAcc2).getMyShare(1)
-                    ).to.be.revertedWithCustomError(benture, "CallerIsNotLocker");
+                    ).to.be.revertedWithCustomError(
+                        benture,
+                        "CallerIsNotLocker"
+                    );
                 });
             });
 
@@ -984,12 +979,14 @@ describe("Benture Dividend Distributing Contract", () => {
                     ).to.equal(claimAmount);
                     await expect(
                         benture.connect(clientAcc2).getMyShare(1)
-                    ).to.be.revertedWithCustomError(benture, "CallerIsNotLocker");
+                    ).to.be.revertedWithCustomError(
+                        benture,
+                        "CallerIsNotLocker"
+                    );
                 });
             });
         });
     });
-
 
     // #DFEW
     describe("Fails for Equal & Weighted Dividends", () => {
@@ -1001,16 +998,21 @@ describe("Benture Dividend Distributing Contract", () => {
                     1000,
                     true
                 )
-            ).to.be.revertedWithCustomError(benture, "OriginalTokenCanNotHaveAZeroAddress");
+            ).to.be.revertedWithCustomError(benture, "InvalidTokenAddress");
 
             await expect(
-                benture.connect(clientAcc1).distributeDividends(
-                    origToken.address,
-                    distToken.address,
-                    1000,
-                    true
-                )
-            ).to.be.revertedWithCustomError(benture, "UserDoesNotHaveAnAdminToken");
+                benture
+                    .connect(clientAcc1)
+                    .distributeDividends(
+                        origToken.address,
+                        distToken.address,
+                        1000,
+                        true
+                    )
+            ).to.be.revertedWithCustomError(
+                benture,
+                "UserDoesNotHaveAnAdminToken"
+            );
 
             await expect(
                 benture.distributeDividends(
@@ -1019,7 +1021,7 @@ describe("Benture Dividend Distributing Contract", () => {
                     0,
                     true
                 )
-            ).to.be.revertedWithCustomError(benture, "DividendsAmountCanNotBeZero");
+            ).to.be.revertedWithCustomError(benture, "InvalidDividendsAmount");
 
             await expect(
                 benture.distributeDividends(
@@ -1027,16 +1029,16 @@ describe("Benture Dividend Distributing Contract", () => {
                     zeroAddress,
                     777,
                     true,
-                    {value: 1}
+                    { value: 1 }
                 )
-            ).to.be.revertedWithCustomError(benture, "NotEnoughNativeTokensWereProvided");
-
+            ).to.be.revertedWithCustomError(benture, "NotEnoughNativeTokens");
         });
-
 
         it("Should fail to distribute too high dividends", async () => {
             let claimAmount = parseUnits("50000000", 6);
-            await distToken.connect(ownerAcc).approve(benture.address, claimAmount);
+            await distToken
+                .connect(ownerAcc)
+                .approve(benture.address, claimAmount);
             await expect(
                 benture.distributeDividends(
                     origToken.address,
@@ -1075,18 +1077,26 @@ describe("Benture Dividend Distributing Contract", () => {
                         origToken.address,
                         distToken.address,
                         claimAmount,
-                        true,
+                        true
                     );
 
-                    expect(await benture.checkStartedByAdmin(1, ownerAcc.address)).to.equal(true);
+                    expect(
+                        await benture.checkStartedByAdmin(1, ownerAcc.address)
+                    ).to.equal(true);
 
-                    expect(await distToken.balanceOf(clientAcc1.address)).to.equal(0);
+                    expect(
+                        await distToken.balanceOf(clientAcc1.address)
+                    ).to.equal(0);
                     await expect(benture.connect(clientAcc1).claimDividends(1))
                         .to.emit(benture, "DividendsClaimed")
                         .withArgs(anyValue, anyValue);
 
-                    expect(await distToken.balanceOf(clientAcc1.address)).to.equal(parseUnits("300", 6));
-                    expect(await benture.hasClaimed(1, clientAcc1.address)).to.equal(true);
+                    expect(
+                        await distToken.balanceOf(clientAcc1.address)
+                    ).to.equal(parseUnits("300", 6));
+                    expect(
+                        await benture.hasClaimed(1, clientAcc1.address)
+                    ).to.equal(true);
                 });
             });
             // #CLSWE
@@ -1117,26 +1127,36 @@ describe("Benture Dividend Distributing Contract", () => {
                         origToken.address,
                         distToken.address,
                         claimAmount,
-                        false,
+                        false
                     );
 
-                    expect(await distToken.balanceOf(clientAcc1.address)).to.equal(0);
-                    expect(await distToken.balanceOf(clientAcc2.address)).to.equal(0);
+                    expect(
+                        await distToken.balanceOf(clientAcc1.address)
+                    ).to.equal(0);
+                    expect(
+                        await distToken.balanceOf(clientAcc2.address)
+                    ).to.equal(0);
 
                     await benture.connect(clientAcc1).claimDividends(1);
                     await benture.connect(clientAcc2).claimDividends(1);
 
-                    expect(await distToken.balanceOf(clientAcc1.address)).to.equal(parseUnits("100", 6));
-                    expect(await distToken.balanceOf(clientAcc2.address)).to.equal(parseUnits("300", 6));
-                    expect(await benture.hasClaimed(1, clientAcc1.address)).to.equal(true);
-                    expect(await benture.hasClaimed(1, clientAcc2.address)).to.equal(true);
-
+                    expect(
+                        await distToken.balanceOf(clientAcc1.address)
+                    ).to.equal(parseUnits("100", 6));
+                    expect(
+                        await distToken.balanceOf(clientAcc2.address)
+                    ).to.equal(parseUnits("300", 6));
+                    expect(
+                        await benture.hasClaimed(1, clientAcc1.address)
+                    ).to.equal(true);
+                    expect(
+                        await benture.hasClaimed(1, clientAcc2.address)
+                    ).to.equal(true);
                 });
             });
             // #CLSEN
             describe("Claim a single equal native tokens dividend", () => {
                 it("Should claim a single equal native tokens dividend and use getters", async () => {
-
                     let mintAmount = parseUnits("1000000", 6);
                     let lockAmount = parseUnits("1000", 6);
                     let claimAmount = parseEther("1");
@@ -1149,36 +1169,47 @@ describe("Benture Dividend Distributing Contract", () => {
                         .connect(clientAcc1)
                         .lockTokens(origToken.address, lockAmount);
 
-
                     await benture.distributeDividends(
                         origToken.address,
                         zeroAddress,
                         claimAmount,
                         true,
-                        {value: claimAmount}
+                        { value: claimAmount }
                     );
 
-                    expect(await benture.checkStartedByAdmin(1, ownerAcc.address)).to.equal(true);
+                    expect(
+                        await benture.checkStartedByAdmin(1, ownerAcc.address)
+                    ).to.equal(true);
 
-                    expect(await benture.checkStartedByAdmin(1, clientAcc1.address)).to.equal(false);
+                    expect(
+                        await benture.checkStartedByAdmin(1, clientAcc1.address)
+                    ).to.equal(false);
 
-                    let startBalance = await ethers.provider.getBalance(clientAcc1.address);
+                    let startBalance = await ethers.provider.getBalance(
+                        clientAcc1.address
+                    );
                     await expect(benture.connect(clientAcc1).claimDividends(1))
                         .to.emit(benture, "DividendsClaimed")
                         .withArgs(anyValue, anyValue);
 
-                    let endBalance = await ethers.provider.getBalance(clientAcc1.address);
+                    let endBalance = await ethers.provider.getBalance(
+                        clientAcc1.address
+                    );
                     // Some token were spent for gas
-                    expect(endBalance.sub(startBalance)).to.be.lt(parseEther("1"));
-                    expect(endBalance.sub(startBalance)).to.be.gt(parseEther("0.9"));
-                    expect(await benture.hasClaimed(1, clientAcc1.address)).to.equal(true);
+                    expect(endBalance.sub(startBalance)).to.be.lt(
+                        parseEther("1")
+                    );
+                    expect(endBalance.sub(startBalance)).to.be.gt(
+                        parseEther("0.9")
+                    );
+                    expect(
+                        await benture.hasClaimed(1, clientAcc1.address)
+                    ).to.equal(true);
                 });
-
             });
             // #CLSWN
             describe("Claim a single weighted native tokens dividend", () => {
                 it("Should claim a single weighted native tokens dividend", async () => {
-
                     let mintAmount = parseUnits("1000000", 6);
                     let lockAmount1 = parseUnits("1000", 6);
                     let lockAmount2 = parseUnits("3000", 6);
@@ -1205,33 +1236,53 @@ describe("Benture Dividend Distributing Contract", () => {
                         zeroAddress,
                         claimAmount,
                         false,
-                        {value: claimAmount}
+                        { value: claimAmount }
                     );
 
-                    expect(await benture.checkStartedByAdmin(1, ownerAcc.address)).to.equal(true);
+                    expect(
+                        await benture.checkStartedByAdmin(1, ownerAcc.address)
+                    ).to.equal(true);
 
-                    let startBalance1 = await ethers.provider.getBalance(clientAcc1.address);
-                    let startBalance2 = await ethers.provider.getBalance(clientAcc2.address);
+                    let startBalance1 = await ethers.provider.getBalance(
+                        clientAcc1.address
+                    );
+                    let startBalance2 = await ethers.provider.getBalance(
+                        clientAcc2.address
+                    );
 
                     await benture.connect(clientAcc1).claimDividends(1);
                     await benture.connect(clientAcc2).claimDividends(1);
 
-                    let endBalance1 = await ethers.provider.getBalance(clientAcc1.address);
-                    let endBalance2 = await ethers.provider.getBalance(clientAcc2.address);
-                    expect(endBalance1.sub(startBalance1)).to.be.lt(parseEther("1"));
-                    expect(endBalance1.sub(startBalance1)).to.be.gt(parseEther("0.9"));
-                    expect(endBalance2.sub(startBalance2)).to.be.lt(parseEther("3"));
-                    expect(endBalance2.sub(startBalance2)).to.be.gt(parseEther("2.9"));
-                    expect(await benture.hasClaimed(1, clientAcc1.address)).to.equal(true);
-                    expect(await benture.hasClaimed(1, clientAcc2.address)).to.equal(true);
+                    let endBalance1 = await ethers.provider.getBalance(
+                        clientAcc1.address
+                    );
+                    let endBalance2 = await ethers.provider.getBalance(
+                        clientAcc2.address
+                    );
+                    expect(endBalance1.sub(startBalance1)).to.be.lt(
+                        parseEther("1")
+                    );
+                    expect(endBalance1.sub(startBalance1)).to.be.gt(
+                        parseEther("0.9")
+                    );
+                    expect(endBalance2.sub(startBalance2)).to.be.lt(
+                        parseEther("3")
+                    );
+                    expect(endBalance2.sub(startBalance2)).to.be.gt(
+                        parseEther("2.9")
+                    );
+                    expect(
+                        await benture.hasClaimed(1, clientAcc1.address)
+                    ).to.equal(true);
+                    expect(
+                        await benture.hasClaimed(1, clientAcc2.address)
+                    ).to.equal(true);
                 });
             });
         });
         // #CLSC
         describe("Claim a single dividend in complicated scenarios", () => {
-
             it("Should claim a single dividend from the past", async () => {
-
                 let mintAmount = parseUnits("1000000", 6);
                 let lockAmount = parseUnits("1000", 6);
                 let claimAmount = parseUnits("300", 6);
@@ -1244,38 +1295,42 @@ describe("Benture Dividend Distributing Contract", () => {
                     .connect(clientAcc1)
                     .lockTokens(origToken.address, lockAmount);
 
-
                 await benture.distributeDividends(
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
                 await benture.distributeDividends(
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
                 await benture.distributeDividends(
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
-
 
                 await benture.connect(clientAcc1).claimDividends(1);
 
-                expect(await distToken.balanceOf(clientAcc1.address)).to.equal(parseUnits("300", 6));
-                expect(await benture.hasClaimed(1, clientAcc1.address)).to.equal(true);
-                expect(await benture.hasClaimed(2, clientAcc1.address)).to.equal(false);
-                expect(await benture.hasClaimed(3, clientAcc1.address)).to.equal(false);
+                expect(await distToken.balanceOf(clientAcc1.address)).to.equal(
+                    parseUnits("300", 6)
+                );
+                expect(
+                    await benture.hasClaimed(1, clientAcc1.address)
+                ).to.equal(true);
+                expect(
+                    await benture.hasClaimed(2, clientAcc1.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(3, clientAcc1.address)
+                ).to.equal(false);
             });
 
-
             it("Should claim dividend after which the lock was changed", async () => {
-
                 let mintAmount = parseUnits("1000000", 6);
                 let lockAmount = parseUnits("1000", 6);
                 let additionalLock = parseUnits("700", 6);
@@ -1293,7 +1348,7 @@ describe("Benture Dividend Distributing Contract", () => {
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
 
                 await benture
@@ -1304,17 +1359,17 @@ describe("Benture Dividend Distributing Contract", () => {
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
-
 
                 await benture.connect(clientAcc1).claimDividends(1);
 
-                expect(await distToken.balanceOf(clientAcc1.address)).to.equal(parseUnits("300", 6));
+                expect(await distToken.balanceOf(clientAcc1.address)).to.equal(
+                    parseUnits("300", 6)
+                );
             });
 
             it("Should claim a single dividend in the most complicated scenario", async () => {
-
                 let mintAmount = parseUnits("10000000", 6);
                 let lockAmount1 = parseUnits("1000", 6);
                 let lockAmount2 = parseUnits("200", 6);
@@ -1340,7 +1395,7 @@ describe("Benture Dividend Distributing Contract", () => {
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
 
                 await benture
@@ -1352,7 +1407,7 @@ describe("Benture Dividend Distributing Contract", () => {
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
 
                 await benture
@@ -1364,28 +1419,28 @@ describe("Benture Dividend Distributing Contract", () => {
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
                 // 4
                 await benture.distributeDividends(
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
                 // 5
                 await benture.distributeDividends(
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
                 // 6
                 await benture.distributeDividends(
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
 
                 await benture
@@ -1397,7 +1452,7 @@ describe("Benture Dividend Distributing Contract", () => {
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
 
                 // Another user locks as well
@@ -1410,21 +1465,39 @@ describe("Benture Dividend Distributing Contract", () => {
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    false,
+                    false
                 );
 
                 // This one is equal
                 await benture.connect(clientAcc1).claimDividends(4);
 
-                expect(await distToken.balanceOf(clientAcc1.address)).to.equal(parseUnits("300", 6));
-                expect(await benture.hasClaimed(1, clientAcc1.address)).to.equal(false);
-                expect(await benture.hasClaimed(2, clientAcc1.address)).to.equal(false);
-                expect(await benture.hasClaimed(3, clientAcc1.address)).to.equal(false);
-                expect(await benture.hasClaimed(4, clientAcc1.address)).to.equal(true);
-                expect(await benture.hasClaimed(5, clientAcc1.address)).to.equal(false);
-                expect(await benture.hasClaimed(6, clientAcc1.address)).to.equal(false);
-                expect(await benture.hasClaimed(7, clientAcc1.address)).to.equal(false);
-                expect(await benture.hasClaimed(8, clientAcc1.address)).to.equal(false);
+                expect(await distToken.balanceOf(clientAcc1.address)).to.equal(
+                    parseUnits("300", 6)
+                );
+                expect(
+                    await benture.hasClaimed(1, clientAcc1.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(2, clientAcc1.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(3, clientAcc1.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(4, clientAcc1.address)
+                ).to.equal(true);
+                expect(
+                    await benture.hasClaimed(5, clientAcc1.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(6, clientAcc1.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(7, clientAcc1.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(8, clientAcc1.address)
+                ).to.equal(false);
 
                 // This one is weighted
                 // user 1 lock = 1600
@@ -1432,35 +1505,68 @@ describe("Benture Dividend Distributing Contract", () => {
                 await benture.connect(clientAcc1).claimDividends(8);
 
                 // User 1 should receive 1600 * 300 / 2000 = 240 tokens
-                expect(await distToken.balanceOf(clientAcc1.address)).to.equal(parseUnits("540", 6));
-                expect(await benture.hasClaimed(1, clientAcc1.address)).to.equal(false);
-                expect(await benture.hasClaimed(2, clientAcc1.address)).to.equal(false);
-                expect(await benture.hasClaimed(3, clientAcc1.address)).to.equal(false);
-                expect(await benture.hasClaimed(4, clientAcc1.address)).to.equal(true);
-                expect(await benture.hasClaimed(5, clientAcc1.address)).to.equal(false);
-                expect(await benture.hasClaimed(6, clientAcc1.address)).to.equal(false);
-                expect(await benture.hasClaimed(7, clientAcc1.address)).to.equal(false);
-                expect(await benture.hasClaimed(8, clientAcc1.address)).to.equal(true);
-
+                expect(await distToken.balanceOf(clientAcc1.address)).to.equal(
+                    parseUnits("540", 6)
+                );
+                expect(
+                    await benture.hasClaimed(1, clientAcc1.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(2, clientAcc1.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(3, clientAcc1.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(4, clientAcc1.address)
+                ).to.equal(true);
+                expect(
+                    await benture.hasClaimed(5, clientAcc1.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(6, clientAcc1.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(7, clientAcc1.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(8, clientAcc1.address)
+                ).to.equal(true);
 
                 await benture.connect(clientAcc2).claimDividends(8);
 
                 // User 2 should receive 400 * 300 / 2000 = 60 tokens
-                expect(await distToken.balanceOf(clientAcc2.address)).to.equal(parseUnits("60", 6));
-                expect(await benture.hasClaimed(1, clientAcc2.address)).to.equal(false);
-                expect(await benture.hasClaimed(2, clientAcc2.address)).to.equal(false);
-                expect(await benture.hasClaimed(3, clientAcc2.address)).to.equal(false);
-                expect(await benture.hasClaimed(4, clientAcc2.address)).to.equal(false);
-                expect(await benture.hasClaimed(5, clientAcc2.address)).to.equal(false);
-                expect(await benture.hasClaimed(6, clientAcc2.address)).to.equal(false);
-                expect(await benture.hasClaimed(7, clientAcc2.address)).to.equal(false);
-                expect(await benture.hasClaimed(8, clientAcc2.address)).to.equal(true);
-
+                expect(await distToken.balanceOf(clientAcc2.address)).to.equal(
+                    parseUnits("60", 6)
+                );
+                expect(
+                    await benture.hasClaimed(1, clientAcc2.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(2, clientAcc2.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(3, clientAcc2.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(4, clientAcc2.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(5, clientAcc2.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(6, clientAcc2.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(7, clientAcc2.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(8, clientAcc2.address)
+                ).to.equal(true);
             });
             // These are tests for `calculateShare` and `findMaxPrev` functions
             describe("Calculate shares for a single distribution", () => {
                 it("Should result in a correct share if user hasn't change his lock amount before the distribution for a long time", async () => {
-
                     let mintAmount = parseUnits("10000000", 6);
                     let lockAmount1 = parseUnits("1000", 6);
                     let claimAmount = parseUnits("300", 6);
@@ -1479,48 +1585,58 @@ describe("Benture Dividend Distributing Contract", () => {
                         origToken.address,
                         distToken.address,
                         claimAmount,
-                        true,
+                        true
                     );
-                     // 2
+                    // 2
                     await benture.distributeDividends(
                         origToken.address,
                         distToken.address,
                         claimAmount,
-                        true,
+                        true
                     );
                     // 3
                     await benture.distributeDividends(
                         origToken.address,
                         distToken.address,
                         claimAmount,
-                        true,
+                        true
                     );
                     // 4
                     await benture.distributeDividends(
                         origToken.address,
                         distToken.address,
                         claimAmount,
-                        true,
+                        true
                     );
                     // 5
                     await benture.distributeDividends(
                         origToken.address,
                         distToken.address,
                         claimAmount,
-                        true,
+                        true
                     );
 
                     await benture.connect(clientAcc1).claimDividends(5);
 
-                    expect(await distToken.balanceOf(clientAcc1.address)).to.equal(parseUnits("300", 6));
-                    expect(await benture.hasClaimed(1, clientAcc1.address)).to.equal(false);
-                    expect(await benture.hasClaimed(2, clientAcc1.address)).to.equal(false);
-                    expect(await benture.hasClaimed(3, clientAcc1.address)).to.equal(false);
-                    expect(await benture.hasClaimed(4, clientAcc1.address)).to.equal(false);
-                    expect(await benture.hasClaimed(5, clientAcc1.address)).to.equal(true);
-
-                })
-
+                    expect(
+                        await distToken.balanceOf(clientAcc1.address)
+                    ).to.equal(parseUnits("300", 6));
+                    expect(
+                        await benture.hasClaimed(1, clientAcc1.address)
+                    ).to.equal(false);
+                    expect(
+                        await benture.hasClaimed(2, clientAcc1.address)
+                    ).to.equal(false);
+                    expect(
+                        await benture.hasClaimed(3, clientAcc1.address)
+                    ).to.equal(false);
+                    expect(
+                        await benture.hasClaimed(4, clientAcc1.address)
+                    ).to.equal(false);
+                    expect(
+                        await benture.hasClaimed(5, clientAcc1.address)
+                    ).to.equal(true);
+                });
             });
         });
 
@@ -1530,7 +1646,6 @@ describe("Benture Dividend Distributing Contract", () => {
             // #CLMS
             describe("Claim multiple dividends of the same type", () => {
                 it("Should claim multiple dividends of the same type", async () => {
-
                     let mintAmount = parseUnits("1000000", 6);
                     let lockAmount = parseUnits("1000", 6);
                     let claimAmount = parseUnits("300", 6);
@@ -1547,31 +1662,37 @@ describe("Benture Dividend Distributing Contract", () => {
                         origToken.address,
                         distToken.address,
                         claimAmount,
-                        true,
+                        true
                     );
                     await benture.distributeDividends(
                         origToken.address,
                         distToken.address,
                         claimAmount,
-                        true,
+                        true
                     );
 
+                    let startBalance = await distToken.balanceOf(
+                        clientAcc1.address
+                    );
+                    expect(
+                        await distToken.balanceOf(clientAcc1.address)
+                    ).to.equal(0);
 
-                    let startBalance = await distToken.balanceOf(clientAcc1.address);
-                    expect(await distToken.balanceOf(clientAcc1.address)).to.equal(0);
+                    await benture
+                        .connect(clientAcc1)
+                        .claimMultipleDividends([1, 2]);
 
-                    await benture.connect(clientAcc1).claimMultipleDividends([1,2]);
-
-                    let endBalance = await distToken.balanceOf(clientAcc1.address);
-                    expect(endBalance.sub(startBalance)).to.equal(claimAmount.mul(2));
-
-                })
+                    let endBalance = await distToken.balanceOf(
+                        clientAcc1.address
+                    );
+                    expect(endBalance.sub(startBalance)).to.equal(
+                        claimAmount.mul(2)
+                    );
+                });
             });
             // #CLMD
             describe("Claim multiple dividends of different types", () => {
-
                 it("Should claim multiple dividends of different types", async () => {
-
                     let mintAmount = parseUnits("1000000", 6);
                     let lockAmount = parseUnits("1000", 6);
                     let claimAmount = parseUnits("300", 6);
@@ -1588,31 +1709,38 @@ describe("Benture Dividend Distributing Contract", () => {
                         origToken.address,
                         distToken.address,
                         claimAmount,
-                        true,
+                        true
                     );
                     await benture.distributeDividends(
                         origToken.address,
                         distToken.address,
                         claimAmount,
-                        false,
+                        false
                     );
 
+                    let startBalance = await distToken.balanceOf(
+                        clientAcc1.address
+                    );
+                    expect(
+                        await distToken.balanceOf(clientAcc1.address)
+                    ).to.equal(0);
 
-                    let startBalance = await distToken.balanceOf(clientAcc1.address);
-                    expect(await distToken.balanceOf(clientAcc1.address)).to.equal(0);
+                    await benture
+                        .connect(clientAcc1)
+                        .claimMultipleDividends([1, 2]);
 
-                    await benture.connect(clientAcc1).claimMultipleDividends([1,2]);
-
-                    let endBalance = await distToken.balanceOf(clientAcc1.address);
-                    expect(endBalance.sub(startBalance)).to.equal(claimAmount.mul(2));
-
+                    let endBalance = await distToken.balanceOf(
+                        clientAcc1.address
+                    );
+                    expect(endBalance.sub(startBalance)).to.equal(
+                        claimAmount.mul(2)
+                    );
                 });
             });
         });
         // #CLMC
         describe("Claim multiple dividends in complicated scenarios", () => {
             it("Should claim multiple dividends from the past", async () => {
-
                 let mintAmount = parseUnits("1000000", 6);
                 let lockAmount = parseUnits("1000", 6);
                 let claimAmount = parseUnits("300", 6);
@@ -1629,32 +1757,40 @@ describe("Benture Dividend Distributing Contract", () => {
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
                 await benture.distributeDividends(
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
                 await benture.distributeDividends(
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
 
+                await benture
+                    .connect(clientAcc1)
+                    .claimMultipleDividends([1, 2]);
 
-                await benture.connect(clientAcc1).claimMultipleDividends([1,2]);
-
-                expect(await distToken.balanceOf(clientAcc1.address)).to.equal(claimAmount.mul(2));
-                expect(await benture.hasClaimed(1, clientAcc1.address)).to.equal(true);
-                expect(await benture.hasClaimed(2, clientAcc1.address)).to.equal(true);
-                expect(await benture.hasClaimed(3, clientAcc1.address)).to.equal(false);
+                expect(await distToken.balanceOf(clientAcc1.address)).to.equal(
+                    claimAmount.mul(2)
+                );
+                expect(
+                    await benture.hasClaimed(1, clientAcc1.address)
+                ).to.equal(true);
+                expect(
+                    await benture.hasClaimed(2, clientAcc1.address)
+                ).to.equal(true);
+                expect(
+                    await benture.hasClaimed(3, clientAcc1.address)
+                ).to.equal(false);
             });
 
             it("Should claim multiple dividends in the most complicated scenario", async () => {
-
                 let mintAmount = parseUnits("10000000", 6);
                 let lockAmount1 = parseUnits("1000", 6);
                 let lockAmount2 = parseUnits("200", 6);
@@ -1680,7 +1816,7 @@ describe("Benture Dividend Distributing Contract", () => {
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
 
                 await benture
@@ -1692,7 +1828,7 @@ describe("Benture Dividend Distributing Contract", () => {
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
 
                 await benture
@@ -1704,28 +1840,28 @@ describe("Benture Dividend Distributing Contract", () => {
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
                 // 4
                 await benture.distributeDividends(
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
                 // 5
                 await benture.distributeDividends(
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
                 // 6
                 await benture.distributeDividends(
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
 
                 await benture
@@ -1737,7 +1873,7 @@ describe("Benture Dividend Distributing Contract", () => {
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
 
                 // Another user locks as well
@@ -1750,29 +1886,47 @@ describe("Benture Dividend Distributing Contract", () => {
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    false,
+                    false
                 );
 
                 // 300 for ID2
                 // 300 for ID4
                 // 300 for ID7
                 // 1600 * 300 / 2000 = 240 for ID8
-                await benture.connect(clientAcc1).claimMultipleDividends([2, 4, 7, 8]);
+                await benture
+                    .connect(clientAcc1)
+                    .claimMultipleDividends([2, 4, 7, 8]);
 
-                expect(await distToken.balanceOf(clientAcc1.address)).to.equal(parseUnits("1140", 6));
-                expect(await benture.hasClaimed(1, clientAcc1.address)).to.equal(false);
-                expect(await benture.hasClaimed(2, clientAcc1.address)).to.equal(true);
-                expect(await benture.hasClaimed(3, clientAcc1.address)).to.equal(false);
-                expect(await benture.hasClaimed(4, clientAcc1.address)).to.equal(true);
-                expect(await benture.hasClaimed(5, clientAcc1.address)).to.equal(false);
-                expect(await benture.hasClaimed(6, clientAcc1.address)).to.equal(false);
-                expect(await benture.hasClaimed(7, clientAcc1.address)).to.equal(true);
-                expect(await benture.hasClaimed(8, clientAcc1.address)).to.equal(true);
-
+                expect(await distToken.balanceOf(clientAcc1.address)).to.equal(
+                    parseUnits("1140", 6)
+                );
+                expect(
+                    await benture.hasClaimed(1, clientAcc1.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(2, clientAcc1.address)
+                ).to.equal(true);
+                expect(
+                    await benture.hasClaimed(3, clientAcc1.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(4, clientAcc1.address)
+                ).to.equal(true);
+                expect(
+                    await benture.hasClaimed(5, clientAcc1.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(6, clientAcc1.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(7, clientAcc1.address)
+                ).to.equal(true);
+                expect(
+                    await benture.hasClaimed(8, clientAcc1.address)
+                ).to.equal(true);
             });
 
             it("Should claim multiple dividends on any unlock", async () => {
-
                 let mintAmount = parseUnits("10000000", 6);
                 let lockAmount1 = parseUnits("1000", 6);
                 let lockAmount2 = parseUnits("200", 6);
@@ -1798,7 +1952,7 @@ describe("Benture Dividend Distributing Contract", () => {
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
 
                 await benture
@@ -1810,7 +1964,7 @@ describe("Benture Dividend Distributing Contract", () => {
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
 
                 await benture
@@ -1822,28 +1976,28 @@ describe("Benture Dividend Distributing Contract", () => {
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
                 // 4
                 await benture.distributeDividends(
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
                 // 5
                 await benture.distributeDividends(
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
                 // 6
                 await benture.distributeDividends(
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
 
                 await benture
@@ -1855,7 +2009,7 @@ describe("Benture Dividend Distributing Contract", () => {
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    true,
+                    true
                 );
 
                 // Another user locks as well
@@ -1868,40 +2022,62 @@ describe("Benture Dividend Distributing Contract", () => {
                     origToken.address,
                     distToken.address,
                     claimAmount,
-                    false,
+                    false
                 );
 
                 // Claim ID2 and ID3 separately
-                await benture.connect(clientAcc1).claimMultipleDividends([2, 3]);
+                await benture
+                    .connect(clientAcc1)
+                    .claimMultipleDividends([2, 3]);
                 // 300 for ID2
                 // 300 for ID3
-                expect(await distToken.balanceOf(clientAcc1.address)).to.equal(parseUnits("600", 6));
+                expect(await distToken.balanceOf(clientAcc1.address)).to.equal(
+                    parseUnits("600", 6)
+                );
 
                 // This triggers claim of all dividends (2 and 3 should not be claimed)
-                await benture.connect(clientAcc1).unlockTokens(origToken.address, parseUnits("1", 6));
+                await benture
+                    .connect(clientAcc1)
+                    .unlockTokens(origToken.address, parseUnits("1", 6));
 
                 // 300 for ID4
                 // 300 for ID5
                 // 300 for ID6
                 // 300 for ID7
                 // 1600 * 300 / 2000 = 240 for ID8
-                expect(await distToken.balanceOf(clientAcc1.address)).to.equal(parseUnits("2040", 6));
+                expect(await distToken.balanceOf(clientAcc1.address)).to.equal(
+                    parseUnits("2040", 6)
+                );
 
-                expect(await benture.hasClaimed(1, clientAcc1.address)).to.equal(false);
-                expect(await benture.hasClaimed(2, clientAcc1.address)).to.equal(true);
-                expect(await benture.hasClaimed(3, clientAcc1.address)).to.equal(true);
-                expect(await benture.hasClaimed(4, clientAcc1.address)).to.equal(true);
-                expect(await benture.hasClaimed(5, clientAcc1.address)).to.equal(true);
-                expect(await benture.hasClaimed(6, clientAcc1.address)).to.equal(true);
-                expect(await benture.hasClaimed(7, clientAcc1.address)).to.equal(true);
-                expect(await benture.hasClaimed(8, clientAcc1.address)).to.equal(true);
-
+                expect(
+                    await benture.hasClaimed(1, clientAcc1.address)
+                ).to.equal(false);
+                expect(
+                    await benture.hasClaimed(2, clientAcc1.address)
+                ).to.equal(true);
+                expect(
+                    await benture.hasClaimed(3, clientAcc1.address)
+                ).to.equal(true);
+                expect(
+                    await benture.hasClaimed(4, clientAcc1.address)
+                ).to.equal(true);
+                expect(
+                    await benture.hasClaimed(5, clientAcc1.address)
+                ).to.equal(true);
+                expect(
+                    await benture.hasClaimed(6, clientAcc1.address)
+                ).to.equal(true);
+                expect(
+                    await benture.hasClaimed(7, clientAcc1.address)
+                ).to.equal(true);
+                expect(
+                    await benture.hasClaimed(8, clientAcc1.address)
+                ).to.equal(true);
             });
 
             // These are tests for `getParticipatedNotClaimed` function, basically
             describe("Correctly find participated distributions", () => {
                 it("Should not include the last (not started) distribution", async () => {
-
                     let mintAmount = parseUnits("10000000", 6);
                     let lockAmount1 = parseUnits("1000", 6);
                     let lockAmount2 = parseUnits("200", 6);
@@ -1922,7 +2098,7 @@ describe("Benture Dividend Distributing Contract", () => {
                         origToken.address,
                         distToken.address,
                         claimAmount,
-                        true,
+                        true
                     );
 
                     await benture
@@ -1934,7 +2110,7 @@ describe("Benture Dividend Distributing Contract", () => {
                         origToken.address,
                         distToken.address,
                         claimAmount,
-                        true,
+                        true
                     );
 
                     await benture
@@ -1943,19 +2119,26 @@ describe("Benture Dividend Distributing Contract", () => {
 
                     // 3 has not started yet
 
-                    await benture.connect(clientAcc1).unlockTokens(origToken.address, parseUnits("1", 6));
+                    await benture
+                        .connect(clientAcc1)
+                        .unlockTokens(origToken.address, parseUnits("1", 6));
 
                     // 300 for ID1
                     // 300 for ID2
                     // 0 for ID3
-                    expect(await distToken.balanceOf(clientAcc1.address)).to.equal(parseUnits("600", 6));
+                    expect(
+                        await distToken.balanceOf(clientAcc1.address)
+                    ).to.equal(parseUnits("600", 6));
 
-                    expect(await benture.hasClaimed(1, clientAcc1.address)).to.equal(true);
-                    expect(await benture.hasClaimed(2, clientAcc1.address)).to.equal(true);
+                    expect(
+                        await benture.hasClaimed(1, clientAcc1.address)
+                    ).to.equal(true);
+                    expect(
+                        await benture.hasClaimed(2, clientAcc1.address)
+                    ).to.equal(true);
                 });
 
                 it("Should not include any dividends if user user locked only after them", async () => {
-
                     let mintAmount = parseUnits("10000000", 6);
                     let lockAmount1 = parseUnits("1000", 6);
                     let lockAmount2 = parseUnits("200", 6);
@@ -1971,16 +2154,15 @@ describe("Benture Dividend Distributing Contract", () => {
                         origToken.address,
                         distToken.address,
                         claimAmount,
-                        true,
+                        true
                     );
-
 
                     // 2
                     await benture.distributeDividends(
                         origToken.address,
                         distToken.address,
                         claimAmount,
-                        true,
+                        true
                     );
 
                     // 3
@@ -1988,23 +2170,32 @@ describe("Benture Dividend Distributing Contract", () => {
                         origToken.address,
                         distToken.address,
                         claimAmount,
-                        true,
+                        true
                     );
 
                     await benture
                         .connect(clientAcc1)
                         .lockTokens(origToken.address, lockAmount2);
-                    await benture.connect(clientAcc1).unlockTokens(origToken.address, parseUnits("1", 6));
+                    await benture
+                        .connect(clientAcc1)
+                        .unlockTokens(origToken.address, parseUnits("1", 6));
 
-                    expect(await distToken.balanceOf(clientAcc1.address)).to.equal(parseUnits("0", 6));
+                    expect(
+                        await distToken.balanceOf(clientAcc1.address)
+                    ).to.equal(parseUnits("0", 6));
 
-                    expect(await benture.hasClaimed(1, clientAcc1.address)).to.equal(false);
-                    expect(await benture.hasClaimed(2, clientAcc1.address)).to.equal(false);
-                    expect(await benture.hasClaimed(3, clientAcc1.address)).to.equal(false);
+                    expect(
+                        await benture.hasClaimed(1, clientAcc1.address)
+                    ).to.equal(false);
+                    expect(
+                        await benture.hasClaimed(2, clientAcc1.address)
+                    ).to.equal(false);
+                    expect(
+                        await benture.hasClaimed(3, clientAcc1.address)
+                    ).to.equal(false);
                 });
 
                 it("Should include only one started distribution", async () => {
-
                     let mintAmount = parseUnits("10000000", 6);
                     let lockAmount1 = parseUnits("1000", 6);
                     let lockAmount2 = parseUnits("200", 6);
@@ -2025,18 +2216,23 @@ describe("Benture Dividend Distributing Contract", () => {
                         origToken.address,
                         distToken.address,
                         claimAmount,
-                        true,
+                        true
                     );
 
-                    await benture.connect(clientAcc1).unlockTokens(origToken.address, parseUnits("1", 6));
+                    await benture
+                        .connect(clientAcc1)
+                        .unlockTokens(origToken.address, parseUnits("1", 6));
 
-                    expect(await distToken.balanceOf(clientAcc1.address)).to.equal(parseUnits("300", 6));
+                    expect(
+                        await distToken.balanceOf(clientAcc1.address)
+                    ).to.equal(parseUnits("300", 6));
 
-                    expect(await benture.hasClaimed(1, clientAcc1.address)).to.equal(true);
+                    expect(
+                        await benture.hasClaimed(1, clientAcc1.address)
+                    ).to.equal(true);
                 });
 
                 it("Should not include any distributions if all were claimed", async () => {
-
                     let mintAmount = parseUnits("10000000", 6);
                     let lockAmount1 = parseUnits("1000", 6);
                     let lockAmount2 = parseUnits("200", 6);
@@ -2057,7 +2253,7 @@ describe("Benture Dividend Distributing Contract", () => {
                         origToken.address,
                         distToken.address,
                         claimAmount,
-                        true,
+                        true
                     );
 
                     // 2
@@ -2065,7 +2261,7 @@ describe("Benture Dividend Distributing Contract", () => {
                         origToken.address,
                         distToken.address,
                         claimAmount,
-                        true,
+                        true
                     );
 
                     // 3
@@ -2073,32 +2269,41 @@ describe("Benture Dividend Distributing Contract", () => {
                         origToken.address,
                         distToken.address,
                         claimAmount,
-                        true,
+                        true
                     );
 
-                    await benture.connect(clientAcc1).claimMultipleDividends([1, 2, 3]);
-                    expect(await distToken.balanceOf(clientAcc1.address)).to.equal(parseUnits("900", 6));
+                    await benture
+                        .connect(clientAcc1)
+                        .claimMultipleDividends([1, 2, 3]);
+                    expect(
+                        await distToken.balanceOf(clientAcc1.address)
+                    ).to.equal(parseUnits("900", 6));
 
-                    await benture.connect(clientAcc1).unlockTokens(origToken.address, parseUnits("1", 6));
+                    await benture
+                        .connect(clientAcc1)
+                        .unlockTokens(origToken.address, parseUnits("1", 6));
                     // Balance should not change
-                    expect(await distToken.balanceOf(clientAcc1.address)).to.equal(parseUnits("900", 6));
+                    expect(
+                        await distToken.balanceOf(clientAcc1.address)
+                    ).to.equal(parseUnits("900", 6));
 
-
-                    expect(await benture.hasClaimed(1, clientAcc1.address)).to.equal(true);
-                    expect(await benture.hasClaimed(2, clientAcc1.address)).to.equal(true);
-                    expect(await benture.hasClaimed(3, clientAcc1.address)).to.equal(true);
-                })
+                    expect(
+                        await benture.hasClaimed(1, clientAcc1.address)
+                    ).to.equal(true);
+                    expect(
+                        await benture.hasClaimed(2, clientAcc1.address)
+                    ).to.equal(true);
+                    expect(
+                        await benture.hasClaimed(3, clientAcc1.address)
+                    ).to.equal(true);
+                });
             });
-
-
         });
     });
 
     // #FCL
     describe("Fails for claiming dividends", () => {
-
         it("Should fail co claim not started distribution", async () => {
-
             let mintAmount = parseUnits("1000000", 6);
             let lockAmount = parseUnits("1000", 6);
             let claimAmount = parseUnits("300", 6);
@@ -2115,32 +2320,36 @@ describe("Benture Dividend Distributing Contract", () => {
                 origToken.address,
                 distToken.address,
                 claimAmount,
-                true,
+                true
             );
 
-            await expect(benture.connect(clientAcc1).claimDividends(777))
-            .to.be.revertedWithCustomError(benture, "DistributionHasNotStartedYet");
-
+            await expect(
+                benture.connect(clientAcc1).claimDividends(777)
+            ).to.be.revertedWithCustomError(
+                benture,
+                "DistributionHasNotStartedYet"
+            );
         });
 
         it("Should fail to claim dividends if user has no locked tokens", async () => {
-
             let claimAmount = parseUnits("300", 6);
 
             await benture.distributeDividends(
                 origToken.address,
                 distToken.address,
                 claimAmount,
-                true,
+                true
             );
 
-            await expect(benture.connect(clientAcc1).claimDividends(1))
-            .to.be.revertedWithCustomError(benture, "UserHasNoLockedTokens");
-
+            await expect(
+                benture.connect(clientAcc1).claimDividends(1)
+            ).to.be.revertedWithCustomError(
+                benture,
+                "UserDoesNotHaveLockedTokens"
+            );
         });
 
         it("Should fail to claim the same distribution more than once", async () => {
-
             let mintAmount = parseUnits("1000000", 6);
             let lockAmount = parseUnits("1000", 6);
             let claimAmount = parseUnits("300", 6);
@@ -2157,13 +2366,13 @@ describe("Benture Dividend Distributing Contract", () => {
                 origToken.address,
                 distToken.address,
                 claimAmount,
-                true,
+                true
             );
 
             await benture.connect(clientAcc1).claimDividends(1);
-            await expect(benture.connect(clientAcc1).claimDividends(1))
-            .to.be.revertedWithCustomError(benture, "AlreadyClaimed");
-
+            await expect(
+                benture.connect(clientAcc1).claimDividends(1)
+            ).to.be.revertedWithCustomError(benture, "AlreadyClaimed");
         });
     });
 
@@ -2171,167 +2380,197 @@ describe("Benture Dividend Distributing Contract", () => {
     describe("Custom Dividends", () => {
         describe("ERC20 tokens dividends", () => {
             it("Should distribute ERC20 tokens custom dividends", async () => {
-
                 let claimAmount1 = parseUnits("500", 6);
                 let claimAmount2 = parseUnits("700", 6);
 
-                let startBalance1 = await distToken.balanceOf(clientAcc1.address);
-                let startBalance2 = await distToken.balanceOf(clientAcc2.address);
+                let startBalance1 = await distToken.balanceOf(
+                    clientAcc1.address
+                );
+                let startBalance2 = await distToken.balanceOf(
+                    clientAcc2.address
+                );
 
-                await expect(benture.distributeDividendsCustom(
-                    distToken.address,
-                    [clientAcc1.address, clientAcc2.address],
-                    [claimAmount1, claimAmount2],
-                    claimAmount1.add(claimAmount2)
-                ))
-                .to.emit(benture, "CustomDividendsDistributed")
-                .withArgs(anyValue, anyValue);
+                await expect(
+                    benture.distributeDividendsCustom(
+                        distToken.address,
+                        [clientAcc1.address, clientAcc2.address],
+                        [claimAmount1, claimAmount2],
+                        claimAmount1.add(claimAmount2)
+                    )
+                )
+                    .to.emit(benture, "CustomDividendsDistributed")
+                    .withArgs(anyValue, anyValue);
 
                 let endBalance1 = await distToken.balanceOf(clientAcc1.address);
                 let endBalance2 = await distToken.balanceOf(clientAcc2.address);
 
                 expect(endBalance1.sub(startBalance1)).to.equal(claimAmount1);
                 expect(endBalance2.sub(startBalance2)).to.equal(claimAmount2);
-
             });
         });
 
         describe("Native tokens dividends", () => {
-
             it("Should distribute native tokens custom dividends", async () => {
-
                 let claimAmount1 = parseEther("0.5");
                 let claimAmount2 = parseEther("0.5");
 
-                let startBalance1 = await ethers.provider.getBalance(clientAcc1.address);
-                let startBalance2 = await ethers.provider.getBalance(clientAcc2.address);
+                let startBalance1 = await ethers.provider.getBalance(
+                    clientAcc1.address
+                );
+                let startBalance2 = await ethers.provider.getBalance(
+                    clientAcc2.address
+                );
 
-                await expect(benture.distributeDividendsCustom(
-                    zeroAddress,
-                    [clientAcc1.address, clientAcc2.address],
-                    [claimAmount1, claimAmount2],
-                    claimAmount1.add(claimAmount2),
-                    {value: claimAmount1.add(claimAmount2)}
-                ))
-                .to.emit(benture, "CustomDividendsDistributed")
-                .withArgs(anyValue, anyValue);
+                await expect(
+                    benture.distributeDividendsCustom(
+                        zeroAddress,
+                        [clientAcc1.address, clientAcc2.address],
+                        [claimAmount1, claimAmount2],
+                        claimAmount1.add(claimAmount2),
+                        { value: claimAmount1.add(claimAmount2) }
+                    )
+                )
+                    .to.emit(benture, "CustomDividendsDistributed")
+                    .withArgs(anyValue, anyValue);
 
-                let endBalance1 = await ethers.provider.getBalance(clientAcc1.address);
-                let endBalance2 = await ethers.provider.getBalance(clientAcc2.address);
+                let endBalance1 = await ethers.provider.getBalance(
+                    clientAcc1.address
+                );
+                let endBalance2 = await ethers.provider.getBalance(
+                    clientAcc2.address
+                );
 
                 expect(endBalance1.sub(startBalance1)).to.equal(claimAmount1);
                 expect(endBalance2.sub(startBalance2)).to.equal(claimAmount2);
-
             });
         });
     });
     // #FCU
     describe("Fails for Custom Dividends", () => {
         it("Should fail to distribute custom dividends if any list is empty", async () => {
-            await expect(benture.distributeDividendsCustom(
-                distToken.address,
-                [],
-                [1, 2],
-                3
-            )).to.be.revertedWithCustomError(benture, "CanNotWorkWithEmptyLists");
+            await expect(
+                benture.distributeDividendsCustom(
+                    distToken.address,
+                    [],
+                    [1, 2],
+                    3
+                )
+            ).to.be.revertedWithCustomError(benture, "EmptyList");
 
-            await expect(benture.distributeDividendsCustom(
-                distToken.address,
-                [clientAcc1.address, clientAcc2.address],
-                [],
-                3
-            )).to.be.revertedWithCustomError(benture, "CanNotWorkWithEmptyLists");
+            await expect(
+                benture.distributeDividendsCustom(
+                    distToken.address,
+                    [clientAcc1.address, clientAcc2.address],
+                    [],
+                    3
+                )
+            ).to.be.revertedWithCustomError(benture, "EmptyList");
         });
         it("Should fail to distribute custom dividends if lists have different lengths", async () => {
-            await expect(benture.distributeDividendsCustom(
-                distToken.address,
-                [clientAcc1.address],
-                [1, 2],
-                3
-            )).to.be.revertedWithCustomError(benture, "ListsLengthDiffers");
+            await expect(
+                benture.distributeDividendsCustom(
+                    distToken.address,
+                    [clientAcc1.address],
+                    [1, 2],
+                    3
+                )
+            ).to.be.revertedWithCustomError(benture, "ListsLengthDiffers");
         });
         it("Should fail to distribute custom dividends if not enough native tokens were provided", async () => {
-
             let claimAmount1 = parseEther("0.5");
             let claimAmount2 = parseEther("0.5");
 
-            await expect(benture.distributeDividendsCustom(
-                zeroAddress,
-                [clientAcc1.address, clientAcc2.address],
-                [claimAmount1, claimAmount2],
-                claimAmount1.add(claimAmount2),
-                {value: claimAmount1.div(5)}
-            )).to.be.revertedWithCustomError(benture, "NotEnoughNativeTokensWereProvided");
+            await expect(
+                benture.distributeDividendsCustom(
+                    zeroAddress,
+                    [clientAcc1.address, clientAcc2.address],
+                    [claimAmount1, claimAmount2],
+                    claimAmount1.add(claimAmount2),
+                    { value: claimAmount1.div(5) }
+                )
+            ).to.be.revertedWithCustomError(benture, "NotEnoughNativeTokens");
         });
         it("Should fail to distribute custom dividends if any user has zero address", async () => {
-
             let claimAmount1 = parseEther("0.5");
             let claimAmount2 = parseEther("0.5");
 
-            await expect(benture.distributeDividendsCustom(
-                zeroAddress,
-                [clientAcc1.address, zeroAddress],
-                [claimAmount1, claimAmount2],
-                claimAmount1.add(claimAmount2),
-                {value: claimAmount1.add(claimAmount2)}
-            )).to.be.revertedWithCustomError(benture, "UserCanNotHaveZeroAddress");
+            await expect(
+                benture.distributeDividendsCustom(
+                    zeroAddress,
+                    [clientAcc1.address, zeroAddress],
+                    [claimAmount1, claimAmount2],
+                    claimAmount1.add(claimAmount2),
+                    { value: claimAmount1.add(claimAmount2) }
+                )
+            ).to.be.revertedWithCustomError(benture, "InvalidUserAddress");
         });
         it("Should fail to distribute custom dividends if any amount is zero", async () => {
-
             let claimAmount1 = parseEther("0.5");
             let claimAmount2 = parseEther("0");
 
-            await expect(benture.distributeDividendsCustom(
-                zeroAddress,
-                [clientAcc1.address, clientAcc2.address],
-                [claimAmount1, claimAmount2],
-                claimAmount1.add(claimAmount2),
-                {value: claimAmount1.add(claimAmount2)}
-            )).to.be.revertedWithCustomError(benture, "DividendsAmountCanNotBeZero");
+            await expect(
+                benture.distributeDividendsCustom(
+                    zeroAddress,
+                    [clientAcc1.address, clientAcc2.address],
+                    [claimAmount1, claimAmount2],
+                    claimAmount1.add(claimAmount2),
+                    { value: claimAmount1.add(claimAmount2) }
+                )
+            ).to.be.revertedWithCustomError(benture, "InvalidDividendsAmount");
         });
     });
 
     // #G
-    describe("Getters", () => {
-    });
+    describe("Getters", () => {});
 
     // #FG
     describe("Fails for getters", () => {
         it("Should fail to get pool with zero address", async () => {
-            await expect(benture.getPool(zeroAddress))
-            .to.be.revertedWithCustomError(benture, "PoolsCanNotHoldZeroAddressTokens");
+            await expect(
+                benture.getPool(zeroAddress)
+            ).to.be.revertedWithCustomError(benture, "InvalidTokenAddress");
         });
         it("Should fail to get lockers of zero address tokens", async () => {
-            await expect(benture.getLockers(zeroAddress))
-            .to.be.revertedWithCustomError(benture, "PoolsCanNotHoldZeroAddressTokens");
+            await expect(
+                benture.getLockers(zeroAddress)
+            ).to.be.revertedWithCustomError(benture, "InvalidTokenAddress");
         });
         it("Should fail to check is user is a locker", async () => {
-            await expect(benture.isLocker(zeroAddress, clientAcc1.address))
-            .to.be.revertedWithCustomError(benture, "PoolsCanNotHoldZeroAddressTokens");
-            await expect(benture.isLocker(origToken.address, zeroAddress))
-            .to.be.revertedWithCustomError(benture, "UserCanNotHaveZeroAddress");
+            await expect(
+                benture.isLocker(zeroAddress, clientAcc1.address)
+            ).to.be.revertedWithCustomError(benture, "InvalidTokenAddress");
+            await expect(
+                benture.isLocker(origToken.address, zeroAddress)
+            ).to.be.revertedWithCustomError(benture, "InvalidUserAddress");
         });
         it("Should fail to get current lock of a user", async () => {
-            await expect(benture.getCurrentLock(zeroAddress, clientAcc1.address))
-            .to.be.revertedWithCustomError(benture, "PoolsCanNotHoldZeroAddressTokens");
-            await expect(benture.getCurrentLock(origToken.address, zeroAddress))
-            .to.be.revertedWithCustomError(benture, "UserCanNotHaveZeroAddress");
+            await expect(
+                benture.getCurrentLock(zeroAddress, clientAcc1.address)
+            ).to.be.revertedWithCustomError(benture, "InvalidTokenAddress");
+            await expect(
+                benture.getCurrentLock(origToken.address, zeroAddress)
+            ).to.be.revertedWithCustomError(benture, "InvalidUserAddress");
         });
         it("Should fail to get a list of distributions started by an admin", async () => {
-            await expect(benture.getDistributions(zeroAddress))
-            .to.be.revertedWithCustomError(benture, "AdminCanNotHaveAZeroAddress");
+            await expect(
+                benture.getDistributions(zeroAddress)
+            ).to.be.revertedWithCustomError(benture, "InvalidAdminAddress");
         });
         it("Should fail to get a distribution", async () => {
-            await expect(benture.getDistribution(0))
-            .to.be.revertedWithCustomError(benture, "IDOfDistributionMustBeGreaterThanOne");
-            await expect(benture.getDistribution(1))
-            .to.be.revertedWithCustomError(benture, "DistributionNotStarted");
+            await expect(
+                benture.getDistribution(0)
+            ).to.be.revertedWithCustomError(benture, "InvalidDistributionId");
+            await expect(
+                benture.getDistribution(1)
+            ).to.be.revertedWithCustomError(benture, "DistributionNotStarted");
         });
         it("Should fail to check if user claimed distribution", async () => {
-            await expect(benture.hasClaimed(0, clientAcc1.address))
-            .to.be.revertedWithCustomError(benture, "IDOfDistributionMustBeGreaterThanOne");
-            await expect(benture.hasClaimed(1, clientAcc1.address))
-            .to.be.revertedWithCustomError(benture, "DistributionNotStarted");
+            await expect(
+                benture.hasClaimed(0, clientAcc1.address)
+            ).to.be.revertedWithCustomError(benture, "InvalidDistributionId");
+            await expect(
+                benture.hasClaimed(1, clientAcc1.address)
+            ).to.be.revertedWithCustomError(benture, "DistributionNotStarted");
 
             let claimAmount = parseUnits("1000", 6);
 
@@ -2339,17 +2578,20 @@ describe("Benture Dividend Distributing Contract", () => {
                 origToken.address,
                 distToken.address,
                 claimAmount,
-                true,
+                true
             );
 
-            await expect(benture.hasClaimed(1, zeroAddress))
-            .to.be.revertedWithCustomError(benture, "UserCanNotHaveZeroAddress");
+            await expect(
+                benture.hasClaimed(1, zeroAddress)
+            ).to.be.revertedWithCustomError(benture, "InvalidUserAddress");
         });
         it("Should fail to check if distribution started by admin", async () => {
-            await expect(benture.checkStartedByAdmin(0, ownerAcc.address))
-            .to.be.revertedWithCustomError(benture, "IDOfDistributionMustBeGreaterThanOne");
-            await expect(benture.checkStartedByAdmin(1, ownerAcc.address))
-            .to.be.revertedWithCustomError(benture, "DistributionNotStarted");
+            await expect(
+                benture.checkStartedByAdmin(0, ownerAcc.address)
+            ).to.be.revertedWithCustomError(benture, "InvalidDistributionId");
+            await expect(
+                benture.checkStartedByAdmin(1, ownerAcc.address)
+            ).to.be.revertedWithCustomError(benture, "DistributionNotStarted");
 
             let claimAmount = parseUnits("1000", 6);
 
@@ -2357,32 +2599,33 @@ describe("Benture Dividend Distributing Contract", () => {
                 origToken.address,
                 distToken.address,
                 claimAmount,
-                true,
+                true
             );
 
-            await expect(benture.checkStartedByAdmin(1, zeroAddress))
-            .to.be.revertedWithCustomError(benture, "AdminCanNotHaveAZeroAddress");
+            await expect(
+                benture.checkStartedByAdmin(1, zeroAddress)
+            ).to.be.revertedWithCustomError(benture, "InvalidAdminAddress");
         });
         it("Should fail to calculate the share of the user", async () => {
-
             let mintAmount = parseUnits("1000000", 6);
             let lockAmount = parseUnits("1000", 6);
             let claimAmount = parseUnits("1000", 6);
 
-            await expect(benture.getMyShare(777))
-            .to.be.revertedWithCustomError(benture, "InvalidDistribution");
+            await expect(benture.getMyShare(777)).to.be.revertedWithCustomError(
+                benture,
+                "InvalidDistribution"
+            );
 
             await benture.distributeDividends(
                 origToken.address,
                 distToken.address,
                 claimAmount,
-                true,
+                true
             );
 
-            await expect(benture.connect(clientAcc1).getMyShare(1))
-            .to.be.revertedWithCustomError(benture, "CallerIsNotLocker");
-
+            await expect(
+                benture.connect(clientAcc1).getMyShare(1)
+            ).to.be.revertedWithCustomError(benture, "CallerIsNotLocker");
         });
-
     });
 });
