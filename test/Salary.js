@@ -22,22 +22,22 @@ describe("Salary", () => {
         [adminAcc1, adminAcc2, clientAcc1, clientAcc2, clientAcc3] =
             await ethers.getSigners();
 
+        // Deploy dividend-distribution contract
+        let bentureTx = await ethers.getContractFactory("Benture");
+        benture = await bentureTx.deploy();
+        await benture.deployed();
+
         // Deploy a factory contract
         let factoryTx = await ethers.getContractFactory("BentureFactory");
-        factory = await factoryTx.deploy();
+        factory = await factoryTx.deploy(benture.address);
         await factory.deployed();
+
+        await benture.setFactoryAddress(factory.address);
 
         // Deploy an admin token (ERC721)
         let adminTx = await ethers.getContractFactory("BentureAdmin");
         adminToken = await adminTx.deploy(factory.address);
         await adminToken.deployed();
-
-        // Deploy dividend-distribution contract
-        let bentureTx = await ethers.getContractFactory("Benture");
-        benture = await bentureTx.deploy(factory.address);
-        await benture.deployed();
-
-        await factory.setBentureAddress(benture.address);
 
         // Create new ERC20 and ERC721 and assign them to caller (owner)
         await factory.createERC20Token(
@@ -317,7 +317,6 @@ describe("Salary", () => {
             await increaseTime(600 * 10);
 
             let amount = await salary.getSalaryAmount("1");
-            console.log("Salary amount: ", amount);
             expect((await salary.getSalaryAmount("1")).toString()).to.be.equal(
                 "550"
             );
@@ -346,7 +345,6 @@ describe("Salary", () => {
             await increaseTime(270);
 
             let amount = await salary.getSalaryAmount("1");
-            console.log("Salary amount: ", amount);
             expect((await salary.getSalaryAmount("1")).toString()).to.be.equal(
                 "125"
             );
@@ -375,7 +373,6 @@ describe("Salary", () => {
             await increaseTime(60);
 
             let amount = await salary.getSalaryAmount("1");
-            console.log("Salary amount: ", amount);
             expect((await salary.getSalaryAmount("1")).toString()).to.be.equal(
                 "10"
             );
@@ -406,7 +403,6 @@ describe("Salary", () => {
             await salary.connect(clientAcc1).withdrawSalary(1);
 
             let amount = await salary.getSalaryAmount("1");
-            console.log("Salary amount: ", amount);
             expect((await salary.getSalaryAmount("1")).toString()).to.be.equal(
                 "0"
             );
@@ -508,7 +504,6 @@ describe("Salary", () => {
             //Already spent 1 sec
             await increaseTime(300);
             await salary.connect(clientAcc1).withdrawAllSalaries();
-            console.log(await mockERC20.balanceOf(clientAcc1.address));
         });
 
         it("Should let withdraw salary to Employee through Employee removal", async () => {
@@ -537,7 +532,6 @@ describe("Salary", () => {
             await increaseTime(59);
 
             await salary.removeEmployee(clientAcc1.address);
-            console.log(await mockERC20.balanceOf(clientAcc1.address));
 
             let timeAfterWithdrawal = await getTimestump();
             expect(await mockERC20.balanceOf(clientAcc1.address)).to.be.equal(
@@ -609,15 +603,10 @@ describe("Salary", () => {
                 clientAcc1.address,
                 adminAcc1.address
             );
-            console.log("User Is Employee Of Admin: ", isAdmin);
 
             let salaryInfo = await salary.getSalaryById("1");
 
-            console.log(salaryInfo);
-
             salaryInfo = await salary.getSalaryById("2");
-
-            console.log(salaryInfo);
         });
 
         it("Should not let withdraw any salary to Employee through removeSalaryFromEmployee when all tokens already withdrawed", async () => {
@@ -1017,60 +1006,13 @@ describe("Salary", () => {
                     tokensAmountPerPeriod
                 );
 
-            console.log("---------------------------------------------");
-
-            console.log(
-                "Balance of 1 Admin before first withdraw: ",
-                (await mockERC20.balanceOf(adminAcc1.address)).toString()
-            );
-            console.log(
-                "Balance of 2 Admin before first withdraw: ",
-                (await mockERC20.balanceOf(adminAcc2.address)).toString()
-            );
-            console.log(
-                "Balance of Employee before first withdraw: ",
-                (await mockERC20.balanceOf(clientAcc1.address)).toString()
-            );
-
-            console.log("---------------------------------------------");
-
             await increaseTime(59);
             await salary.connect(clientAcc1).withdrawSalary(1);
             await salary.connect(clientAcc1).withdrawSalary(2);
 
-            console.log(
-                "Balance of 1 Admin after first withdraw: ",
-                (await mockERC20.balanceOf(adminAcc1.address)).toString()
-            );
-            console.log(
-                "Balance of 2 Admin after first withdraw: ",
-                (await mockERC20.balanceOf(adminAcc2.address)).toString()
-            );
-            console.log(
-                "Balance of Employee after first withdraw: ",
-                (await mockERC20.balanceOf(clientAcc1.address)).toString()
-            );
-
-            console.log("---------------------------------------------");
-
             await increaseTime(40);
             await salary.connect(clientAcc1).withdrawSalary(1);
             await salary.connect(clientAcc1).withdrawSalary(2);
-
-            console.log(
-                "Balance of 1 Admin after second withdraw: ",
-                (await mockERC20.balanceOf(adminAcc1.address)).toString()
-            );
-            console.log(
-                "Balance of 2 Admin after second withdraw: ",
-                (await mockERC20.balanceOf(adminAcc2.address)).toString()
-            );
-            console.log(
-                "Balance of Employee after second withdraw: ",
-                (await mockERC20.balanceOf(clientAcc1.address)).toString()
-            );
-
-            console.log("---------------------------------------------");
         });
 
         it("Should withdraw salary for more than 1 period", async () => {
@@ -1263,10 +1205,6 @@ describe("Salary", () => {
             await increaseTime(59);
             await salary.connect(clientAcc1).withdrawSalary(1);
 
-            console.log(
-                "USER BALANCE: ",
-                (await mockERC20.balanceOf(clientAcc1.address)).toString()
-            );
             let timeAfterWithdrawal = await getTimestump();
             expect(await mockERC20.balanceOf(clientAcc1.address)).to.be.equal(
                 tokensAmountPerPeriod[0]
@@ -1314,10 +1252,6 @@ describe("Salary", () => {
             await increaseTime(59);
             await salary.removeEmployee(clientAcc1.address);
 
-            console.log(
-                "USER BALANCE: ",
-                (await mockERC20.balanceOf(clientAcc1.address)).toString()
-            );
             let timeAfterWithdrawal = await getTimestump();
             expect(await mockERC20.balanceOf(clientAcc1.address)).to.be.equal(
                 tokensAmountPerPeriod[0]
@@ -1432,10 +1366,6 @@ describe("Salary", () => {
             await increaseTime(270);
             await salary.removeEmployee(clientAcc1.address);
 
-            console.log(
-                "USER BALANCE: ",
-                (await mockERC20.balanceOf(clientAcc1.address)).toString()
-            );
             expect(await mockERC20.balanceOf(clientAcc1.address)).to.be.equal(
                 125
             );
@@ -1481,60 +1411,13 @@ describe("Salary", () => {
                     tokensAmountPerPeriod
                 );
 
-            console.log("---------------------------------------------");
-
-            console.log(
-                "Balance of 1 Admin before first withdraw: ",
-                (await mockERC20.balanceOf(adminAcc1.address)).toString()
-            );
-            console.log(
-                "Balance of 2 Admin before first withdraw: ",
-                (await mockERC20.balanceOf(adminAcc2.address)).toString()
-            );
-            console.log(
-                "Balance of Employee before first withdraw: ",
-                (await mockERC20.balanceOf(clientAcc1.address)).toString()
-            );
-
-            console.log("---------------------------------------------");
-
             await increaseTime(270);
             await salary.connect(clientAcc1).withdrawSalary(1);
             await salary.connect(clientAcc1).withdrawSalary(2);
 
-            console.log(
-                "Balance of 1 Admin after first withdraw: ",
-                (await mockERC20.balanceOf(adminAcc1.address)).toString()
-            );
-            console.log(
-                "Balance of 2 Admin after first withdraw: ",
-                (await mockERC20.balanceOf(adminAcc2.address)).toString()
-            );
-            console.log(
-                "Balance of Employee after first withdraw: ",
-                (await mockERC20.balanceOf(clientAcc1.address)).toString()
-            );
-
-            console.log("---------------------------------------------");
-
             await increaseTime(30);
             await salary.connect(clientAcc1).withdrawSalary(1);
             await salary.connect(clientAcc1).withdrawSalary(2);
-
-            console.log(
-                "Balance of 1 Admin after second withdraw: ",
-                (await mockERC20.balanceOf(adminAcc1.address)).toString()
-            );
-            console.log(
-                "Balance of 2 Admin after second withdraw: ",
-                (await mockERC20.balanceOf(adminAcc2.address)).toString()
-            );
-            console.log(
-                "Balance of Employee after second withdraw: ",
-                (await mockERC20.balanceOf(clientAcc1.address)).toString()
-            );
-
-            console.log("---------------------------------------------");
         });
 
         it("Should let add new salary periods", async () => {
@@ -1560,12 +1443,10 @@ describe("Salary", () => {
             //Already spent 1 sec
             await increaseTime(270);
             let salaryInfo = await salary.getSalaryById(1);
-            console.log(salaryInfo.toString());
 
             await salary.addPeriodsToSalary(1, [110, 120, 130]);
 
             salaryInfo = await salary.getSalaryById(1);
-            console.log(salaryInfo.toString());
         });
 
         it("Should let withdraw before and after salary addition", async () => {
@@ -1591,21 +1472,10 @@ describe("Salary", () => {
             //Already spent 1 sec
             await increaseTime(270);
             let salaryInfo = await salary.getSalaryById(1);
-            console.log(salaryInfo.toString());
-
-            console.log(
-                "Balance of Employee: ",
-                (await mockERC20.balanceOf(clientAcc1.address)).toString()
-            );
 
             await salary.connect(clientAcc1).withdrawSalary(1);
 
             salaryInfo = await salary.getSalaryById(1);
-            console.log(salaryInfo.toString());
-            console.log(
-                "Balance of Employee: ",
-                (await mockERC20.balanceOf(clientAcc1.address)).toString()
-            );
 
             await salary.addPeriodsToSalary(1, [110, 120, 130]);
 
@@ -1613,11 +1483,6 @@ describe("Salary", () => {
             await salary.connect(clientAcc1).withdrawSalary(1);
 
             salaryInfo = await salary.getSalaryById(1);
-            console.log(salaryInfo.toString());
-            console.log(
-                "Balance of Employee: ",
-                (await mockERC20.balanceOf(clientAcc1.address)).toString()
-            );
         });
 
         it("Should remove salary periods with salary remove", async () => {
@@ -1642,30 +1507,14 @@ describe("Salary", () => {
             //9,5 periods passed
             await increaseTime(568);
             let salaryInfo = await salary.getSalaryById(1);
-            console.log(salaryInfo.toString());
-
-            console.log(
-                "Balance of Employee: ",
-                (await mockERC20.balanceOf(clientAcc1.address)).toString()
-            );
 
             await salary.connect(clientAcc1).withdrawSalary(1);
 
             salaryInfo = await salary.getSalaryById(1);
-            console.log(salaryInfo.toString());
-            console.log(
-                "Balance of Employee: ",
-                (await mockERC20.balanceOf(clientAcc1.address)).toString()
-            );
 
             await salary.removePeriodsFromSalary(1, 2);
 
             salaryInfo = await salary.getSalaryById(1);
-            console.log(salaryInfo.toString());
-            console.log(
-                "Balance of Employee: ",
-                (await mockERC20.balanceOf(clientAcc1.address)).toString()
-            );
         });
 
         it("Should remove salary periods and calculate salary correctly", async () => {
@@ -1690,21 +1539,10 @@ describe("Salary", () => {
             //9,5 periods passed
             await increaseTime(240);
             let salaryInfo = await salary.getSalaryById(1);
-            console.log(salaryInfo.toString());
-
-            console.log(
-                "Balance of Employee: ",
-                (await mockERC20.balanceOf(clientAcc1.address)).toString()
-            );
 
             await salary.connect(clientAcc1).withdrawSalary(1);
 
             salaryInfo = await salary.getSalaryById(1);
-            console.log(salaryInfo.toString());
-            console.log(
-                "Balance of Employee: ",
-                (await mockERC20.balanceOf(clientAcc1.address)).toString()
-            );
 
             await salary.removePeriodsFromSalary(1, 2);
 
@@ -1712,11 +1550,6 @@ describe("Salary", () => {
             await salary.connect(clientAcc1).withdrawSalary(1);
 
             salaryInfo = await salary.getSalaryById(1);
-            console.log(salaryInfo.toString());
-            console.log(
-                "Balance of Employee: ",
-                (await mockERC20.balanceOf(clientAcc1.address)).toString()
-            );
         });
     });
 
@@ -2117,7 +1950,6 @@ describe("Salary", () => {
             await increaseTime(600 * 10);
 
             await salary.connect(clientAcc1).withdrawSalary(1);
-            console.log(await mockERC20.balanceOf(clientAcc1.address));
             await expect(
                 salary.addPeriodsToSalary(1, [110, 120, 130])
             ).to.be.revertedWithCustomError(salary, "SalaryEnded");
@@ -2146,7 +1978,6 @@ describe("Salary", () => {
             await increaseTime(600 * 10);
 
             await salary.connect(clientAcc1).withdrawSalary(1);
-            console.log(await mockERC20.balanceOf(clientAcc1.address));
             await expect(
                 salary.removePeriodsFromSalary(1, 1)
             ).to.be.revertedWithCustomError(salary, "SalaryEnded");

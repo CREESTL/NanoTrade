@@ -6,7 +6,9 @@ describe("Benture Admin Token", () => {
     let token;
     let adminToken;
     let factory;
+    let benture;
     let factorySigner;
+    let rummy;
     let zeroAddress = ethers.constants.AddressZero;
     let parseEther = ethers.utils.parseEther;
 
@@ -14,17 +16,17 @@ describe("Benture Admin Token", () => {
     beforeEach(async () => {
         [ownerAcc, clientAcc1, clientAcc2] = await ethers.getSigners();
 
-        // Deploy a factory contract
-        let factoryTx = await ethers.getContractFactory("PayableFactory");
-        factory = await factoryTx.deploy();
-        await factory.deployed();
-
         // Deploy dividend-distribution contract
         let bentureTx = await ethers.getContractFactory("Benture");
-        benture = await bentureTx.deploy(factory.address);
+        benture = await bentureTx.deploy();
         await benture.deployed();
 
-        await factory.setBentureAddress(benture.address);
+        // Deploy a factory contract
+        let factoryTx = await ethers.getContractFactory("PayableFactory");
+        factory = await factoryTx.deploy(benture.address);
+        await factory.deployed();
+
+        await benture.setFactoryAddress(factory.address);
 
         // Deploy an admin token (ERC721)
         let adminTx = await ethers.getContractFactory("BentureAdmin");
@@ -68,11 +70,13 @@ describe("Benture Admin Token", () => {
     describe("Constructor", () => {
         it("Should initialize with correct name and symbol", async () => {
             let tx = await ethers.getContractFactory("BentureAdmin");
+            // TODO these seems wrong
             let adminTokne = await tx.deploy(factory.address);
         });
 
         it("Should fail to initialize with zero factory address", async () => {
             let tx = await ethers.getContractFactory("BentureAdmin");
+            // TODO these seems wrong
             await expect(tx.deploy(zeroAddress)).to.be.revertedWithCustomError(
                 adminToken,
                 "FactoryAddressCanNotBeZeroAddress"

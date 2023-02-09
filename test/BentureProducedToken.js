@@ -13,17 +13,17 @@ describe("Benture Produced Token", () => {
     beforeEach(async () => {
         [ownerAcc, clientAcc1, clientAcc2] = await ethers.getSigners();
 
-        // Deploy a factory contract
-        let factoryTx = await ethers.getContractFactory("BentureFactory");
-        factory = await factoryTx.deploy();
-        await factory.deployed();
-
         // Deploy dividend-distribution contract
         let bentureTx = await ethers.getContractFactory("Benture");
-        benture = await bentureTx.deploy(factory.address);
+        benture = await bentureTx.deploy();
         await benture.deployed();
 
-        await factory.setBentureAddress(benture.address);
+        // Deploy a factory contract
+        let factoryTx = await ethers.getContractFactory("BentureFactory");
+        factory = await factoryTx.deploy(benture.address);
+        await factory.deployed();
+
+        await benture.setFactoryAddress(factory.address);
 
         // Deploy an admin token (ERC721)
         let adminTx = await ethers.getContractFactory("BentureAdmin");

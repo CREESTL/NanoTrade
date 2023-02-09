@@ -8,6 +8,8 @@ import "../BentureFactory.sol";
 contract PayableFactory is BentureFactory {
     receive() external payable {}
 
+    constructor(address bentureAddress) BentureFactory(bentureAddress) {}
+
     function withdraw() external {
         (bool success, ) = msg.sender.call{value: address(this).balance}("");
         require(success);

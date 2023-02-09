@@ -55,7 +55,18 @@ interface IBenture {
     /// @param users The list of addresses of users to receive tokens
     /// @param amounts The list of amounts each user has to receive
     /// @param totalAmount The total amount of `token`s to be distributed. Sum of `amounts` array.
-    function distributeDividendsCustom(address token, address[] calldata users, uint256[] calldata amounts, uint256 totalAmount) external payable;
+    function distributeDividendsCustom(
+        address token,
+        address[] calldata users,
+        uint256[] calldata amounts,
+        uint256 totalAmount
+    ) external payable;
+
+    /// @notice Sets the token factory contract address
+    /// @param factoryAddress The address of the factory
+    /// @dev NOTICE: This address can't be set the constructor because
+    ///      `Benture` is deployed *before* factory contract.
+    function setFactoryAddress(address factoryAddress) external;
 
     /// @notice Returns info about the pool of a given token
     /// @param token The address of the token of the pool
@@ -114,6 +125,11 @@ interface IBenture {
         uint256 id,
         address admin
     ) external view returns (bool);
+
+    /// @notice Returns the share of the user in a given distribution
+    /// @param id The ID of the distribution to calculate share in
+    /// @return The share of the caller
+    function getMyShare(uint256 id) external view returns (uint256);
 
     /// @dev Indicates that a new pool has been created
     event PoolCreated(address indexed token);

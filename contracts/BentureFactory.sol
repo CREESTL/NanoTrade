@@ -10,14 +10,18 @@ import "./interfaces/IBenture.sol";
 
 /// @title A factory of custom ERC20 tokens
 contract BentureFactory is IBentureFactory {
+    /// @dev The address of the `Benture` contract
+    address private bentureAddress;
+
     /// @dev The address of the last token that was produced by the factory
     address private _lastProducedToken;
 
-    address private bentureAddress;
-
     error BentureAddressIsZero();
 
-    function setBentureAddress(address bentureAddress_) external {
+    constructor(address bentureAddress_) {
+        if (bentureAddress_ == address(0)) {
+            revert BentureAddressIsZero();
+        }
         bentureAddress = bentureAddress_;
     }
 
@@ -43,10 +47,6 @@ contract BentureFactory is IBentureFactory {
         uint256 maxTotalSupply,
         address adminToken_
     ) external {
-        if (bentureAddress == address(0)) {
-            revert BentureAddressIsZero();
-        }
-
         BentureProducedToken newToken = new BentureProducedToken(
             name,
             symbol,

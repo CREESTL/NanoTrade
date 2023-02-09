@@ -17,8 +17,6 @@ interface ISalary {
         address employee;
     }
 
-
-
     /// @notice Returns the name of employee.
     /// @param employeeAddress Address of employee.
     /// @return name The name of employee.
@@ -205,5 +203,4 @@ interface ISalary {
         address indexed adminAddress,
         SalaryInfo indexed salary
     );
-
 }

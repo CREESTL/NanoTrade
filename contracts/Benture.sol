@@ -13,6 +13,9 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
+// TODO delete it
+import "hardhat/console.sol";
+
 /// @title Dividends distributing contract
 contract Benture is IBenture, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
@@ -97,6 +100,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     error CanNotWorkWithZeroAddressTokens();
     error CallerNotAdminOrFactory();
     error InvalidLockAmount();
+    error CallerIsNotLocker();
     error CanNotLockZeroAddressTokens();
     error PoolDoesNotExist();
     error CanNotWorkWithEmptyLists();
@@ -113,13 +117,15 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     error DividendsAmountCanNotBeZero();
     error NotEnoughNativeTokensWereProvided();
     error DistributionHasNotStartedYet();
+    error InvalidDistribution();
     error UserHasNoLockedTokens();
     error AlreadyClaimed();
     error UserCanNotHaveZeroAddress();
     error AdminCanNotHaveAZeroAddress();
     error IDOfDistributionMustBeGreaterThanOne();
-    error DistributionWithTheGivenIDHasNotBeenAnnoucedYet();
+    error DistributionNotStarted();
     error DistriburionNotContainTokenToWithdraw();
+    error FactoryAddressNotSet();
 
     /// @dev Checks that caller is either an admin of a project or a factory
     modifier onlyAdminOrFactory(address token) {
@@ -128,6 +134,10 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // call verification method on zero address
         if (token == address(0)) {
             revert CanNotWorkWithZeroAddressTokens();
+        }
+        // If factory address is zero, that means that it hasn't been set
+        if (factory == address(0)) {
+            revert FactoryAddressNotSet();
         }
         // If caller is neither a factory nor an admin - revert
         if (
@@ -139,13 +149,8 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         _;
     }
 
-
     /// @dev The contract must be able to receive ether to pay dividends with it
     receive() external payable {}
-
-    constructor(address factory_) {
-        factory = factory_;
-    }
 
     // ===== POOLS =====
 
@@ -236,16 +241,29 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @param user The address of the user to get distributions for
     /// @param token The address of the token that was distributed
     /// @return The list of IDs of distributions the user took part in
-    function getParticipatedNotClaimed(address user, address token) private view returns(uint256[] memory) {
+    function getParticipatedNotClaimed(
+        address user,
+        address token
+    ) private view returns (uint256[] memory) {
         Pool storage pool = pools[token];
         // Get the list of distributions before which user's lock was changed
-        uint256[] storage allIds = pool.lockChangesIds[user];
-        // If there are no such distributions - return empty array
-        if (allIds.length == 0) {
-            return new uint256[](0);
+        uint256[] memory allIds = pool.lockChangesIds[user];
+        // If the last distribution has not started yet - delete it
+        // User couldn't take part in it
+        if (allIds[allIds.length - 1] > distributionIds.current()) {
+            uint256[] memory temp = new uint256[](allIds.length - 1);
+            for (uint256 i = 0; i < allIds.length - 1; i++) {
+                temp[i] = allIds[i];
+            }
+            allIds = temp;
         }
-        // If there is only one such distribution that means that user
-        // only participated in that one distribution
+        // If there are no distributions left - return an empty array.
+        // That means that user has not yet participated in any *started* distribution
+        if (allIds.length == 0) {
+            return allIds;
+        }
+        // If there is only one such distribution that means that
+        // this was only one distribution in total and it has started
         // Check that he hasn't claimed it and if so - return
         if (allIds.length == 1) {
             if (!distributions[allIds[0]].hasClaimed[user]) {
@@ -255,74 +273,110 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
                 return new uint256[](0);
             }
         }
+
+
+        // If there are more than 1 IDs in the array, that means that at least
+        // one distribution has started
+
         // Get the history of user's lock amount changes
         mapping(uint256 => uint256) storage amounts = pool.lockHistory[user];
 
         // First iteration: just *count* the amount of distributions the user took part in
         // Left and right borders of search
-        uint256 low = allIds[0];
-        uint256 high = low;
-        // Flag indicates wheter to set `low` equal to the ID that corresponds to the positive lock amount or not
-        bool changeLow = false;
-        uint256 counter = 0;
-        // Start search with the index 1
+
+        uint256 counter;
+        // If the first ID wasn't claimed, add it to the list and increase the counter
+        if (hasClaimed(allIds[0], user)) {
+            counter = 0;
+        } else {
+            counter = 1;
+        }
         for (uint256 i = 1; i < allIds.length; i++) {
-            high = allIds[i];
-            // This block works only after the first interval of IDs was found (in the next block)
-            // If it's allowed, set `low` to the ID that corresponds for positive lock amount
-            if (changeLow) {
-                if (amounts[high] != 0) {
-                    low = high;
-                    // Forbid to change it for now
-                    changeLow = false;
+            if (amounts[allIds[i]] != 0) {
+                if (amounts[allIds[i - 1]] != 0) {
+                    // If lock for the ID is not 0 and for previous ID it's not 0 as well
+                    // than means that user took part in all IDs between these two
+                    for (uint256 j = allIds[i - 1] + 1; j < allIds[i] + 1; j++) {
+                        if (!hasClaimed(j, user)) {
+                            counter++;
+                        }
+                    }
+                } else {
+                    // If lock for the ID is not 0, but for the previous ID it is 0, that means
+                    // that user increased his lock to non-zero only now, so he didn't take part in
+                    // any previous IDs
+                    if (!hasClaimed(allIds[i], user)) {
+                        counter++;
+                    }
                 }
-            }
-            // If lock amount of some distribution is 0 that means that user had a positive lock amount between
-            // the previous distribution before which he changed his lock, and the current one (before which he unlocked
-            // all his tokens), i.e. he took part in all distributions between these two
-            if (amounts[high] == 0) {
-                for (uint256 j = low; j < high; j++) {
-                    // Count the number of distributions that user took part in
-                    counter++;
+            } else {
+                if (amounts[allIds[i - 1]] != 0) {
+                    // If lock for the ID is 0 and is not 0 for the previous ID, that means that
+                    // user has unlocked all his tokens and didn't take part in the ID
+                    for (uint256 j = allIds[i - 1] + 1; j < allIds[i]; j++) {
+                        if (!hasClaimed(j, user)) {
+                            counter++;
+                        }
+                    }
                 }
-                // Allow to change the `low` up until the next ID corresponding to the positive lock amount
-                changeLow = true;
             }
         }
 
-        // The array of IDs of distributions the user actually took part in
-        // It has a previoulsy calculated langth
+        if (amounts[allIds[allIds.length - 1]] != 0) {
+            // If lock for the last ID isn't zero, that means that the user still has lock
+            // in the pool till this moment and he took part in all IDs since then
+            for (uint256 j = allIds[allIds.length - 1] + 1; j < distributionIds.current() + 1; j++) {
+                if (!hasClaimed(j, user)) {
+                    counter++;
+                }
+            }
+        }
+
         uint256[] memory tookPart = new uint256[](counter);
 
-        // Second iteration: now place all IDs of these distributions into the created array
-        low = allIds[0];
-        high = low;
-        changeLow = false;
-        counter = 0;
+        // Second iteration: actually fill the array
+
+        if (hasClaimed(allIds[0], user)) {
+            counter = 0;
+        } else {
+            counter = 1;
+            tookPart[0] = allIds[0];
+        }
         for (uint256 i = 1; i < allIds.length; i++) {
-            high = allIds[i];
-            if (changeLow) {
-                if (amounts[high] != 0) {
-                    low = high;
-                    changeLow = false;
-                }
-            }
-            if (amounts[high] == 0) {
-                for (uint256 j = low; j < high; j++) {
-                    // Only add IDs that were not claimed
-                    if (!distributions[allIds[j]].hasClaimed[user]) {
-                        // Fill IDs into the array
-                        tookPart[counter] = allIds[j];
+            if (amounts[allIds[i]] != 0) {
+                if (amounts[allIds[i - 1]] != 0) {
+                    for (uint256 j = allIds[i - 1] + 1; j < allIds[i] + 1; j++) {
+                        if (!hasClaimed(j, user)) {
+                            tookPart[counter] = j;
+                            counter++;
+                        }
                     }
-                    counter++;
+                } else {
+                    if (!hasClaimed(allIds[i], user)) {
+                        tookPart[counter] = allIds[i];
+                        counter++;
+                    }
                 }
-                changeLow = true;
+            } else {
+                if (amounts[allIds[i - 1]] != 0) {
+                    for (uint256 j = allIds[i - 1] + 1; j < allIds[i]; j++) {
+                        if (!hasClaimed(j, user)) {
+                            tookPart[counter] = j;
+                            counter++;
+                        }
+                    }
+                }
             }
         }
 
-        // TODO check it in tests:
-        // Now `tookPart` should be an array of IDS with no zeros at any position
-
+        if (amounts[allIds[allIds.length - 1]] != 0) {
+            for (uint256 j = allIds[allIds.length - 1] + 1; j < distributionIds.current() + 1; j++) {
+                if (!hasClaimed(j, user)) {
+                    tookPart[counter] = j;
+                    counter++;
+                }
+            }
+        }
         return tookPart;
     }
 
@@ -360,7 +414,11 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // Any unlock triggers claim of all dividends inside the pool for that user
 
         // Get the list of distributions the user took part in and hasn't claimed them
-        uint256[] memory notClaimedIds = getParticipatedNotClaimed(msg.sender, origToken);
+        uint256[] memory notClaimedIds = getParticipatedNotClaimed(
+            msg.sender,
+            origToken
+        );
+
 
         // Now claim all dividends of these distributions
         claimMultipleDividends(notClaimedIds);
@@ -387,7 +445,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
 
         // Transfer unlocked tokens from contract to the user
         IBentureProducedToken(origToken).safeTransfer(msg.sender, amount);
-
     }
 
     /// @notice Unlocks all locked tokens of the user in the pool
@@ -447,6 +504,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         uint256 distributionId = distributionIds.current();
         // Mark that this admin started a distribution with the new ID
         distributionsToAdmins[distributionId] = msg.sender;
+        adminsToDistributions[msg.sender].push(distributionId);
         // Create a new distribution
         Distribution storage newDistribution = distributions[distributionId];
         newDistribution.id = distributionId;
@@ -462,7 +520,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @dev Searches for the distribution that has an ID less than the `id`
     ///      but greater than all other IDs less than `id` and before which user's
     ///      lock amount was changed the last time. Returns the ID of that distribution
-    ///      of (-1) if no such ID exists.
+    ///      or (-1) if no such ID exists.
     ///      Performs a binary search.
     /// @param user The user to find a previous distribution for
     /// @param id The ID of the distribution to find a previous distribution for
@@ -539,8 +597,9 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // Calculate shares if equal distribution
         if (distribution.isEqual) {
             // NOTE: result gets rounded towards zero
+            // If the `amount` is less than `formulaLockers` then share is 0
             share = distribution.amount / distribution.formulaLockers;
-        // Calculate shares in weighted distribution
+            // Calculate shares in weighted distribution
         } else {
             // Get the amount locked by the user before the given distribution
             uint256 lock = pool.lockHistory[user][id];
@@ -558,7 +617,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
                     lock = 0;
                 } else {
                     // If he didn't, that means that *we have to use his lock from the closest distribution from the past*
-                    // We have to find a distribution that has and ID that is less than `id` but greater than all other
+                    // We have to find a distribution that has an ID that is less than `id` but greater than all other
                     // IDs less than `id`
                     int256 prevMaxId = findMaxPrev(user, id);
                     if (prevMaxId != -1) {
@@ -600,6 +659,11 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // Calculate the share of the user
         uint256 share = calculateShare(id, msg.sender);
 
+        // If user's share is 0, that means he doesn't have any locked tokens
+        if (share == 0) {
+            revert UserHasNoLockedTokens();
+        }
+
         emit DividendsClaimed(id, msg.sender);
 
         distribution.hasClaimed[msg.sender] = true;
@@ -613,10 +677,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             }
         } else {
             // Send ERC20 tokens
-            IERC20(distribution.distToken).safeTransfer(
-                msg.sender,
-                share
-            );
+            IERC20(distribution.distToken).safeTransfer(msg.sender, share);
         }
     }
 
@@ -624,7 +685,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     ///         WARNING: Potentially can exceed block gas limit!
     /// @param ids The array of IDs of distributions to claim
     function claimMultipleDividends(uint256[] memory ids) public {
-
         // Only 2/3 of block gas limit could be spent. So 1/3 should be left.
         uint256 gasThreshold = (block.gaslimit * 1) / 3;
 
@@ -640,16 +700,20 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             }
         }
 
-        emit MultipleDividendsClaimed (msg.sender, count);
+        emit MultipleDividendsClaimed(msg.sender, count);
     }
-
 
     /// @notice Allows admin to distribute provided amounts of tokens to the provided list of users
     /// @param token The address of the token to be distributed
     /// @param users The list of addresses of users to receive tokens
     /// @param amounts The list of amounts each user has to receive
     /// @param totalAmount The total amount of `token`s to be distributed. Sum of `amounts` array.
-    function distributeDividendsCustom(address token, address[] calldata users, uint256[] calldata amounts, uint256 totalAmount) public payable {
+    function distributeDividendsCustom(
+        address token,
+        address[] calldata users,
+        uint256[] calldata amounts,
+        uint256 totalAmount
+    ) public payable {
         // Lists can't be empty
         if ((users.length == 0) || (amounts.length == 0)) {
             revert CanNotWorkWithEmptyLists();
@@ -666,9 +730,12 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // to this contract first
         // NOTE: Caller must approve transfer of at least `totalAmount` of tokens to this contract
         if (token != address(0)) {
-            IERC20(token).safeTransferFrom(msg.sender, address(this), totalAmount);
+            IERC20(token).safeTransferFrom(
+                msg.sender,
+                address(this),
+                totalAmount
+            );
         }
-
 
         // Only 2/3 of block gas limit could be spent. So 1/3 should be left.
         uint256 gasThreshold = (block.gaslimit * 1) / 3;
@@ -677,7 +744,15 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
 
         // Distribute dividends to each of the holders
         for (uint256 i = 0; i < users.length; i++) {
-            if (token == address(0)){
+            // Users cannot have zero addresses
+            if (users[i] == address(0)) {
+                revert UserCanNotHaveZeroAddress();
+            }
+            // Amount for any user cannot be 0
+            if (amounts[i] == 0) {
+                revert DividendsAmountCanNotBeZero();
+            }
+            if (token == address(0)) {
                 // Native tokens (wei)
                 (bool success, ) = users[i].call{value: amounts[i]}("");
                 if (!success) {
@@ -696,7 +771,14 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         }
 
         emit CustomDividendsDistributed(token, count);
+    }
 
+    /// @notice Sets the token factory contract address
+    /// @param factoryAddress The address of the factory
+    /// @dev NOTICE: This address can't be set the constructor because
+    ///      `Benture` is deployed *before* factory contract.
+    function setFactoryAddress(address factoryAddress) external {
+        factory = factoryAddress;
     }
 
     // ===== GETTERS =====
@@ -786,7 +868,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             revert IDOfDistributionMustBeGreaterThanOne();
         }
         if (distributionsToAdmins[id] == address(0)) {
-            revert DistributionWithTheGivenIDHasNotBeenAnnoucedYet();
+            revert DistributionNotStarted();
         }
         Distribution storage distribution = distributions[id];
         return (
@@ -803,6 +885,15 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @param user The address of the user to check
     /// @return True if user has claimed dividends. Otherwise - false
     function hasClaimed(uint256 id, address user) public view returns (bool) {
+        if (id < 1) {
+            revert IDOfDistributionMustBeGreaterThanOne();
+        }
+        if (distributionsToAdmins[id] == address(0)) {
+            revert DistributionNotStarted();
+        }
+        if (user == address(0)) {
+            revert UserCanNotHaveZeroAddress();
+        }
         return distributions[id].hasClaimed[user];
     }
 
@@ -818,7 +909,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             revert IDOfDistributionMustBeGreaterThanOne();
         }
         if (distributionsToAdmins[id] == address(0)) {
-            revert DistributionWithTheGivenIDHasNotBeenAnnoucedYet();
+            revert DistributionNotStarted();
         }
         if (admin == address(0)) {
             revert AdminCanNotHaveAZeroAddress();
@@ -829,19 +920,17 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         return false;
     }
 
-    /// @dev Returns the current `distToken` address of this contract
-    /// @param distToken The address of the token to get the balance in
-    /// @return The `distToken` balance of this contract
-    function getCurrentBalance(
-        address distToken
-    ) internal view returns (uint256) {
-        uint256 balance;
-        if (distToken != address(0)) {
-            balance = IERC20(distToken).balanceOf(address(this));
-        } else {
-            balance = address(this).balance;
-        }
 
-        return balance;
+    /// @notice Returns the share of the user in a given distribution
+    /// @param id The ID of the distribution to calculate share in
+    function getMyShare(uint256 id) external view returns (uint256) {
+        if (id > distributionIds.current() + 1) {
+            revert InvalidDistribution();
+        }
+        // Only lockers might have shares
+        if (!isLocker(distributions[id].origToken, msg.sender)) {
+            revert CallerIsNotLocker();
+        }
+        return calculateShare(id, msg.sender);
     }
 }
