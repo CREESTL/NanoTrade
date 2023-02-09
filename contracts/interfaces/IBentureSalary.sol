@@ -2,8 +2,10 @@
 
 pragma solidity ^0.8.9;
 
+import "./errors/IBentureSalaryErrors.sol";
+
 /// @title An interface of a Salary contract.
-interface ISalary {
+interface IBentureSalary is IBentureSalaryErrors {
     struct SalaryInfo {
         uint256 id;
         uint256 periodDuration;

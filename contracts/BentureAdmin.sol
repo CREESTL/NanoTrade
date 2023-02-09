@@ -31,22 +31,6 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable {
     /// @dev The address of the factory minting admin tokens
     address private _factoryAddress;
 
-    error CallerIsNotAFactory();
-    error FactoryAddressCanNotBeZeroAddress();
-    error ZeroAddressIsAnInvalidUser();
-    error UserDoesNotHaveAnAdminToken();
-    error UserCanNotHaveAZeroAddress();
-    error TokenCanNotHaveAZeroAddress();
-    error NoControlledTokenExistsForThisAdminToken();
-    error AdminAddressCanNotBeAZeroAddress();
-    error ControlledTokenCanNotHaveAZeroAddress();
-    error FailedToDeleteTokenID();
-    error AdminTokenMintToZeroAddressIsNotAllowed();
-    error OnlyASingleAdminTokenIsAllowedForASingleControlledToken();
-    error OnlyOwnerOfTheTokenIsAllowedToBurnIt();
-    error SenderCanNotBeAZeroAddress();
-    error ReceiverCanNotBeAZeroAddress();
-
     /// @dev Checks if caller is a factory address
     modifier onlyFactory() {
         if (msg.sender != _factoryAddress) {

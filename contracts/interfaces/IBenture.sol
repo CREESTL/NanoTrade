@@ -2,10 +2,12 @@
 
 pragma solidity ^0.8.9;
 
+import "./errors/IBentureErrors.sol";
+
 /// @title Dividend-Paying Token Interface
 
 /// @dev An interface for dividends distributing contract
-interface IBenture {
+interface IBenture is IBentureErrors {
     /// @notice Creates a new pool
     /// @param token The token that will be locked in the pool
     function createPool(address token) external;

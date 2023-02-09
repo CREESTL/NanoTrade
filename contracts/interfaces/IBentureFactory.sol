@@ -2,8 +2,10 @@
 
 pragma solidity ^0.8.0;
 
+import "./errors/IBentureFactoryErrors.sol";
+
 /// @title An interface of a factory of custom ERC20 tokens
-interface IBentureFactory {
+interface IBentureFactory is IBentureFactoryErrors {
     /// @notice Returns the address of the produced ERC20 token
     /// @return The address of the produced ERC20 token
     function lastProducedToken() external view returns (address);

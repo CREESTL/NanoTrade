@@ -2,8 +2,10 @@
 
 pragma solidity ^0.8.0;
 
-/// @title An interface of a factory of custom ERC20 tokens
-interface IBentureAdmin {
+import "./errors/IBentureAdminErrors.sol";
+
+/// @title An interface of a factory of custom ERC20 tokens;
+interface IBentureAdmin is IBentureAdminErrors {
     /// @notice Checks it the provided address owns any admin token
     function checkOwner(address user) external view;
 

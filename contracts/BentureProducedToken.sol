@@ -22,23 +22,6 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
     /// @dev A list of addresses of tokens holders
     EnumerableSet.AddressSet internal _holders;
 
-    error TheTokenIsNotMintable();
-    error UserDoesNotHaveAnAdminToken();
-    error InitialTokenNameCanNotBeEmpty();
-    error InitialTokenSymbolCanNotBeEmpty();
-    error InitialDecimalsCanNotBeZero();
-    error AdminTokenAddressCanNotBeAZeroAddress();
-    error MaxTotalSupplyMustBeZeroForUnmintableTokens();
-    error CanNotMintToZeroAddress();
-    error SupplyExceedsMaximumSupply();
-    error TheAmountOfTokensToBurnMustBeGreaterThanZero();
-    error CallerDoesNotHaveAnyTokensToBurn();
-    error DeletingHolderWithZeroBalanceFailed();
-    error SenderCanNotBeAZeroAddress();
-    error ReceiverCanNotBeAZeroAddress();
-    error SenderCanNotBeAReceiver();
-    error SenderDoesNotHaveAnyTokensToTransfer();
-
     /// @dev Checks if mintability is activated
     modifier WhenMintable() {
         if (!_mintable) {

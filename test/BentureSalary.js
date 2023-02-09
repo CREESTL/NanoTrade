@@ -88,7 +88,7 @@ describe("Salary", () => {
         rummy = await rummyTx.deploy();
         await rummy.deployed();
 
-        let salaryTx = await ethers.getContractFactory("Salary");
+        let salaryTx = await ethers.getContractFactory("BentureSalary");
         salary = await salaryTx.deploy(adminToken.address);
         await salary.deployed();
 
@@ -1921,7 +1921,7 @@ describe("Salary", () => {
         });
 
         it("Should revert constructor with ZeroAddress", async () => {
-            let salaryTx2 = await ethers.getContractFactory("Salary");
+            let salaryTx2 = await ethers.getContractFactory("BentureSalary");
             await expect(
                 salaryTx2.deploy("0x0000000000000000000000000000000000000000")
             ).to.be.revertedWithCustomError(salary, "ZeroAddress");

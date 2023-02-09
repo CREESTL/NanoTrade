@@ -16,8 +16,6 @@ contract BentureFactory is IBentureFactory {
     /// @dev The address of the last token that was produced by the factory
     address private _lastProducedToken;
 
-    error BentureAddressIsZero();
-
     constructor(address bentureAddress_) {
         if (bentureAddress_ == address(0)) {
             revert BentureAddressIsZero();

@@ -3,13 +3,13 @@
 pragma solidity ^0.8.9;
 
 import "./interfaces/IBentureAdmin.sol";
-import "./interfaces/ISalary.sol";
+import "./interfaces/IBentureSalary.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /// @title Salary contract. A contract to manage salaries
-contract Salary is ISalary {
+contract BentureSalary is IBentureSalary {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
@@ -41,19 +41,6 @@ contract Salary is ISalary {
         IBentureAdmin(bentureAdminToken).checkOwner(msg.sender);
         _;
     }
-
-    error ZeroAddress();
-    error NotAllowedToSetName();
-    error EmptyName();
-    error NotAllowedToRemoveName();
-    error UserAllreadyIsEmployee();
-    error AlreadyNotAnEmployee();
-    error NotEmployeeForThisSalary();
-    error NotAnAdminForEmployee();
-    error SalaryEnded();
-    error NotEnoughTokensAllowed();
-    error AmountOfPeriodsNotEqualTokensAmmountPerPeriod();
-    error NotAnAdminForThisSalary();
 
     /// @param adminTokenAddress The address of the BentureAdmin Token
     constructor(address adminTokenAddress) {

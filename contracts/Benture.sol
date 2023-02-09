@@ -94,39 +94,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @dev Mapping from distribution ID to the distribution
     mapping(uint256 => Distribution) distributions;
 
-    error NativeTokenDividendsTransferFailed();
-    error PoolsCanNotHoldZeroAddressTokens();
-    error PoolAlreadyExists();
-    error CanNotWorkWithZeroAddressTokens();
-    error CallerNotAdminOrFactory();
-    error InvalidLockAmount();
-    error CallerIsNotLocker();
-    error CanNotLockZeroAddressTokens();
-    error PoolDoesNotExist();
-    error CanNotWorkWithEmptyLists();
-    error ListsLengthDiffers();
-    error WrongTokenInsideThePool();
-    error UserDoesNotHaveProjectTokens();
-    error TransferFailed();
-    error InvalidUnlockAmount();
-    error CanNotUnlockZeroAddressTokens();
-    error UserDoesNotHaveAnyLockedTokens();
-    error WithdrawAmountIsTooBig();
-    error OriginalTokenCanNotHaveAZeroAddress();
-    error UserDoesNotHaveAnAdminToken();
-    error DividendsAmountCanNotBeZero();
-    error NotEnoughNativeTokensWereProvided();
-    error DistributionHasNotStartedYet();
-    error InvalidDistribution();
-    error UserHasNoLockedTokens();
-    error AlreadyClaimed();
-    error UserCanNotHaveZeroAddress();
-    error AdminCanNotHaveAZeroAddress();
-    error IDOfDistributionMustBeGreaterThanOne();
-    error DistributionNotStarted();
-    error DistriburionNotContainTokenToWithdraw();
-    error FactoryAddressNotSet();
-
     /// @dev Checks that caller is either an admin of a project or a factory
     modifier onlyAdminOrFactory(address token) {
         // Check if token has a zero address. If so, there is no way to
@@ -383,7 +350,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @notice Unlocks the provided amount of user's tokens from the pool
     /// @param origToken The address of the token to unlock
     /// @param amount The amount of tokens to unlock
-    function unlockTokens(address origToken, uint256 amount) public {
+    function unlockTokens(address origToken, uint256 amount) public nonReentrant {
         if (amount == 0) {
             revert InvalidUnlockAmount();
         }
