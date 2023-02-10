@@ -55,7 +55,7 @@ module.exports = {
         url: "http://localhost:8545",
     },
     dodoc: {
-        exclude: ["mocks"],
+        exclude: ["mocks", "lin", "errors"],
         runOnCompile: false,
         freshOutput: true,
         outputDir: "./docs/contracts",
