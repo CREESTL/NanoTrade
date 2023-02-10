@@ -2628,4 +2628,21 @@ describe("Benture Dividend Distributing Contract", () => {
             ).to.be.revertedWithCustomError(benture, "CallerIsNotLocker");
         });
     });
+
+    // #S
+    describe("Setters", () => {
+        it("Should set factory address", async () => {
+            await benture.connect(ownerAcc).setFactoryAddress(randomAddress);
+            expect(await benture.factory()).to.equal(randomAddress);
+        })
+    });
+
+    describe("Fails for setters", () => {
+        it("Should fail to set factory address if user is now owner", async () => {
+            await expect(
+                benture.connect(clientAcc1).setFactoryAddress(randomAddress)
+            ).to.be.revertedWith("Ownable: caller is not the owner");
+        })
+    });
+
 });

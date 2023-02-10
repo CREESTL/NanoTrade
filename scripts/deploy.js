@@ -2,98 +2,30 @@ const { ethers, network } = require("hardhat");
 const fs = require("fs");
 const path = require("path");
 const delay = require("delay");
+require("dotenv").config();
 
 // JSON file to keep information about previous deployments
 const OUTPUT_DEPLOY = require("./deployOutput.json");
 
 let contractName;
 let factory;
-let admin;
+let adminToken;
 let benture;
 
 async function main() {
     console.log(`[NOTICE!] Chain of deployment: ${network.name}`);
 
-    // Contract #1: Benture Factory
-
-    // Deploy
-    contractName = "BentureFactory";
-    console.log(`[${contractName}]: Start of Deployment...`);
-    let _contractProto = await ethers.getContractFactory(contractName);
-    let contractDeployTx = await _contractProto.deploy();
-    factory = await contractDeployTx.deployed();
-    console.log(`[${contractName}]: Deployment Finished!`);
-    OUTPUT_DEPLOY[network.name][contractName].address = factory.address;
-
-    // Verify
-    console.log(`[${contractName}]: Start of Verification...`);
-
-    await delay(90000);
-
-    if (network.name === "polygon") {
-        url = "https://polygonscan.com/address/" + factory.address + "#code";
-    } else if (network.name === "mumbai") {
-        url =
-            "https://mumbai.polygonscan.com/address/" +
-            factory.address +
-            "#code";
-    }
-    OUTPUT_DEPLOY[network.name][contractName].verification = url;
-
-    try {
-        await hre.run("verify:verify", {
-            address: factory.address,
-        });
-    } catch (error) {
-        console.error(error);
-    }
-    console.log(`[${contractName}]: Verification Finished!`);
+    let [owner] = await ethers.getSigners();
 
     // ====================================================
 
-    // Contract #2: Benture Admin
-
-    // Deploy
-    contractName = "BentureAdmin";
-    console.log(`[${contractName}]: Start of Deployment...`);
-    _contractProto = await ethers.getContractFactory(contractName);
-    contractDeployTx = await _contractProto.deploy(factory.address);
-    admin = await contractDeployTx.deployed();
-    console.log(`[${contractName}]: Deployment Finished!`);
-    OUTPUT_DEPLOY[network.name][contractName].address = admin.address;
-
-    // Verify
-    console.log(`[${contractName}]: Start of Verification...`);
-
-    await delay(90000);
-
-    if (network.name === "polygon") {
-        url = "https://polygonscan.com/address/" + admin.address + "#code";
-    } else if (network.name === "mumbai") {
-        url =
-            "https://mumbai.polygonscan.com/address/" + admin.address + "#code";
-    }
-    OUTPUT_DEPLOY[network.name][contractName].verification = url;
-
-    try {
-        await hre.run("verify:verify", {
-            address: admin.address,
-            constructorArguments: [factory.address],
-        });
-    } catch (error) {
-        console.error(error);
-    }
-    console.log(`[${contractName}]: Verification Finished!`);
-
-    // ====================================================
-
-    // Contract #3: Benture
+    // Contract #1: Benture
 
     // Deploy
     contractName = "Benture";
     console.log(`[${contractName}]: Start of Deployment...`);
-    _contractProto = await ethers.getContractFactory(contractName);
-    contractDeployTx = await _contractProto.deploy();
+    let _contractProto = await ethers.getContractFactory(contractName);
+    let contractDeployTx = await _contractProto.deploy();
     benture = await contractDeployTx.deployed();
     console.log(`[${contractName}]: Deployment Finished!`);
     OUTPUT_DEPLOY[network.name][contractName].address = benture.address;
@@ -103,9 +35,9 @@ async function main() {
 
     await delay(90000);
 
-    if (network.name === "polygon") {
+    if (network.name === "polygon_mainnet") {
         url = "https://polygonscan.com/address/" + benture.address + "#code";
-    } else if (network.name === "mumbai") {
+    } else if (network.name === "polygon_testnet") {
         url =
             "https://mumbai.polygonscan.com/address/" +
             benture.address +
@@ -124,13 +56,90 @@ async function main() {
 
     // ====================================================
 
-    // Contract #4: Salary
+    // Contract #2: Benture Factory
 
     // Deploy
-    contractName = "Salary";
+    contractName = "BentureFactory";
     console.log(`[${contractName}]: Start of Deployment...`);
     _contractProto = await ethers.getContractFactory(contractName);
-    contractDeployTx = await _contractProto.deploy(admin.address);
+    contractDeployTx = await _contractProto.deploy(benture.address);
+    factory = await contractDeployTx.deployed();
+    console.log(`[${contractName}]: Deployment Finished!`);
+    OUTPUT_DEPLOY[network.name][contractName].address = factory.address;
+
+    // Set factory address
+    await benture.connect(owner).setFactoryAddress(factory.address);
+
+    // Verify
+    console.log(`[${contractName}]: Start of Verification...`);
+
+    await delay(90000);
+
+    if (network.name === "polygon_mainnet") {
+        url = "https://polygonscan.com/address/" + factory.address + "#code";
+    } else if (network.name === "polygon_testnet") {
+        url =
+            "https://mumbai.polygonscan.com/address/" +
+            factory.address +
+            "#code";
+    }
+    OUTPUT_DEPLOY[network.name][contractName].verification = url;
+
+    try {
+        await hre.run("verify:verify", {
+            address: factory.address,
+            constructorArguments: [benture.address]
+        });
+    } catch (error) {
+        console.error(error);
+    }
+    console.log(`[${contractName}]: Verification Finished!`);
+
+    // ====================================================
+
+    // Contract #3: Benture Admin
+
+    // Deploy
+    contractName = "BentureAdmin";
+    console.log(`[${contractName}]: Start of Deployment...`);
+    _contractProto = await ethers.getContractFactory(contractName);
+    contractDeployTx = await _contractProto.deploy(factory.address);
+    adminToken = await contractDeployTx.deployed();
+    console.log(`[${contractName}]: Deployment Finished!`);
+    OUTPUT_DEPLOY[network.name][contractName].address = adminToken.address;
+
+    // Verify
+    console.log(`[${contractName}]: Start of Verification...`);
+
+    await delay(90000);
+
+    if (network.name === "polygon_mainnet") {
+        url = "https://polygonscan.com/address/" + adminToken.address + "#code";
+    } else if (network.name === "polygon_testnet") {
+        url =
+            "https://mumbai.polygonscan.com/address/" + adminToken.address + "#code";
+    }
+    OUTPUT_DEPLOY[network.name][contractName].verification = url;
+
+    try {
+        await hre.run("verify:verify", {
+            address: adminToken.address,
+            constructorArguments: [factory.address],
+        });
+    } catch (error) {
+        console.error(error);
+    }
+    console.log(`[${contractName}]: Verification Finished!`);
+
+    // ====================================================
+
+    // Contract #4: Benture Salary
+
+    // Deploy
+    contractName = "BentureSalary";
+    console.log(`[${contractName}]: Start of Deployment...`);
+    _contractProto = await ethers.getContractFactory(contractName);
+    contractDeployTx = await _contractProto.deploy(adminToken.address);
     salary = await contractDeployTx.deployed();
     console.log(`[${contractName}]: Deployment Finished!`);
     OUTPUT_DEPLOY[network.name][contractName].address = salary.address;
@@ -140,9 +149,9 @@ async function main() {
 
     await delay(90000);
 
-    if (network.name === "polygon") {
+    if (network.name === "polygon_mainnet") {
         url = "https://polygonscan.com/address/" + salary.address + "#code";
-    } else if (network.name === "mumbai") {
+    } else if (network.name === "polygon_testnet") {
         url =
             "https://mumbai.polygonscan.com/address/" +
             salary.address +
@@ -153,7 +162,7 @@ async function main() {
     try {
         await hre.run("verify:verify", {
             address: salary.address,
-            constructorArguments: [admin.address],
+            constructorArguments: [adminToken.address],
         });
     } catch (error) {
         console.error(error);

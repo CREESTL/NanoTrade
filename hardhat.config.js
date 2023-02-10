@@ -26,23 +26,23 @@ module.exports = {
         localhost: {
             url: "http://127.0.0.1:8545",
         },
-        // Polygon Mumbai testnet
-        mumbai: {
-            url: "https://rpc-mumbai.maticvigil.com",
+        polygon_mainnet: {
+            url: `https://rpc-mainnet.maticvigil.com/`,
             accounts: [ACC_PRIVATE_KEY],
         },
-        // Polygon mainnet
-        ethereum: {
-            url: "https://polygon-rpc.com",
+        polygon_testnet: {
+            url: `https://matic-testnet-archive-rpc.bwarelabs.com`,
             accounts: [ACC_PRIVATE_KEY],
-        },
+        }
     },
     mocha: {
         timeout: 20000000000,
     },
     paths: {
-        sources: "./contracts/",
-        tests: "./test/",
+        sources: "./contracts",
+        tests: "./test",
+        cache: "./cache",
+        artifacts: "./artifacts",
     },
     etherscan: {
         apiKey: {
@@ -60,4 +60,10 @@ module.exports = {
         freshOutput: true,
         outputDir: "./docs/contracts",
     },
+    etherscan: {
+    apiKey: {
+      polygon: POLYGONSCAN_API_KEY,
+      polygonMumbai: POLYGONSCAN_API_KEY,
+    },
+  },
 };

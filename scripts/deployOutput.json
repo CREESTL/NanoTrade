@@ -1,23 +1,23 @@
 {
-  "mumbai": {
+  "polygon_testnet": {
     "Benture": {
-      "address": "0xa77A244C83af8575b29382f3ea045C21c4646A9c",
-      "verification": "https://mumbai.polygonscan.com/address/0xa77A244C83af8575b29382f3ea045C21c4646A9c#code"
+      "address": "0xD120DE2344cfeE642387290a42ff9b607E565eA4",
+      "verification": "https://mumbai.polygonscan.com/address/0xD120DE2344cfeE642387290a42ff9b607E565eA4#code"
     },
     "BentureAdmin": {
-      "address": "0x823f099AeBF60BFb84fE52A7De4F4efbD1967577",
-      "verification": "https://mumbai.polygonscan.com/address/0x823f099AeBF60BFb84fE52A7De4F4efbD1967577#code"
+      "address": "0xb1Edf6e65DD0bFFa242Ed415457E458DAb433f80",
+      "verification": "https://mumbai.polygonscan.com/address/0xb1Edf6e65DD0bFFa242Ed415457E458DAb433f80#code"
     },
     "BentureFactory": {
-      "address": "0xE6d54d8F8858cb01ABd14b6A152582e8bD07156E",
-      "verification": "https://mumbai.polygonscan.com/address/0xE6d54d8F8858cb01ABd14b6A152582e8bD07156E#code"
+      "address": "0xA137897bffb7876F052455AdD271a9Bffc08F368",
+      "verification": "https://mumbai.polygonscan.com/address/0xA137897bffb7876F052455AdD271a9Bffc08F368#code"
     },
-    "Salary": {
-      "address": "0x4F1143d98d22de164939a9101AEAddCf3BDb78b8",
-      "verification": "https://mumbai.polygonscan.com/address/0x4F1143d98d22de164939a9101AEAddCf3BDb78b8#code"
+    "BentureSalary": {
+      "address": "0xF9882adFBE957a5Ca30a666414548b5c16Df8070",
+      "verification": "https://mumbai.polygonscan.com/address/0xF9882adFBE957a5Ca30a666414548b5c16Df8070#code"
     }
   },
-  "ethereum": {
+  "polygon_mainnet": {
     "Benture": {
       "address": "",
       "verification": ""
@@ -30,7 +30,7 @@
       "address": "",
       "verification": ""
     },
-    "Salary": {
+    "BentureSalary": {
       "address": "",
       "verification": ""
     }
