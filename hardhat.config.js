@@ -33,7 +33,7 @@ module.exports = {
         polygon_testnet: {
             url: `https://matic-testnet-archive-rpc.bwarelabs.com`,
             accounts: [ACC_PRIVATE_KEY],
-        }
+        },
     },
     mocha: {
         timeout: 20000000000,
@@ -61,9 +61,9 @@ module.exports = {
         outputDir: "./docs/contracts",
     },
     etherscan: {
-    apiKey: {
-      polygon: POLYGONSCAN_API_KEY,
-      polygonMumbai: POLYGONSCAN_API_KEY,
+        apiKey: {
+            polygon: POLYGONSCAN_API_KEY,
+            polygonMumbai: POLYGONSCAN_API_KEY,
+        },
     },
-  },
 };

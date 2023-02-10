@@ -88,7 +88,7 @@ async function main() {
     try {
         await hre.run("verify:verify", {
             address: factory.address,
-            constructorArguments: [benture.address]
+            constructorArguments: [benture.address],
         });
     } catch (error) {
         console.error(error);
@@ -117,7 +117,9 @@ async function main() {
         url = "https://polygonscan.com/address/" + adminToken.address + "#code";
     } else if (network.name === "polygon_testnet") {
         url =
-            "https://mumbai.polygonscan.com/address/" + adminToken.address + "#code";
+            "https://mumbai.polygonscan.com/address/" +
+            adminToken.address +
+            "#code";
     }
     OUTPUT_DEPLOY[network.name][contractName].verification = url;
 
