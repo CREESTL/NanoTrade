@@ -1,4 +1,4 @@
-const { ethers, network } = require("hardhat");
+const { ethers, network, upgrades } = require("hardhat");
 const fs = require("fs");
 const path = require("path");
 const delay = require("delay");
@@ -103,8 +103,8 @@ async function main() {
     contractName = "BentureAdmin";
     console.log(`[${contractName}]: Start of Deployment...`);
     _contractProto = await ethers.getContractFactory(contractName);
-    contractDeployTx = await _contractProto.deploy(factory.address);
-    adminToken = await contractDeployTx.deployed();
+    adminToken = await upgrades.deployProxy(_contractProto, [factory.address]);
+    await adminToken.deployed();
     console.log(`[${contractName}]: Deployment Finished!`);
     OUTPUT_DEPLOY[network.name][contractName].address = adminToken.address;
 
