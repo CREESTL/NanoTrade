@@ -2,29 +2,32 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./interfaces/IBentureProducedToken.sol";
 import "./interfaces/IBentureAdmin.sol";
-import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /// @title A custom ERC721 contract that allows to mint controlled ERC20 tokens
-contract BentureAdmin is IBentureAdmin, ERC721, Ownable, ReentrancyGuard {
-    using Counters for Counters.Counter;
-    using EnumerableSet for EnumerableSet.UintSet;
-    using Strings for uint256;
+contract BentureAdmin is IBentureAdmin, Initializable, ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable, ReentrancyGuard {
+    using CountersUpgradeable for CountersUpgradeable.Counter;
+    using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
+    using StringsUpgradeable for uint256;
 
     /// @dev Incrementing IDs of admin tokens
-    Counters.Counter internal _tokenIds;
+    CountersUpgradeable.Counter internal _tokenIds;
     /// @dev Mapping from ERC721 token IDs to controlled ERC20 token addresses
     mapping(uint256 => address) private _adminToControlled;
     /// @dev Reverse mapping for `_adminToControlled`
     mapping(address => uint256) private _controlledToAdmin;
     /// @dev Mapping from admin address to IDs of admin tokens he owns
     /// @dev One admin can control several projects
-    mapping(address => EnumerableSet.UintSet) private _holderToIds;
+    mapping(address => EnumerableSetUpgradeable.UintSet) private _holderToIds;
     /// @dev Reverse mapping for `_holderToIds`
     mapping(uint256 => address) private _idToHolder;
     /// @dev Mapping of used ERC20 tokens addresses
@@ -42,9 +45,11 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable, ReentrancyGuard {
 
     /// @dev Creates an "empty" NFT
     /// @param factoryAddress_ The address of the factory minting admin tokens
-    constructor(
-        address factoryAddress_
-    ) ERC721("Benture Manager Token", "BMNG") {
+    function initialize(address factoryAddress_) initializer public {
+        __ERC721_init("Benture Manager Token", "BMNG");
+        __Ownable_init();
+        __UUPSUpgradeable_init();
+
         if (factoryAddress_ == address(0)) {
             revert InvalidFactoryAddress();
         }
@@ -222,4 +227,10 @@ contract BentureAdmin is IBentureAdmin, ERC721, Ownable, ReentrancyGuard {
 
         emit AdminTokenTransferred(from, to, tokenId);
     }
+
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        onlyOwner
+        override
+    {}
 }
