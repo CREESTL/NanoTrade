@@ -176,7 +176,10 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             .lockedByUser[msg.sender];
 
         // Mark that the lock amount was changed before the next distribution
-        pool.lockChangesIds[msg.sender].push(distributionIds.current() + 1);
+        // Avoid duplicates by checking the presence of the ID in the array
+        if (!pool.changedBeforeId[msg.sender][distributionIds.current() + 1]) {
+            pool.lockChangesIds[msg.sender].push(distributionIds.current() + 1);
+        }
         // Mark that current ID is in the array now
         pool.changedBeforeId[msg.sender][distributionIds.current() + 1] = true;
 
@@ -215,17 +218,18 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // If the last distribution has not started yet - delete it
         // User couldn't take part in it
         if (allIds[allIds.length - 1] > distributionIds.current()) {
+            // If there is only one distribution before which user has locked his tokens
+            // and it has not started yet - delete it, return empty array
+            if (allIds.length == 1) {
+                return new uint256[](0);
+            }
             uint256[] memory temp = new uint256[](allIds.length - 1);
-            for (uint256 i = 0; i < allIds.length - 1; i++) {
+            for (uint256 i = 0; i < temp.length; i++) {
                 temp[i] = allIds[i];
             }
             allIds = temp;
         }
-        // If there are no distributions left - return an empty array.
-        // That means that user has not yet participated in any *started* distribution
-        if (allIds.length == 0) {
-            return allIds;
-        }
+
         // If there is only one such distribution that means that
         // this was only one distribution in total and it has started
         // Check that he hasn't claimed it and if so - return
@@ -408,6 +412,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             origToken
         );
 
+
         // Now claim all dividends of these distributions
         _claimMultipleDividends(notClaimedIds);
 
@@ -418,8 +423,12 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         pool.lockedByUser[msg.sender] -= amount;
         pool.lockHistory[msg.sender][distributionIds.current() + 1] = pool
             .lockedByUser[msg.sender];
+
         // Mark that the lock amount was changed before the next distribution
-        pool.lockChangesIds[msg.sender].push(distributionIds.current() + 1);
+        // Avoid duplicates by checking the presence of the ID in the array
+        if (!pool.changedBeforeId[msg.sender][distributionIds.current() + 1]) {
+            pool.lockChangesIds[msg.sender].push(distributionIds.current() + 1);
+        }
         // Mark that current ID is in the array now
         pool.changedBeforeId[msg.sender][distributionIds.current() + 1] = true;
 
@@ -933,4 +942,5 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         }
         return calculateShare(id, msg.sender);
     }
+
 }

@@ -4,6 +4,8 @@
     "@nomicfoundation/hardhat-chai-matchers": "1.0.3",
     "@nomicfoundation/hardhat-toolbox": "1.0.2",
     "@nomiclabs/hardhat-ethers": "2.2.0",
+    "@openzeppelin/contracts-upgradeable": "^4.8.1",
+    "@openzeppelin/hardhat-upgrades": "^1.22.1",
     "@primitivefi/hardhat-dodoc": "0.2.3",
     "ethers": "5.7.1",
     "hardhat": "2.10.1",

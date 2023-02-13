@@ -45,14 +45,14 @@ contract BentureFactory is IBentureFactory {
         uint256 maxTotalSupply,
         address adminToken_
     ) external {
+
         BentureProducedToken newToken = new BentureProducedToken(
             name,
             symbol,
             decimals,
             mintable,
             maxTotalSupply,
-            adminToken_
-        );
+            adminToken_);
 
         emit CreateERC20Token(
             name,

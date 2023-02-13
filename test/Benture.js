@@ -351,6 +351,112 @@ describe("Benture Dividend Distributing Contract", () => {
             let lockers = await benture.getLockers(origToken.address);
             expect(lockers.length).to.equal(0);
         });
+        it("Should lock and unlock multiple clients` tokens before any distribution", async () => {
+            let mintAmount = parseEther("1");
+
+            await origToken.mint(clientAcc1.address, mintAmount);
+            await origToken.mint(clientAcc2.address, mintAmount.mul(2));
+
+            await origToken.connect(clientAcc1).approve(benture.address, mintAmount);
+            await origToken.connect(clientAcc2).approve(benture.address, mintAmount.mul(2));
+
+
+            // Lock all tokens of the first account
+            await benture.connect(clientAcc1).lockAllTokens(origToken.address);
+            expect(
+                await benture.getCurrentLock(
+                    origToken.address,
+                    clientAcc1.address
+                )
+            ).to.equal(mintAmount);
+            // Lock half of second account's balance
+            await benture.connect(clientAcc2).lockTokens(origToken.address, mintAmount);
+            // Lock the second half of second account's balance
+            await benture.connect(clientAcc2).lockTokens(origToken.address, mintAmount);
+            expect(
+                await benture.getCurrentLock(
+                    origToken.address,
+                    clientAcc2.address
+                )
+            ).to.equal(mintAmount.mul(2));
+
+            // First unlock a half.
+            await benture.connect(clientAcc1).unlockTokens(origToken.address, mintAmount.div(2));
+            await benture.connect(clientAcc2).unlockTokens(origToken.address, mintAmount.div(2));
+            // Then unlock the rest
+            await benture.connect(clientAcc1).unlockAllTokens(origToken.address);
+            await benture.connect(clientAcc2).unlockAllTokens(origToken.address);
+
+            const {
+                0: token,
+                1: totalLockers,
+                2: totalLocked,
+            } = await benture.getPool(origToken.address);
+            expect(token).to.equal(origToken.address);
+            expect(totalLockers).to.equal(0);
+            expect(totalLocked).to.equal(0);
+
+            expect(
+                await benture.getCurrentLock(
+                    origToken.address,
+                    clientAcc1.address
+                )
+            ).to.equal(0);
+            expect(
+                await benture.getCurrentLock(
+                    origToken.address,
+                    clientAcc2.address
+                )
+            ).to.equal(0);
+
+            let lockers = await benture.getLockers(origToken.address);
+            expect(lockers.length).to.equal(0);
+        });
+
+        it("Should unlock all tokens without claiming any dividends", async () => {
+            let mintAmount = parseUnits("1000000", 6);
+            let lockAmount = parseUnits("1000", 6);
+            await origToken.mint(ownerAcc.address, mintAmount);
+            expect(
+                await benture.isLocker(origToken.address, ownerAcc.address)
+            ).to.equal(false);
+            await benture.lockTokens(origToken.address, lockAmount);
+            let userStartBalance = await origToken.balanceOf(ownerAcc.address);
+            let bentureStartBalance = await origToken.balanceOf(
+                benture.address
+            );
+            await expect(benture.unlockAllTokens(origToken.address))
+                .to.emit(benture, "TokensUnlocked")
+                .withArgs(anyValue, anyValue, anyValue);
+            let userEndBalance = await origToken.balanceOf(ownerAcc.address);
+            let bentureEndBalance = await origToken.balanceOf(benture.address);
+            expect(
+                await benture.isLocker(origToken.address, ownerAcc.address)
+            ).to.equal(false);
+            expect(userEndBalance.sub(userStartBalance)).to.equal(lockAmount);
+            expect(bentureStartBalance.sub(bentureEndBalance)).to.equal(
+                lockAmount
+            );
+
+            const {
+                0: token,
+                1: totalLockers,
+                2: totalLocked,
+            } = await benture.getPool(origToken.address);
+            expect(token).to.equal(origToken.address);
+            expect(totalLockers).to.equal(0);
+            expect(totalLocked).to.equal(0);
+
+            expect(
+                await benture.getCurrentLock(
+                    origToken.address,
+                    ownerAcc.address
+                )
+            ).to.equal(0);
+
+            let lockers = await benture.getLockers(origToken.address);
+            expect(lockers.length).to.equal(0);
+        });
     });
 
     // #FU
