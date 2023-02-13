@@ -10,4 +10,7 @@ cache
 artifacts
 
 *.env
+
+.openzeppelin/
+
 package-lock.json
