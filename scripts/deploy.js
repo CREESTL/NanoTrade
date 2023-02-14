@@ -99,20 +99,43 @@ async function main() {
 
     // Contract #3: Benture Admin
 
-    // Deploy
+    // Deploy proxy and implementation
     contractName = "BentureAdmin";
     console.log(`[${contractName}]: Start of Deployment...`);
     _contractProto = await ethers.getContractFactory(contractName);
     adminToken = await upgrades.deployProxy(_contractProto, [factory.address]);
     await adminToken.deployed();
     console.log(`[${contractName}]: Deployment Finished!`);
-    OUTPUT_DEPLOY[network.name][contractName].address = adminToken.address;
-
-    // Verify
-    console.log(`[${contractName}]: Start of Verification...`);
-
+    OUTPUT_DEPLOY[network.name][contractName].proxyAddress = adminToken.address;
     await delay(90000);
 
+    // Verify implementation
+    console.log(`[${contractName}][Implementation]: Start of Verification...`);
+    let adminImplAddress = await upgrades.erc1967.getImplementationAddress(adminToken.address);
+    OUTPUT_DEPLOY[network.name][contractName].implementationAddress = adminImplAddress.address;
+    if (network.name === "polygon_mainnet") {
+        url = "https://polygonscan.com/address/" + adminImplAddress + "#code";
+    } else if (network.name === "polygon_testnet") {
+        url =
+            "https://mumbai.polygonscan.com/address/" +
+            adminImplAddress +
+            "#code";
+    }
+    OUTPUT_DEPLOY[network.name][contractName].implementationVerification = url;
+    try {
+        await hre.run("verify:verify", {
+            address: adminImplAddress,
+        });
+    } catch (error) {
+        console.error(error);
+    }
+    // Initialize implementation
+    let adminImpl = await ethers.getContractAt("BentureAdmin", adminImplAddress);
+    await adminImpl.initialize(factory.address);
+    console.log(`[${contractName}][Implementation]: Verification Finished!`);
+
+    // Verify proxy
+    console.log(`[${contractName}][Proxy]: Start of Verification...`);
     if (network.name === "polygon_mainnet") {
         url = "https://polygonscan.com/address/" + adminToken.address + "#code";
     } else if (network.name === "polygon_testnet") {
@@ -120,18 +143,17 @@ async function main() {
             "https://mumbai.polygonscan.com/address/" +
             adminToken.address +
             "#code";
-    }
-    OUTPUT_DEPLOY[network.name][contractName].verification = url;
+        }
+    OUTPUT_DEPLOY[network.name][contractName].proxyVerification = url;
 
     try {
         await hre.run("verify:verify", {
             address: adminToken.address,
-            constructorArguments: [factory.address],
         });
     } catch (error) {
         console.error(error);
     }
-    console.log(`[${contractName}]: Verification Finished!`);
+    console.log(`[${contractName}][Proxy]: Verification Finished!`);
 
     // ====================================================
 
@@ -179,8 +201,7 @@ async function main() {
     );
 
     console.log(
-        `\n***Deployment and verification are completed!***\n***See Results in "${
-            __dirname + "/deployOutput.json"
+        `\n***Deployment and verification are completed!***\n***See Results in "${__dirname + "/deployOutput.json"
         }" file***`
     );
 }
