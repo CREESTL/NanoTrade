@@ -18,7 +18,7 @@ describe("Benture Dividend Distributing Contract", () => {
 
         // Deploy dividend-distribution contract
         let bentureTx = await ethers.getContractFactory("Benture");
-        let benture = await bentureTx.deploy();
+        let benture = await upgrades.deployProxy(bentureTx, []);
         await benture.deployed();
 
         // Deploy a factory contract
@@ -2957,10 +2957,25 @@ describe("Benture Dividend Distributing Contract", () => {
             let {
                 benture, factory, adminToken, origToken, distToken
             } = await loadFixture(deploys);
-            
+
             await expect(
                 benture.connect(clientAcc1).setFactoryAddress(randomAddress)
             ).to.be.revertedWith("Ownable: caller is not the owner");
+        });
+    });
+
+    describe("Upgrades", () => {
+        it("Should have a new method after upgrade", async () => {
+            let {
+                benture, factory, adminToken, origToken, distToken
+            } = await loadFixture(deploys);
+            let bentureV1Tx = await ethers.getContractFactory("Benture");
+            let bentureV2Tx = await ethers.getContractFactory("BentureV2");
+
+            let bentureV1 = await upgrades.deployProxy(bentureV1Tx, []);
+            let bentureV2 = await upgrades.upgradeProxy(bentureV1.address, bentureV2Tx);
+
+            expect(await bentureV2.agent()).to.equal(47);
         });
     });
 });
