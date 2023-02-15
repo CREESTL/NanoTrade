@@ -1,11 +1,8 @@
 const { ethers } = require("hardhat");
 const { expect } = require("chai");
+const { loadFixture } = require ("@nomicfoundation/hardhat-network-helpers");
 
 describe("Salary", () => {
-    let benture;
-    let origToken;
-    let adminToken;
-    let factory;
 
     const increaseTime = async (time) => {
         await ethers.provider.send("evm_increaseTime", [time]);
@@ -18,25 +15,25 @@ describe("Salary", () => {
         return block.timestamp;
     };
 
-    beforeEach(async () => {
+    async function deploys() {
         [adminAcc1, adminAcc2, clientAcc1, clientAcc2, clientAcc3] =
             await ethers.getSigners();
 
         // Deploy dividend-distribution contract
         let bentureTx = await ethers.getContractFactory("Benture");
-        benture = await bentureTx.deploy();
+        let benture = await bentureTx.deploy();
         await benture.deployed();
 
         // Deploy a factory contract
         let factoryTx = await ethers.getContractFactory("BentureFactory");
-        factory = await factoryTx.deploy(benture.address);
+        let factory = await upgrades.deployProxy(factoryTx, [benture.address]);
         await factory.deployed();
 
         await benture.setFactoryAddress(factory.address);
 
         // Deploy an admin token (ERC721)
         let adminTx = await ethers.getContractFactory("BentureAdmin");
-        adminToken = await adminTx.deploy(factory.address);
+        let adminToken = await upgrades.deployProxy(adminTx, [factory.address]);
         await adminToken.deployed();
 
         // Create new ERC20 and ERC721 and assign them to caller (owner)
@@ -51,8 +48,8 @@ describe("Salary", () => {
         );
 
         // Get the address of the last ERC20 token produced in the factory
-        origTokenAddress = await factory.lastProducedToken();
-        origToken = await ethers.getContractAt(
+        let origTokenAddress = await factory.lastProducedToken();
+        let origToken = await ethers.getContractAt(
             "BentureProducedToken",
             origTokenAddress
         );
@@ -67,8 +64,8 @@ describe("Salary", () => {
             adminToken.address
         );
         // The address of `lastProducedToken` of factory gets changed here
-        distTokenAddress = await factory.lastProducedToken();
-        distToken = await ethers.getContractAt(
+        let distTokenAddress = await factory.lastProducedToken();
+        let distToken = await ethers.getContractAt(
             "BentureProducedToken",
             distTokenAddress
         );
@@ -85,15 +82,15 @@ describe("Salary", () => {
 
         // Deploy another "empty" contract to use its address
         let rummyTx = await ethers.getContractFactory("Rummy");
-        rummy = await rummyTx.deploy();
+        let rummy = await rummyTx.deploy();
         await rummy.deployed();
 
         let salaryTx = await ethers.getContractFactory("BentureSalary");
-        salary = await salaryTx.deploy(adminToken.address);
+        let salary = await salaryTx.deploy(adminToken.address);
         await salary.deployed();
 
         let mockERC20Tx = await ethers.getContractFactory("MockERC20");
-        mockERC20 = await mockERC20Tx.deploy();
+        let mockERC20 = await mockERC20Tx.deploy();
         await mockERC20.deployed();
 
         await adminToken.approve(adminAcc2.address, "1");
@@ -102,10 +99,17 @@ describe("Salary", () => {
             adminAcc2.address,
             "1"
         );
-    });
+
+        return {
+            benture, origToken, adminToken, factory, salary, rummy, mockERC20
+        }
+    }
 
     describe("Salary tests", () => {
         it("Should add new Employee", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await salary.addEmployee(clientAcc1.address);
             expect(
                 await salary.checkIfUserIsEmployeeOfAdmin(
@@ -122,6 +126,9 @@ describe("Salary", () => {
         });
 
         it("Should remove Employee", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await salary.addEmployee(clientAcc1.address);
             expect(
                 await salary.checkIfUserIsEmployeeOfAdmin(
@@ -151,6 +158,9 @@ describe("Salary", () => {
         });
 
         it("Should add new name to Employee", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await salary.addEmployee(clientAcc1.address);
             await salary.setNameToEmployee(clientAcc1.address, "Alice");
             expect(
@@ -159,6 +169,9 @@ describe("Salary", () => {
         });
 
         it("Should change name of Employee", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await salary.addEmployee(clientAcc1.address);
             await salary.setNameToEmployee(clientAcc1.address, "Alice");
             expect(
@@ -171,6 +184,9 @@ describe("Salary", () => {
         });
 
         it("Should remove name from Employee", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await salary.addEmployee(clientAcc1.address);
             await salary.setNameToEmployee(clientAcc1.address, "Alice");
             expect(
@@ -183,6 +199,9 @@ describe("Salary", () => {
         });
 
         it("Should add new salary to Employee", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 600);
 
@@ -230,6 +249,9 @@ describe("Salary", () => {
         });
 
         it("Should remove salary from Employee", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 600);
 
@@ -295,6 +317,9 @@ describe("Salary", () => {
         });
 
         it("Should get salary amount", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -323,6 +348,9 @@ describe("Salary", () => {
         });
 
         it("Should get salary amount", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -351,6 +379,9 @@ describe("Salary", () => {
         });
 
         it("Should get salary amount", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -379,6 +410,9 @@ describe("Salary", () => {
         });
 
         it("Should get salary amount", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -409,6 +443,9 @@ describe("Salary", () => {
         });
 
         it("Should let withdraw salary to Employee", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -456,6 +493,9 @@ describe("Salary", () => {
         });
 
         it("Should let withdraw all salaries to Employee", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 2400;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -507,6 +547,9 @@ describe("Salary", () => {
         });
 
         it("Should let withdraw salary to Employee through Employee removal", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -551,6 +594,9 @@ describe("Salary", () => {
         });
 
         it("Should delete both salaries through Employee removal", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 800);
             await mockERC20.approve(salary.address, 800);
             await salary.addEmployee(clientAcc1.address);
@@ -610,6 +656,9 @@ describe("Salary", () => {
         });
 
         it("Should not let withdraw any salary to Employee through removeSalaryFromEmployee when all tokens already withdrawed", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -644,6 +693,9 @@ describe("Salary", () => {
         });
 
         it("Should let not withdraw any additional tokens through removal right after withdraw", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -688,6 +740,9 @@ describe("Salary", () => {
         });
 
         it("Should withdraw through removeEmployee only for setted periods", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 600;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -719,6 +774,9 @@ describe("Salary", () => {
         });
 
         it("Should withdraw through withdrawSalary only for setted periods", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 600;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -750,6 +808,9 @@ describe("Salary", () => {
         });
 
         it("Should add more than 1 salary to Employee from 1 admin", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 800);
             await mockERC20.approve(salary.address, 800);
             await salary.addEmployee(clientAcc1.address);
@@ -821,6 +882,9 @@ describe("Salary", () => {
         });
 
         it("Should add more than 1 salary to Employee from 1 admin and delete only one of them", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 800);
             await mockERC20.approve(salary.address, 800);
             await salary.addEmployee(clientAcc1.address);
@@ -889,6 +953,9 @@ describe("Salary", () => {
         });
 
         it("Should add more than 1 salary to Employee from 2 admins", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 600);
             await salary.addEmployee(clientAcc1.address);
@@ -968,6 +1035,9 @@ describe("Salary", () => {
         });
 
         it("Should withdraw more than 1 salary", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 600);
             await salary.addEmployee(clientAcc1.address);
@@ -1016,6 +1086,9 @@ describe("Salary", () => {
         });
 
         it("Should withdraw salary for more than 1 period", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 600);
             await salary.addEmployee(clientAcc1.address);
@@ -1042,6 +1115,9 @@ describe("Salary", () => {
         });
 
         it("Should not let to withdraw more salary than total amount", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 600);
             await salary.addEmployee(clientAcc1.address);
@@ -1068,6 +1144,9 @@ describe("Salary", () => {
         });
 
         it("Should let add new salary with various tokensAmountPerPeriod", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 600);
 
@@ -1115,6 +1194,9 @@ describe("Salary", () => {
         });
 
         it("Should remove salary from Employee with various tokensAmountPerPeriod", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 600);
 
@@ -1180,6 +1262,9 @@ describe("Salary", () => {
         });
 
         it("Should let withdraw salary to Employee with various tokensAmountPerPeriod", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -1227,6 +1312,9 @@ describe("Salary", () => {
         });
 
         it("Should let withdraw salary to Employee through Employee removal with various tokensAmountPerPeriod", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -1270,6 +1358,9 @@ describe("Salary", () => {
         });
 
         it("Should not let withdraw any salary to Employee through removeSalaryFromEmployee when all tokens already withdrawed with various tokensAmountPerPeriod", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -1304,6 +1395,9 @@ describe("Salary", () => {
         });
 
         it("Should let not withdraw any additional tokens through removal right after withdraw with various tokensAmountPerPeriod", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -1343,6 +1437,9 @@ describe("Salary", () => {
         });
 
         it("Should let withdraw salary to Employee with various tokensAmountPerPeriod for not whole periods", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -1375,6 +1472,9 @@ describe("Salary", () => {
         });
 
         it("Should withdraw more than 1 salary with various tokensAmountPerPeriod for not whole periods", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 600);
             await salary.addEmployee(clientAcc1.address);
@@ -1421,6 +1521,9 @@ describe("Salary", () => {
         });
 
         it("Should let add new salary periods", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 910;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -1450,6 +1553,9 @@ describe("Salary", () => {
         });
 
         it("Should let withdraw before and after salary addition", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 910;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -1486,6 +1592,9 @@ describe("Salary", () => {
         });
 
         it("Should remove salary periods with salary remove", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -1518,6 +1627,9 @@ describe("Salary", () => {
         });
 
         it("Should remove salary periods and calculate salary correctly", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -1555,6 +1667,9 @@ describe("Salary", () => {
 
     describe("Salary reverts", () => {
         it("Should revert addPeriodsToSalary with NotEnoughTokensAllowed", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 909;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -1584,6 +1699,9 @@ describe("Salary", () => {
         });
 
         it("Should revert addPeriodsToSalary with NotAdminForEmployee", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 910;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -1613,6 +1731,9 @@ describe("Salary", () => {
         });
 
         it("Should revert removePeriodsFromSalary with NotAdminForEmployee", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 910;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -1642,6 +1763,9 @@ describe("Salary", () => {
         });
 
         it("Should revert setNameToEmployee with UserDoesNotHaveAnAdminToken", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await salary.addEmployee(clientAcc1.address);
             await expect(
                 salary
@@ -1654,6 +1778,9 @@ describe("Salary", () => {
         });
 
         it("Should revert setNameToEmployee with EmptyName", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await salary.addEmployee(clientAcc1.address);
             await expect(
                 salary.setNameToEmployee(clientAcc1.address, "")
@@ -1661,6 +1788,9 @@ describe("Salary", () => {
         });
 
         it("Should revert setNameToEmployee with NotAllowedToSetName", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await salary.addEmployee(clientAcc1.address);
             await expect(
                 salary
@@ -1670,6 +1800,9 @@ describe("Salary", () => {
         });
 
         it("Should revert removeNameFromEmployee with UserDoesNotHaveAnAdminToken", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await salary.addEmployee(clientAcc1.address);
             await expect(
                 salary
@@ -1682,6 +1815,9 @@ describe("Salary", () => {
         });
 
         it("Should revert removeNameFromEmployee with NotAllowedToRemoveName", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await salary.addEmployee(clientAcc1.address);
             await expect(
                 salary
@@ -1691,6 +1827,9 @@ describe("Salary", () => {
         });
 
         it("Should return false when user is not Employee", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await salary.addEmployee(clientAcc1.address);
             await salary.addEmployee(clientAcc2.address);
             expect(
@@ -1702,6 +1841,9 @@ describe("Salary", () => {
         });
 
         it("Should revert addEmployee with AllreadyEmployee", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await salary.addEmployee(clientAcc1.address);
             await expect(
                 salary.addEmployee(clientAcc1.address)
@@ -1709,6 +1851,9 @@ describe("Salary", () => {
         });
 
         it("Should revert addEmployee with UserDoesNotHaveAnAdminToken", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await expect(
                 salary.connect(clientAcc1).addEmployee(clientAcc2.address)
             ).to.be.revertedWithCustomError(
@@ -1718,12 +1863,18 @@ describe("Salary", () => {
         });
 
         it("Should revert removeEmployee with AlreadyNotAnEmployee", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await expect(
                 salary.removeEmployee(clientAcc1.address)
             ).to.be.revertedWithCustomError(salary, "AlreadyNotAnEmployee");
         });
 
         it("Should removeEmployee without different admin salary removal", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 600);
             await salary.connect(adminAcc1).addEmployee(clientAcc1.address);
@@ -1775,6 +1926,9 @@ describe("Salary", () => {
         });
 
         it("Should revert addSalaryToEmployee with NotEnoughTokensAllowed", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 100);
             await salary.connect(adminAcc1).addEmployee(clientAcc1.address);
@@ -1798,6 +1952,9 @@ describe("Salary", () => {
         });
 
         it("Should revert withdrawSalary with NotEmployeeForThisSalary", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 600);
             await salary.connect(adminAcc1).addEmployee(clientAcc1.address);
@@ -1826,6 +1983,9 @@ describe("Salary", () => {
         });
 
         it("Should revert removeSalaryFromEmployee with NotAdminForEmployee", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -1851,6 +2011,9 @@ describe("Salary", () => {
         });
 
         it("Should revert addSalaryToEmployee with NotAdminForEmployee", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -1876,6 +2039,9 @@ describe("Salary", () => {
         });
 
         it("Should revert removeSalaryFromEmployee with NotAdminForThisSalary", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -1921,6 +2087,9 @@ describe("Salary", () => {
         });
 
         it("Should revert constructor with ZeroAddress", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let salaryTx2 = await ethers.getContractFactory("BentureSalary");
             await expect(
                 salaryTx2.deploy("0x0000000000000000000000000000000000000000")
@@ -1928,6 +2097,9 @@ describe("Salary", () => {
         });
 
         it("Should revert addPeriodsToSalary with SalaryEnded", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -1956,6 +2128,9 @@ describe("Salary", () => {
         });
 
         it("Should revert removePeriodsFromSalary with SalaryEnded", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
@@ -1984,6 +2159,9 @@ describe("Salary", () => {
         });
 
         it("Should revert addSalaryToEmployee with InvalidAmountOfPeriods", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);

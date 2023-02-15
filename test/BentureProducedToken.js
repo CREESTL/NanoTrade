@@ -1,33 +1,31 @@
 const { ethers } = require("hardhat");
 const { expect } = require("chai");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
+const { loadFixture } = require ("@nomicfoundation/hardhat-network-helpers");
 
 describe("Benture Produced Token", () => {
-    let token;
-    let adminToken;
-    let factory;
     let zeroAddress = ethers.constants.AddressZero;
     let parseEther = ethers.utils.parseEther;
 
     // Deploy all contracts before each test suite
-    beforeEach(async () => {
+    async function deploys() {
         [ownerAcc, clientAcc1, clientAcc2] = await ethers.getSigners();
 
-        // Deploy dividend-distribution contract
+        // Deploy a factory contract
         let bentureTx = await ethers.getContractFactory("Benture");
-        benture = await bentureTx.deploy();
+        let benture = await bentureTx.deploy();
         await benture.deployed();
 
         // Deploy a factory contract
         let factoryTx = await ethers.getContractFactory("BentureFactory");
-        factory = await factoryTx.deploy(benture.address);
+        let factory = await upgrades.deployProxy(factoryTx, [benture.address]);
         await factory.deployed();
 
         await benture.setFactoryAddress(factory.address);
 
         // Deploy an admin token (ERC721)
         let adminTx = await ethers.getContractFactory("BentureAdmin");
-        adminToken = await adminTx.deploy(factory.address);
+        let adminToken = await upgrades.deployProxy(adminTx, [factory.address]);
         await adminToken.deployed();
 
         // Create new ERC20 and ERC721 and assign them to caller (owner)
@@ -42,40 +40,65 @@ describe("Benture Produced Token", () => {
         );
 
         // Get the address of the last ERC20 token produced in the factory
-        tokenAddress = await factory.lastProducedToken();
-        token = await ethers.getContractAt(
+        let tokenAddress = await factory.lastProducedToken();
+        let token = await ethers.getContractAt(
             "BentureProducedToken",
             tokenAddress
         );
-    });
+
+        return {
+            token, adminToken, factory, benture
+        };
+    }
 
     describe("Getters", () => {
         it("Should have a correct name", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             expect(await token.name()).to.equal("Dummy");
         });
 
         it("Should have a correct symbol", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             expect(await token.symbol()).to.equal("DMM");
         });
 
         it("Should have correct decimals", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             expect(await token.decimals()).to.equal(18);
         });
 
         it("Should have a correct mintable status", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             expect(await token.mintable()).to.equal(true);
         });
 
         it("Initially should have no holders", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             let holders = await token.holders();
             expect(holders.length).to.equal(0);
         });
 
         it("Should have a fixed max token supply", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             expect(await token.maxTotalSupply()).to.equal(1_000_000);
         });
 
         it("Should have an 'infinite' max total supply", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             await factory.createERC20Token(
                 "AAA",
                 "BBB",
@@ -99,6 +122,9 @@ describe("Benture Produced Token", () => {
         });
 
         it("Should check that user is an admin", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             // Owner is an admin
             expect(await token.checkAdmin(ownerAcc.address)).to.equal(true);
             // Client is not
@@ -108,6 +134,9 @@ describe("Benture Produced Token", () => {
 
     describe("Mint", () => {
         it("Should mint tokens to the given address", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             let startBalance = await token.balanceOf(clientAcc1.address);
             let amount = 1000;
             await expect(token.mint(clientAcc1.address, amount))
@@ -118,6 +147,9 @@ describe("Benture Produced Token", () => {
         });
 
         it("Should increase the number of holders after mint", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             let holders = await token.holders();
             let startLength = holders.length;
             let amount = 1000;
@@ -129,6 +161,9 @@ describe("Benture Produced Token", () => {
         });
 
         it("Should fail to mint more than `maxTotalSupply` of tokens", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             let amount = 1_000_000_000;
             await expect(
                 token.mint(clientAcc1.address, amount)
@@ -139,6 +174,9 @@ describe("Benture Produced Token", () => {
         });
 
         it("Should fail to mint to zero address", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             let amount = 1000;
             await expect(
                 token.mint(zeroAddress, amount)
@@ -146,6 +184,9 @@ describe("Benture Produced Token", () => {
         });
 
         it("Should fail to mint if caller is not an admin", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             let amount = 1000;
             await expect(
                 token.connect(clientAcc1).mint(clientAcc2.address, amount)
@@ -156,6 +197,9 @@ describe("Benture Produced Token", () => {
         });
 
         it("Should fail to mint if caller transferred his admin token", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             let amount = 1000;
             // Transfer admin token from owner account to client #2 account
             await adminToken
@@ -171,6 +215,9 @@ describe("Benture Produced Token", () => {
         });
 
         it("Should fail to mint if mint is disabled", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             // Create a new token with `mint` function deactivated
             await factory.createERC20Token(
                 "Dummy",
@@ -194,6 +241,9 @@ describe("Benture Produced Token", () => {
         });
 
         it("Should fail to increase the number of holders if mint to the same address", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             let amount = 1000;
             // Mint the first portion of tokens to one address
             await token.mint(clientAcc1.address, amount);
@@ -210,6 +260,9 @@ describe("Benture Produced Token", () => {
 
     describe("Burn", () => {
         it("Should burn some tokens from address and leave address in holders", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             let amount = 1000;
             await token.mint(clientAcc1.address, amount);
             let startLength = (await token.holders()).length;
@@ -226,6 +279,9 @@ describe("Benture Produced Token", () => {
         });
 
         it("Should burn all tokens from address and remove address from holders", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             let amount = 1000;
             await token.mint(clientAcc1.address, amount);
             let startLength = (await token.holders()).length;
@@ -238,6 +294,9 @@ describe("Benture Produced Token", () => {
         });
 
         it("Should fail to burn tokens if caller does not have any", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             let amount = 1000;
             await expect(
                 token.connect(clientAcc1).burn(amount)
@@ -245,6 +304,9 @@ describe("Benture Produced Token", () => {
         });
 
         it("Should fail to burn zero amount of tokens", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             let amount = 0;
             await expect(
                 token.connect(clientAcc1).burn(amount)
@@ -252,6 +314,9 @@ describe("Benture Produced Token", () => {
         });
 
         it("Should indicate that account is no longer a holder after burning tokens", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             let amount = 1000;
             await token.mint(clientAcc1.address, amount);
             expect(await token.isHolder(clientAcc1.address)).to.equal(true);
@@ -262,6 +327,9 @@ describe("Benture Produced Token", () => {
 
     describe("Transfer", () => {
         it("Should transfer some tokens from one address to the other", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             let amount = 1000;
             await token.mint(clientAcc1.address, amount);
             let startBalanceAcc1 = await token.balanceOf(clientAcc1.address);
@@ -293,6 +361,9 @@ describe("Benture Produced Token", () => {
         });
 
         it("Should not increase the number of holders when transfering to the same account", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             let amount = 1000;
             await token.mint(clientAcc1.address, amount);
             let startHolders = await token.holders();
@@ -318,6 +389,9 @@ describe("Benture Produced Token", () => {
         });
 
         it("Should delete account from holders if all of its tokens get transferred", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             let amount = 1000;
             await token.mint(clientAcc1.address, amount);
             expect(await token.isHolder(clientAcc1.address)).to.equal(true);
@@ -328,6 +402,9 @@ describe("Benture Produced Token", () => {
         });
 
         it("Should keep address a holder if he transferes tokens and gets them back", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             let amount = 1000;
             await token.mint(clientAcc1.address, amount);
             await expect(
@@ -341,6 +418,9 @@ describe("Benture Produced Token", () => {
         });
 
         it("Should not allow a user to transfer tokens to himself", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             let amount = 1000;
             await token.mint(clientAcc1.address, amount);
             await expect(
@@ -349,6 +429,9 @@ describe("Benture Produced Token", () => {
         });
 
         it("Should fail to transfer tokens if receiver has zero address", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             let amount = 1000;
             await token.mint(clientAcc1.address, amount);
             await expect(
@@ -357,6 +440,9 @@ describe("Benture Produced Token", () => {
         });
 
         it("Should fail to transfer tokens if sender has no tokens", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             let amount = 1000;
             await expect(
                 token.connect(clientAcc1).transfer(clientAcc2.address, amount)
@@ -366,6 +452,9 @@ describe("Benture Produced Token", () => {
 
     describe("Constructor", () => {
         it("Should fail to initialize with wrong name", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             await expect(
                 factory.createERC20Token(
                     "",
@@ -379,6 +468,9 @@ describe("Benture Produced Token", () => {
         });
 
         it("Should fail to initialize with wrong symbol", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             await expect(
                 factory.createERC20Token(
                     "Dummy",
@@ -392,6 +484,9 @@ describe("Benture Produced Token", () => {
         });
 
         it("Should fail to initialize with wrong decimals", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             await expect(
                 factory.createERC20Token(
                     "Dummy",
@@ -405,6 +500,9 @@ describe("Benture Produced Token", () => {
         });
 
         it("Should fail to initialize with wrong admin token address", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             await expect(
                 factory.createERC20Token(
                     "Dummy",
@@ -418,6 +516,9 @@ describe("Benture Produced Token", () => {
         });
 
         it("Should fail to initialize with any max total supply if non-mintable", async () => {
+            let {
+                token, adminToken, factory, benture
+            } = await loadFixture(deploys);
             await expect(
                 factory.createERC20Token(
                     "Dummy",

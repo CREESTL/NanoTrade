@@ -5,13 +5,13 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "./BentureProducedToken.sol";
-import "./interfaces/IBentureFactory.sol";
-import "./interfaces/IBentureAdmin.sol";
-import "./interfaces/IBenture.sol";
+import "../BentureProducedToken.sol";
+import "../interfaces/IBentureFactory.sol";
+import "../interfaces/IBentureAdmin.sol";
+import "../interfaces/IBenture.sol";
 
 /// @title A factory of custom ERC20 tokens
-contract BentureFactory is
+contract BentureFactoryV2 is
     IBentureFactory,
     Initializable,
     OwnableUpgradeable,
@@ -33,6 +33,10 @@ contract BentureFactory is
     }
 
     receive() external payable {}
+
+    function agent() pure public returns(uint256) {
+        return 47;
+    }
 
     /// @notice Returns the address of the produced ERC20 token
     /// @return The address of the produced ERC20 token

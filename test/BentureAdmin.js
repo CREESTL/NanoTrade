@@ -2,6 +2,7 @@ const { ethers, upgrades } = require("hardhat");
 const { loadFixture } = require ("@nomicfoundation/hardhat-network-helpers");
 const { expect } = require("chai");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
+const { parseUnits, parseEther } = ethers.utils;
 
 describe("Benture Admin Token", () => {
 
@@ -9,7 +10,7 @@ describe("Benture Admin Token", () => {
     let parseEther = ethers.utils.parseEther;
 
     // Deploy all contracts before each test suite
-    async function deploys() {
+    async function deploys () {
         [ownerAcc, clientAcc1, clientAcc2] = await ethers.getSigners();
 
         // Deploy dividend-distribution contract
@@ -18,8 +19,8 @@ describe("Benture Admin Token", () => {
         await benture.deployed();
 
         // Deploy a factory contract
-        let factoryTx = await ethers.getContractFactory("PayableFactory");
-        let factory = await factoryTx.deploy(benture.address);
+        let factoryTx = await ethers.getContractFactory("BentureFactory");
+        let factory = await upgrades.deployProxy(factoryTx, [benture.address]);
         await factory.deployed();
 
         await benture.setFactoryAddress(factory.address);
@@ -60,12 +61,14 @@ describe("Benture Admin Token", () => {
         await ownerAcc.sendTransaction({
             to: factory.address,
             value: parseEther("1"),
+            gasLimit: 30000
         });
 
 
         return {
             ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
         };
+    
     };
 
     describe("Constructor", () => {

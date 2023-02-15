@@ -50,7 +50,6 @@ async function main() {
             address: benture.address,
         });
     } catch (error) {
-        console.error(error);
     }
     console.log(`[${contractName}]: Verification Finished!`);
 
@@ -58,23 +57,50 @@ async function main() {
 
     // Contract #2: Benture Factory
 
-    // Deploy
+    // Deploy proxy and implementation
     contractName = "BentureFactory";
     console.log(`[${contractName}]: Start of Deployment...`);
     _contractProto = await ethers.getContractFactory(contractName);
-    contractDeployTx = await _contractProto.deploy(benture.address);
-    factory = await contractDeployTx.deployed();
+    factory = await upgrades.deployProxy(_contractProto, [benture.address]);
+    await factory.deployed();
     console.log(`[${contractName}]: Deployment Finished!`);
-    OUTPUT_DEPLOY[network.name][contractName].address = factory.address;
+    OUTPUT_DEPLOY[network.name][contractName].proxyAddress = factory.address;
+
+    await delay(90000);
 
     // Set factory address
     await benture.connect(owner).setFactoryAddress(factory.address);
 
-    // Verify
-    console.log(`[${contractName}]: Start of Verification...`);
+    // Verify implementation
+    console.log(`[${contractName}][Implementation]: Start of Verification...`);
 
-    await delay(90000);
+    let factoryImplAddress = await upgrades.erc1967.getImplementationAddress(factory.address);
+    OUTPUT_DEPLOY[network.name][contractName].implementationAddress = factoryImplAddress.address;
+    if (network.name === "polygon_mainnet") {
+        url = "https://polygonscan.com/address/" + factoryImplAddress + "#code";
+    } else if (network.name === "polygon_testnet") {
+        url =
+            "https://mumbai.polygonscan.com/address/" +
+            factoryImplAddress +
+            "#code";
+    }
+    OUTPUT_DEPLOY[network.name][contractName].implementationVerification = url;
+    try {
+        await hre.run("verify:verify", {
+            address: factoryImplAddress,
+        });
+    } catch (error) {
+    }
+    // Initialize implementation if it has not been initialized yet
+    let factoryImpl = await ethers.getContractAt("BentureFactory", factoryImplAddress);
+    try {
+        await factoryImpl.initialize(benture.address);
+    } catch (error) {
+    }
+    console.log(`[${contractName}][Implementation]: Verification Finished!`);
 
+    // Verify proxy
+    console.log(`[${contractName}][Proxy]: Start of Verification...`);
     if (network.name === "polygon_mainnet") {
         url = "https://polygonscan.com/address/" + factory.address + "#code";
     } else if (network.name === "polygon_testnet") {
@@ -82,18 +108,17 @@ async function main() {
             "https://mumbai.polygonscan.com/address/" +
             factory.address +
             "#code";
-    }
-    OUTPUT_DEPLOY[network.name][contractName].verification = url;
+        }
+    OUTPUT_DEPLOY[network.name][contractName].proxyVerification = url;
 
     try {
         await hre.run("verify:verify", {
             address: factory.address,
-            constructorArguments: [benture.address],
         });
     } catch (error) {
-        console.error(error);
     }
-    console.log(`[${contractName}]: Verification Finished!`);
+    console.log(`[${contractName}][Proxy]: Verification Finished!`);
+
 
     // ====================================================
 
@@ -107,6 +132,7 @@ async function main() {
     await adminToken.deployed();
     console.log(`[${contractName}]: Deployment Finished!`);
     OUTPUT_DEPLOY[network.name][contractName].proxyAddress = adminToken.address;
+
     await delay(90000);
 
     // Verify implementation
@@ -127,11 +153,13 @@ async function main() {
             address: adminImplAddress,
         });
     } catch (error) {
-        console.error(error);
     }
-    // Initialize implementation
+    // Initialize implementation if it has not been initialized before
     let adminImpl = await ethers.getContractAt("BentureAdmin", adminImplAddress);
-    await adminImpl.initialize(factory.address);
+    try {
+        await adminImpl.initialize(factory.address);
+    } catch (error) {
+    }
     console.log(`[${contractName}][Implementation]: Verification Finished!`);
 
     // Verify proxy
@@ -151,7 +179,6 @@ async function main() {
             address: adminToken.address,
         });
     } catch (error) {
-        console.error(error);
     }
     console.log(`[${contractName}][Proxy]: Verification Finished!`);
 
@@ -189,7 +216,6 @@ async function main() {
             constructorArguments: [adminToken.address],
         });
     } catch (error) {
-        console.error(error);
     }
     console.log(`[${contractName}]: Verification Finished!`);
 
