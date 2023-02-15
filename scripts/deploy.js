@@ -75,7 +75,7 @@ async function main() {
     console.log(`[${contractName}][Implementation]: Start of Verification...`);
 
     let factoryImplAddress = await upgrades.erc1967.getImplementationAddress(factory.address);
-    OUTPUT_DEPLOY[network.name][contractName].implementationAddress = factoryImplAddress.address;
+    OUTPUT_DEPLOY[network.name][contractName].implementationAddress = factoryImplAddress;
     if (network.name === "polygon_mainnet") {
         url = "https://polygonscan.com/address/" + factoryImplAddress + "#code";
     } else if (network.name === "polygon_testnet") {
@@ -138,7 +138,7 @@ async function main() {
     // Verify implementation
     console.log(`[${contractName}][Implementation]: Start of Verification...`);
     let adminImplAddress = await upgrades.erc1967.getImplementationAddress(adminToken.address);
-    OUTPUT_DEPLOY[network.name][contractName].implementationAddress = adminImplAddress.address;
+    OUTPUT_DEPLOY[network.name][contractName].implementationAddress = adminImplAddress;
     if (network.name === "polygon_mainnet") {
         url = "https://polygonscan.com/address/" + adminImplAddress + "#code";
     } else if (network.name === "polygon_testnet") {
@@ -186,20 +186,46 @@ async function main() {
 
     // Contract #4: Benture Salary
 
-    // Deploy
+    // Deploy proxy and implementation
     contractName = "BentureSalary";
     console.log(`[${contractName}]: Start of Deployment...`);
     _contractProto = await ethers.getContractFactory(contractName);
-    contractDeployTx = await _contractProto.deploy(adminToken.address);
-    salary = await contractDeployTx.deployed();
+    salary = await upgrades.deployProxy(_contractProto, [adminToken.address]);
+    await salary.deployed();
     console.log(`[${contractName}]: Deployment Finished!`);
-    OUTPUT_DEPLOY[network.name][contractName].address = salary.address;
-
-    // Verify
-    console.log(`[${contractName}]: Start of Verification...`);
+    OUTPUT_DEPLOY[network.name][contractName].proxyAddress = salary.address;
 
     await delay(90000);
 
+    // Verify implementation
+    console.log(`[${contractName}][Implementation]: Start of Verification...`);
+    let salaryImplAddress = await upgrades.erc1967.getImplementationAddress(salary.address);
+    OUTPUT_DEPLOY[network.name][contractName].implementationAddress = salaryImplAddress;
+    if (network.name === "polygon_mainnet") {
+        url = "https://polygonscan.com/address/" + salaryImplAddress + "#code";
+    } else if (network.name === "polygon_testnet") {
+        url =
+            "https://mumbai.polygonscan.com/address/" +
+            salaryImplAddress +
+            "#code";
+    }
+    OUTPUT_DEPLOY[network.name][contractName].implementationVerification = url;
+    try {
+        await hre.run("verify:verify", {
+            address: salaryImplAddress,
+        });
+    } catch (error) {
+    }
+    // Initialize implementation if it has not been initialized before
+    let salaryImpl = await ethers.getContractAt("BentureSalary", salaryImplAddress);
+    try {
+        await salaryImpl.initialize(adminToken.address);
+    } catch (error) {
+    }
+    console.log(`[${contractName}][Implementation]: Verification Finished!`);
+
+    // Verify proxy
+    console.log(`[${contractName}][Proxy]: Start of Verification...`);
     if (network.name === "polygon_mainnet") {
         url = "https://polygonscan.com/address/" + salary.address + "#code";
     } else if (network.name === "polygon_testnet") {
@@ -207,17 +233,17 @@ async function main() {
             "https://mumbai.polygonscan.com/address/" +
             salary.address +
             "#code";
-    }
-    OUTPUT_DEPLOY[network.name][contractName].verification = url;
+        }
+    OUTPUT_DEPLOY[network.name][contractName].proxyVerification = url;
 
     try {
         await hre.run("verify:verify", {
             address: salary.address,
-            constructorArguments: [adminToken.address],
         });
     } catch (error) {
     }
-    console.log(`[${contractName}]: Verification Finished!`);
+    console.log(`[${contractName}][Proxy]: Verification Finished!`);
+
 
     // ====================================================
 

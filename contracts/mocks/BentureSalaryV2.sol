@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.9;
 
-import "./interfaces/IBentureAdmin.sol";
-import "./interfaces/IBentureSalary.sol";
+import "../interfaces/IBentureAdmin.sol";
+import "../interfaces/IBentureSalary.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -13,7 +13,7 @@ import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeab
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 /// @title Salary contract. A contract to manage salaries
-contract BentureSalary is IBentureSalary, Initializable, OwnableUpgradeable, UUPSUpgradeable, ReentrancyGuardUpgradeable  {
+contract BentureSalaryV2 is IBentureSalary, Initializable, OwnableUpgradeable, UUPSUpgradeable, ReentrancyGuardUpgradeable  {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
@@ -56,6 +56,10 @@ contract BentureSalary is IBentureSalary, Initializable, OwnableUpgradeable, UUP
             revert ZeroAddress();
         }
         bentureAdminToken = adminTokenAddress;
+    }
+
+    function agent() pure public returns(uint256) {
+        return 47;
     }
 
     /// @notice Returns the name of employee.

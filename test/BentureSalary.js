@@ -86,7 +86,7 @@ describe("Salary", () => {
         await rummy.deployed();
 
         let salaryTx = await ethers.getContractFactory("BentureSalary");
-        let salary = await salaryTx.deploy(adminToken.address);
+        let salary = await upgrades.deployProxy(salaryTx, [adminToken.address]);
         await salary.deployed();
 
         let mockERC20Tx = await ethers.getContractFactory("MockERC20");
@@ -2090,10 +2090,9 @@ describe("Salary", () => {
             let {
                 benture, origToken, adminToken, factory, salary, rummy, mockERC20
             } = await loadFixture(deploys);
-            let salaryTx2 = await ethers.getContractFactory("BentureSalary");
-            await expect(
-                salaryTx2.deploy("0x0000000000000000000000000000000000000000")
-            ).to.be.revertedWithCustomError(salary, "ZeroAddress");
+            let newSalaryTx = await ethers.getContractFactory("BentureSalary");
+            await expect(upgrades.deployProxy(newSalaryTx, ["0x0000000000000000000000000000000000000000"]))
+                .to.be.revertedWithCustomError(salary, "ZeroAddress");
         });
 
         it("Should revert addPeriodsToSalary with SalaryEnded", async () => {
@@ -2179,6 +2178,21 @@ describe("Salary", () => {
                     tokensAmountPerPeriod
                 )
             ).to.be.revertedWithCustomError(salary, "InvalidAmountOfPeriods");
+        });
+    });
+
+    describe("Upgrades", () => {
+        it("Should have a new method after upgrade", async () => {
+            let {
+                benture, origToken, adminToken, factory, salary, rummy, mockERC20
+            } = await loadFixture(deploys);
+            let salaryV1Tx = await ethers.getContractFactory("BentureSalary");
+            let salaryV2Tx = await ethers.getContractFactory("BentureSalaryV2");
+
+            let salaryV1 = await upgrades.deployProxy(salaryV1Tx, [benture.address]);
+            let salaryV2 = await upgrades.upgradeProxy(salaryV1.address, salaryV2Tx);
+
+            expect(await salaryV2.agent()).to.equal(47);
         });
     });
 });
