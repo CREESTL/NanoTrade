@@ -2,23 +2,29 @@
 
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "./BentureProducedToken.sol";
 import "./interfaces/IBenture.sol";
 import "./interfaces/IBentureProducedToken.sol";
+import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
+
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @title Dividends distributing contract
-contract Benture is IBenture, Ownable, ReentrancyGuard {
-    using Counters for Counters.Counter;
+contract Benture is IBenture, Initializable, OwnableUpgradeable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
+    using CountersUpgradeable for CountersUpgradeable.Counter;
+    // TODO
+    // Use SafeERC20Upgradeable here???
     using SafeERC20 for IERC20;
     using SafeERC20 for IBentureProducedToken;
-    using EnumerableSet for EnumerableSet.AddressSet;
+    using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
     /// @dev Pool to lock tokens
     /// @dev `lockers` and `lockersArray` basically store the same list of addresses
@@ -27,7 +33,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         // The address of the token inside the pool
         address token;
         // The list of all lockers of the pool
-        EnumerableSet.AddressSet lockers;
+        EnumerableSetUpgradeable.AddressSet lockers;
         // The amount of locked tokens
         uint256 totalLocked;
         // Mapping from user address to the amount of tokens currently locked by the user in the pool
@@ -47,7 +53,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         mapping(address => mapping(uint256 => uint256)) lockHistory;
         // Mapping from user address to a list of IDs of distributions *before which* user's lock amount was changed
         // For example an array of [1, 2] means that user's lock amount changed before 1st and 2nd distributions
-        // `EnumerableSet` can't be used here because it does not *preserve* the order of IDs and we need that
+        // `EnumerableSetUpgradeable` can't be used here because it does not *preserve* the order of IDs and we need that
         mapping(address => uint256[]) lockChangesIds;
         // Mapping indicating that before the distribution with the given ID, user's lock amount was changed
         // Basically, a `true` value for `[user][ID]` here means that this ID is *in* the `lockChangesIds[user]` array
@@ -82,7 +88,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     mapping(address => Pool) private pools;
 
     /// @dev Incrementing IDs of distributions
-    Counters.Counter internal distributionIds;
+    CountersUpgradeable.Counter internal distributionIds;
     /// @dev Mapping from distribution ID to the address of the admin
     ///      who started the distribution
     mapping(uint256 => address) internal distributionsToAdmins;
@@ -115,6 +121,13 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
 
     /// @dev The contract must be able to receive ether to pay dividends with it
     receive() external payable {}
+
+
+    function initialize() initializer public {
+        __Ownable_init();
+        __UUPSUpgradeable_init();
+        __ReentrancyGuard_init();
+    }
 
     // ===== POOLS =====
 
@@ -208,10 +221,11 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @param user The address of the user to get distributions for
     /// @param token The address of the token that was distributed
     /// @return The list of IDs of distributions the user took part in
-    function getParticipatedNotClaimed(
-        address user,
-        address token
-    ) private view returns (uint256[] memory) {
+    function getParticipatedNotClaimed(address user, address token)
+        private
+        view
+        returns (uint256[] memory)
+    {
         Pool storage pool = pools[token];
         // Get the list of distributions before which user's lock was changed
         uint256[] memory allIds = pool.lockChangesIds[user];
@@ -366,10 +380,10 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @notice Unlocks the provided amount of user's tokens from the pool
     /// @param origToken The address of the token to unlock
     /// @param amount The amount of tokens to unlock
-    function unlockTokens(
-        address origToken,
-        uint256 amount
-    ) external nonReentrant {
+    function unlockTokens(address origToken, uint256 amount)
+        external
+        nonReentrant
+    {
         _unlockTokens(origToken, amount);
     }
 
@@ -411,7 +425,6 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
             msg.sender,
             origToken
         );
-
 
         // Now claim all dividends of these distributions
         _claimMultipleDividends(notClaimedIds);
@@ -522,10 +535,11 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @param user The user to find a previous distribution for
     /// @param id The ID of the distribution to find a previous distribution for
     /// @return The ID of the found distribution. Or (-1) if no such distribution exists
-    function findMaxPrev(
-        address user,
-        uint256 id
-    ) internal view returns (int256) {
+    function findMaxPrev(address user, uint256 id)
+        internal
+        view
+        returns (int256)
+    {
         address origToken = distributions[id].origToken;
 
         uint256[] storage ids = pools[origToken].lockChangesIds[user];
@@ -540,7 +554,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         uint256 high = pools[origToken].lockChangesIds[user].length;
 
         while (low < high) {
-            uint256 mid = Math.average(low, high);
+            uint256 mid = MathUpgradeable.average(low, high);
             if (pools[origToken].lockChangesIds[user][mid] > id) {
                 high = mid;
             } else {
@@ -582,10 +596,11 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @notice Calculates locker's share in the distribution
     /// @param id The ID of the distribution to calculates shares in
     /// @param user The address of the user whos share has to be calculated
-    function calculateShare(
-        uint256 id,
-        address user
-    ) internal view returns (uint256) {
+    function calculateShare(uint256 id, address user)
+        internal
+        view
+        returns (uint256)
+    {
         Distribution storage distribution = distributions[id];
         Pool storage pool = pools[distribution.origToken];
 
@@ -685,9 +700,10 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @notice Allows user to claim dividends from multiple distributions
     ///         WARNING: Potentially can exceed block gas limit!
     /// @param ids The array of IDs of distributions to claim
-    function claimMultipleDividends(
-        uint256[] memory ids
-    ) external nonReentrant {
+    function claimMultipleDividends(uint256[] memory ids)
+        external
+        nonReentrant
+    {
         _claimMultipleDividends(ids);
     }
 
@@ -697,7 +713,7 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
 
         uint256 count;
 
-        for (uint i = 0; i < ids.length; i++) {
+        for (uint256 i = 0; i < ids.length; i++) {
             _claimDividends(ids[i]);
             // Increase the number of users who received their shares
             count++;
@@ -798,9 +814,15 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @return The address of the tokens in the pool.
     /// @return The number of users who locked their tokens in the pool
     /// @return The amount of locked tokens
-    function getPool(
-        address token
-    ) public view returns (address, uint256, uint256) {
+    function getPool(address token)
+        public
+        view
+        returns (
+            address,
+            uint256,
+            uint256
+        )
+    {
         if (token == address(0)) {
             revert InvalidTokenAddress();
         }
@@ -842,10 +864,11 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @param token The address of the token of the pool
     /// @param user The address of the user to check
     /// @return The current lock amount
-    function getCurrentLock(
-        address token,
-        address user
-    ) public view returns (uint256) {
+    function getCurrentLock(address token, address user)
+        public
+        view
+        returns (uint256)
+    {
         if (token == address(0)) {
             revert InvalidTokenAddress();
         }
@@ -858,9 +881,11 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @notice Returns the list of IDs of all distributions the admin has ever started
     /// @param admin The address of the admin
     /// @return The list of IDs of all distributions the admin has ever started
-    function getDistributions(
-        address admin
-    ) public view returns (uint256[] memory) {
+    function getDistributions(address admin)
+        public
+        view
+        returns (uint256[] memory)
+    {
         // Do not check wheter the given address is actually an admin
         if (admin == address(0)) {
             revert InvalidAdminAddress();
@@ -871,9 +896,17 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @notice Returns the distribution with the given ID
     /// @param id The ID of the distribution to search for
     /// @return All information about the distribution
-    function getDistribution(
-        uint256 id
-    ) public view returns (uint256, address, address, uint256, bool) {
+    function getDistribution(uint256 id)
+        public
+        view
+        returns (
+            uint256,
+            address,
+            address,
+            uint256,
+            bool
+        )
+    {
         if (id < 1) {
             revert InvalidDistributionId();
         }
@@ -911,10 +944,11 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
     /// @param id The ID of the distribution to check
     /// @param admin The address of the admin to check
     /// @return True if admin has started the distribution with the given ID. Otherwise - false.
-    function checkStartedByAdmin(
-        uint256 id,
-        address admin
-    ) public view returns (bool) {
+    function checkStartedByAdmin(uint256 id, address admin)
+        public
+        view
+        returns (bool)
+    {
         if (id < 1) {
             revert InvalidDistributionId();
         }
@@ -943,4 +977,9 @@ contract Benture is IBenture, Ownable, ReentrancyGuard {
         return calculateShare(id, msg.sender);
     }
 
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        onlyOwner
+        override
+    {}
 }
