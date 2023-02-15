@@ -21,20 +21,47 @@ async function main() {
 
     // Contract #1: Benture
 
-    // Deploy
+    // Deploy proxy and implementation
     contractName = "Benture";
     console.log(`[${contractName}]: Start of Deployment...`);
-    let _contractProto = await ethers.getContractFactory(contractName);
-    let contractDeployTx = await _contractProto.deploy();
-    benture = await contractDeployTx.deployed();
+    _contractProto = await ethers.getContractFactory(contractName);
+    benture = await upgrades.deployProxy(_contractProto, []);
+    await benture.deployed();
     console.log(`[${contractName}]: Deployment Finished!`);
-    OUTPUT_DEPLOY[network.name][contractName].address = benture.address;
-
-    // Verify
-    console.log(`[${contractName}]: Start of Verification...`);
+    OUTPUT_DEPLOY[network.name][contractName].proxyAddress = benture.address;
 
     await delay(90000);
 
+    // Verify implementation
+    console.log(`[${contractName}][Implementation]: Start of Verification...`);
+
+    let bentureImplAddress = await upgrades.erc1967.getImplementationAddress(benture.address);
+    OUTPUT_DEPLOY[network.name][contractName].implementationAddress = bentureImplAddress;
+    if (network.name === "polygon_mainnet") {
+        url = "https://polygonscan.com/address/" + bentureImplAddress + "#code";
+    } else if (network.name === "polygon_testnet") {
+        url =
+            "https://mumbai.polygonscan.com/address/" +
+            bentureImplAddress +
+            "#code";
+    }
+    OUTPUT_DEPLOY[network.name][contractName].implementationVerification = url;
+    try {
+        await hre.run("verify:verify", {
+            address: bentureImplAddress,
+        });
+    } catch (error) {
+    }
+    // Initialize implementation if it has not been initialized yet
+    let bentureImpl = await ethers.getContractAt("BentureFactory", bentureImplAddress);
+    try {
+        await bentureImpl.initialize();
+    } catch (error) {
+    }
+    console.log(`[${contractName}][Implementation]: Verification Finished!`);
+
+    // Verify proxy
+    console.log(`[${contractName}][Proxy]: Start of Verification...`);
     if (network.name === "polygon_mainnet") {
         url = "https://polygonscan.com/address/" + benture.address + "#code";
     } else if (network.name === "polygon_testnet") {
@@ -42,8 +69,8 @@ async function main() {
             "https://mumbai.polygonscan.com/address/" +
             benture.address +
             "#code";
-    }
-    OUTPUT_DEPLOY[network.name][contractName].verification = url;
+        }
+    OUTPUT_DEPLOY[network.name][contractName].proxyVerification = url;
 
     try {
         await hre.run("verify:verify", {
@@ -51,7 +78,8 @@ async function main() {
         });
     } catch (error) {
     }
-    console.log(`[${contractName}]: Verification Finished!`);
+    console.log(`[${contractName}][Proxy]: Verification Finished!`);
+
 
     // ====================================================
 
