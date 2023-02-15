@@ -1,25 +1,27 @@
 {
   "polygon_testnet": {
     "Benture": {
-      "address": "0x08290c81abAEFED21029A2c80A2da773141891Fa",
-      "verification": "https://mumbai.polygonscan.com/address/0x08290c81abAEFED21029A2c80A2da773141891Fa#code"
+      "proxyAddress": "0x8336a14981488A209C4255673eeD2dddaB3588cE",
+      "implementationAddress": "0x4E69d5ff62F64A1Bd6040f489Ab11D03FE803db7",
+      "proxyVerification": "https://mumbai.polygonscan.com/address/0x8336a14981488A209C4255673eeD2dddaB3588cE#code",
+      "implementationVerification": "https://mumbai.polygonscan.com/address/0x4E69d5ff62F64A1Bd6040f489Ab11D03FE803db7#code"
     },
     "BentureAdmin": {
-      "proxyAddress": "0xE6A2418A10A98d0AD05408d9874533C92070527C",
+      "proxyAddress": "0x1e23Ad4840212f17FDab33F336169D289343b1E3",
       "implementationAddress": "0x9F59e56b3F4466694c02922aD0730114B0208EdA",
-      "proxyVerification": "https://mumbai.polygonscan.com/address/0xE6A2418A10A98d0AD05408d9874533C92070527C#code",
+      "proxyVerification": "https://mumbai.polygonscan.com/address/0x1e23Ad4840212f17FDab33F336169D289343b1E3#code",
       "implementationVerification": "https://mumbai.polygonscan.com/address/0x9F59e56b3F4466694c02922aD0730114B0208EdA#code"
     },
     "BentureFactory": {
-      "proxyAddress": "0xC6b0F24f27039bCe238E33f50B3a16F250cCb6Cf",
+      "proxyAddress": "0xcaD97826831D8a32d6c8aD4b2Af1E70A3aE7Df54",
       "implementationAddress": "0x1bC9c1dF29D388a3f56e0a9f5E7464e20236Bda4",
-      "proxyVerification": "https://mumbai.polygonscan.com/address/0xC6b0F24f27039bCe238E33f50B3a16F250cCb6Cf#code",
+      "proxyVerification": "https://mumbai.polygonscan.com/address/0xcaD97826831D8a32d6c8aD4b2Af1E70A3aE7Df54#code",
       "implementationVerification": "https://mumbai.polygonscan.com/address/0x1bC9c1dF29D388a3f56e0a9f5E7464e20236Bda4#code"
     },
     "BentureSalary": {
-      "proxyAddress": "0xdDAE1131Cb18aB7BDE76bc28e6ACF0DAc4aa94aC",
+      "proxyAddress": "0x8E7187d839dacEeF878663714442B283647Aa7b7",
       "implementationAddress": "0xb0c4b7bAa478806D4eBd3F14759b5c6E6Ac7a63D",
-      "proxyVerification": "https://mumbai.polygonscan.com/address/0xdDAE1131Cb18aB7BDE76bc28e6ACF0DAc4aa94aC#code",
+      "proxyVerification": "https://mumbai.polygonscan.com/address/0x8E7187d839dacEeF878663714442B283647Aa7b7#code",
       "implementationVerification": "https://mumbai.polygonscan.com/address/0xb0c4b7bAa478806D4eBd3F14759b5c6E6Ac7a63D#code"
     }
   },
