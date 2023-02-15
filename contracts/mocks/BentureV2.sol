@@ -18,7 +18,13 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @title Dividends distributing contract
-contract BentureV2 is IBenture, Initializable, OwnableUpgradeable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
+contract BentureV2 is
+    IBenture,
+    Initializable,
+    OwnableUpgradeable,
+    UUPSUpgradeable,
+    ReentrancyGuardUpgradeable
+{
     using CountersUpgradeable for CountersUpgradeable.Counter;
     // TODO
     // Use SafeERC20Upgradeable here???
@@ -122,14 +128,13 @@ contract BentureV2 is IBenture, Initializable, OwnableUpgradeable, UUPSUpgradeab
     /// @dev The contract must be able to receive ether to pay dividends with it
     receive() external payable {}
 
-
-    function initialize() initializer public {
+    function initialize() public initializer {
         __Ownable_init();
         __UUPSUpgradeable_init();
         __ReentrancyGuard_init();
     }
 
-    function agent() pure public returns(uint256) {
+    function agent() public pure returns (uint256) {
         return 47;
     }
 
@@ -225,11 +230,10 @@ contract BentureV2 is IBenture, Initializable, OwnableUpgradeable, UUPSUpgradeab
     /// @param user The address of the user to get distributions for
     /// @param token The address of the token that was distributed
     /// @return The list of IDs of distributions the user took part in
-    function getParticipatedNotClaimed(address user, address token)
-        private
-        view
-        returns (uint256[] memory)
-    {
+    function getParticipatedNotClaimed(
+        address user,
+        address token
+    ) private view returns (uint256[] memory) {
         Pool storage pool = pools[token];
         // Get the list of distributions before which user's lock was changed
         uint256[] memory allIds = pool.lockChangesIds[user];
@@ -384,10 +388,10 @@ contract BentureV2 is IBenture, Initializable, OwnableUpgradeable, UUPSUpgradeab
     /// @notice Unlocks the provided amount of user's tokens from the pool
     /// @param origToken The address of the token to unlock
     /// @param amount The amount of tokens to unlock
-    function unlockTokens(address origToken, uint256 amount)
-        external
-        nonReentrant
-    {
+    function unlockTokens(
+        address origToken,
+        uint256 amount
+    ) external nonReentrant {
         _unlockTokens(origToken, amount);
     }
 
@@ -539,11 +543,10 @@ contract BentureV2 is IBenture, Initializable, OwnableUpgradeable, UUPSUpgradeab
     /// @param user The user to find a previous distribution for
     /// @param id The ID of the distribution to find a previous distribution for
     /// @return The ID of the found distribution. Or (-1) if no such distribution exists
-    function findMaxPrev(address user, uint256 id)
-        internal
-        view
-        returns (int256)
-    {
+    function findMaxPrev(
+        address user,
+        uint256 id
+    ) internal view returns (int256) {
         address origToken = distributions[id].origToken;
 
         uint256[] storage ids = pools[origToken].lockChangesIds[user];
@@ -600,11 +603,10 @@ contract BentureV2 is IBenture, Initializable, OwnableUpgradeable, UUPSUpgradeab
     /// @notice Calculates locker's share in the distribution
     /// @param id The ID of the distribution to calculates shares in
     /// @param user The address of the user whos share has to be calculated
-    function calculateShare(uint256 id, address user)
-        internal
-        view
-        returns (uint256)
-    {
+    function calculateShare(
+        uint256 id,
+        address user
+    ) internal view returns (uint256) {
         Distribution storage distribution = distributions[id];
         Pool storage pool = pools[distribution.origToken];
 
@@ -704,10 +706,9 @@ contract BentureV2 is IBenture, Initializable, OwnableUpgradeable, UUPSUpgradeab
     /// @notice Allows user to claim dividends from multiple distributions
     ///         WARNING: Potentially can exceed block gas limit!
     /// @param ids The array of IDs of distributions to claim
-    function claimMultipleDividends(uint256[] memory ids)
-        external
-        nonReentrant
-    {
+    function claimMultipleDividends(
+        uint256[] memory ids
+    ) external nonReentrant {
         _claimMultipleDividends(ids);
     }
 
@@ -818,15 +819,9 @@ contract BentureV2 is IBenture, Initializable, OwnableUpgradeable, UUPSUpgradeab
     /// @return The address of the tokens in the pool.
     /// @return The number of users who locked their tokens in the pool
     /// @return The amount of locked tokens
-    function getPool(address token)
-        public
-        view
-        returns (
-            address,
-            uint256,
-            uint256
-        )
-    {
+    function getPool(
+        address token
+    ) public view returns (address, uint256, uint256) {
         if (token == address(0)) {
             revert InvalidTokenAddress();
         }
@@ -868,11 +863,10 @@ contract BentureV2 is IBenture, Initializable, OwnableUpgradeable, UUPSUpgradeab
     /// @param token The address of the token of the pool
     /// @param user The address of the user to check
     /// @return The current lock amount
-    function getCurrentLock(address token, address user)
-        public
-        view
-        returns (uint256)
-    {
+    function getCurrentLock(
+        address token,
+        address user
+    ) public view returns (uint256) {
         if (token == address(0)) {
             revert InvalidTokenAddress();
         }
@@ -885,11 +879,9 @@ contract BentureV2 is IBenture, Initializable, OwnableUpgradeable, UUPSUpgradeab
     /// @notice Returns the list of IDs of all distributions the admin has ever started
     /// @param admin The address of the admin
     /// @return The list of IDs of all distributions the admin has ever started
-    function getDistributions(address admin)
-        public
-        view
-        returns (uint256[] memory)
-    {
+    function getDistributions(
+        address admin
+    ) public view returns (uint256[] memory) {
         // Do not check wheter the given address is actually an admin
         if (admin == address(0)) {
             revert InvalidAdminAddress();
@@ -900,17 +892,9 @@ contract BentureV2 is IBenture, Initializable, OwnableUpgradeable, UUPSUpgradeab
     /// @notice Returns the distribution with the given ID
     /// @param id The ID of the distribution to search for
     /// @return All information about the distribution
-    function getDistribution(uint256 id)
-        public
-        view
-        returns (
-            uint256,
-            address,
-            address,
-            uint256,
-            bool
-        )
-    {
+    function getDistribution(
+        uint256 id
+    ) public view returns (uint256, address, address, uint256, bool) {
         if (id < 1) {
             revert InvalidDistributionId();
         }
@@ -948,11 +932,10 @@ contract BentureV2 is IBenture, Initializable, OwnableUpgradeable, UUPSUpgradeab
     /// @param id The ID of the distribution to check
     /// @param admin The address of the admin to check
     /// @return True if admin has started the distribution with the given ID. Otherwise - false.
-    function checkStartedByAdmin(uint256 id, address admin)
-        public
-        view
-        returns (bool)
-    {
+    function checkStartedByAdmin(
+        uint256 id,
+        address admin
+    ) public view returns (bool) {
         if (id < 1) {
             revert InvalidDistributionId();
         }
@@ -981,9 +964,7 @@ contract BentureV2 is IBenture, Initializable, OwnableUpgradeable, UUPSUpgradeab
         return calculateShare(id, msg.sender);
     }
 
-    function _authorizeUpgrade(address newImplementation)
-        internal
-        onlyOwner
-        override
-    {}
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal override onlyOwner {}
 }

@@ -2,11 +2,10 @@ const { ethers } = require("hardhat");
 const { BigNumber } = require("ethers");
 const { expect } = require("chai");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
-const { loadFixture } = require ("@nomicfoundation/hardhat-network-helpers");
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { parseUnits, parseEther } = ethers.utils;
 
 describe("Benture Dividend Distributing Contract", () => {
-
     let zeroAddress = ethers.constants.AddressZero;
     let randomAddress = "0xEd24551e059304BE771ac6CF8B654271ec156Ba0";
     let parseEther = ethers.utils.parseEther;
@@ -78,16 +77,19 @@ describe("Benture Dividend Distributing Contract", () => {
             .approve(benture.address, parseUnits("10000000", 6));
 
         return {
-            benture, factory, adminToken, origToken, distToken
+            benture,
+            factory,
+            adminToken,
+            origToken,
+            distToken,
         };
     }
 
     // #P
     describe("Pools", () => {
         it("Should create and get a new pool of tokens", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             // This creates a new pool
             await expect(
                 factory.createERC20Token(
@@ -118,9 +120,8 @@ describe("Benture Dividend Distributing Contract", () => {
     // #FP
     describe("Fails for pools", () => {
         it("Should fail to get pool of zero address tokens", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             await expect(
                 benture.getPool(zeroAddress)
             ).to.be.revertedWithCustomError(benture, "InvalidTokenAddress");
@@ -130,9 +131,8 @@ describe("Benture Dividend Distributing Contract", () => {
     // #L
     describe("Lock tokens", () => {
         it("Should lock some tokens and use getters", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let mintAmount = parseUnits("1000000", 6);
             let lockAmount = parseUnits("1000", 6);
             await origToken.mint(ownerAcc.address, mintAmount);
@@ -178,9 +178,8 @@ describe("Benture Dividend Distributing Contract", () => {
         });
 
         it("Should lock all tokens and use getters", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let mintAmount = parseUnits("1000000", 6);
             await origToken.mint(ownerAcc.address, mintAmount);
             let userStartBalance = await origToken.balanceOf(ownerAcc.address);
@@ -226,9 +225,8 @@ describe("Benture Dividend Distributing Contract", () => {
             expect(lockers[0]).to.equal(ownerAcc.address);
         });
         it("Should not increase number of lockers if the same user is locking", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let mintAmount = parseUnits("1000000", 6);
             let lockAmount = parseUnits("1000", 6);
             await origToken.mint(ownerAcc.address, mintAmount);
@@ -244,36 +242,32 @@ describe("Benture Dividend Distributing Contract", () => {
     // #FL
     describe("Fails for locking tokens", () => {
         it("Should fail to lock zero amount of tokens", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let lockAmount = parseUnits("0", 6);
             await expect(
                 benture.lockTokens(origToken.address, lockAmount)
             ).to.be.revertedWithCustomError(benture, "InvalidLockAmount");
         });
         it("Should fail to lock zero address tokens", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let lockAmount = parseUnits("1000", 6);
             await expect(
                 benture.lockTokens(zeroAddress, lockAmount)
             ).to.be.revertedWithCustomError(benture, "InvalidTokenAddress");
         });
         it("Should fail to lock zero address tokens", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let lockAmount = parseUnits("1000", 6);
             await expect(
                 benture.lockTokens(randomAddress, lockAmount)
             ).to.be.revertedWithCustomError(benture, "PoolDoesNotExist");
         });
         it("Shoud fail to lock if user has no tokens", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let lockAmount = parseUnits("1000", 6);
             await expect(
                 benture.lockTokens(origToken.address, lockAmount)
@@ -287,9 +281,8 @@ describe("Benture Dividend Distributing Contract", () => {
     // #U
     describe("Unlock tokens", () => {
         it("Should unlock some tokens without claiming any dividends", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let mintAmount = parseUnits("1000000", 6);
             let lockAmount = parseUnits("1000", 6);
             await origToken.mint(ownerAcc.address, mintAmount);
@@ -340,9 +333,8 @@ describe("Benture Dividend Distributing Contract", () => {
         });
 
         it("Should unlock all tokens without claiming any dividends", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let mintAmount = parseUnits("1000000", 6);
             let lockAmount = parseUnits("1000", 6);
             await origToken.mint(ownerAcc.address, mintAmount);
@@ -387,17 +379,19 @@ describe("Benture Dividend Distributing Contract", () => {
             expect(lockers.length).to.equal(0);
         });
         it("Should lock and unlock multiple clients` tokens before any distribution", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let mintAmount = parseEther("1");
 
             await origToken.mint(clientAcc1.address, mintAmount);
             await origToken.mint(clientAcc2.address, mintAmount.mul(2));
 
-            await origToken.connect(clientAcc1).approve(benture.address, mintAmount);
-            await origToken.connect(clientAcc2).approve(benture.address, mintAmount.mul(2));
-
+            await origToken
+                .connect(clientAcc1)
+                .approve(benture.address, mintAmount);
+            await origToken
+                .connect(clientAcc2)
+                .approve(benture.address, mintAmount.mul(2));
 
             // Lock all tokens of the first account
             await benture.connect(clientAcc1).lockAllTokens(origToken.address);
@@ -408,9 +402,13 @@ describe("Benture Dividend Distributing Contract", () => {
                 )
             ).to.equal(mintAmount);
             // Lock half of second account's balance
-            await benture.connect(clientAcc2).lockTokens(origToken.address, mintAmount);
+            await benture
+                .connect(clientAcc2)
+                .lockTokens(origToken.address, mintAmount);
             // Lock the second half of second account's balance
-            await benture.connect(clientAcc2).lockTokens(origToken.address, mintAmount);
+            await benture
+                .connect(clientAcc2)
+                .lockTokens(origToken.address, mintAmount);
             expect(
                 await benture.getCurrentLock(
                     origToken.address,
@@ -419,11 +417,19 @@ describe("Benture Dividend Distributing Contract", () => {
             ).to.equal(mintAmount.mul(2));
 
             // First unlock a half.
-            await benture.connect(clientAcc1).unlockTokens(origToken.address, mintAmount.div(2));
-            await benture.connect(clientAcc2).unlockTokens(origToken.address, mintAmount.div(2));
+            await benture
+                .connect(clientAcc1)
+                .unlockTokens(origToken.address, mintAmount.div(2));
+            await benture
+                .connect(clientAcc2)
+                .unlockTokens(origToken.address, mintAmount.div(2));
             // Then unlock the rest
-            await benture.connect(clientAcc1).unlockAllTokens(origToken.address);
-            await benture.connect(clientAcc2).unlockAllTokens(origToken.address);
+            await benture
+                .connect(clientAcc1)
+                .unlockAllTokens(origToken.address);
+            await benture
+                .connect(clientAcc2)
+                .unlockAllTokens(origToken.address);
 
             const {
                 0: token,
@@ -452,9 +458,8 @@ describe("Benture Dividend Distributing Contract", () => {
         });
 
         it("Should unlock all tokens without claiming any dividends", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let mintAmount = parseUnits("1000000", 6);
             let lockAmount = parseUnits("1000", 6);
             await origToken.mint(ownerAcc.address, mintAmount);
@@ -503,45 +508,40 @@ describe("Benture Dividend Distributing Contract", () => {
     // #FU
     describe("Fails for unlocking tokens", () => {
         it("Should fail to unlock zero amount of tokens", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let unlockAmount = parseUnits("0", 6);
             await expect(
                 benture.unlockTokens(origToken.address, unlockAmount)
             ).to.be.revertedWithCustomError(benture, "InvalidUnlockAmount");
         });
         it("Should fail to unlock zero address tokens", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let unlockAmount = parseUnits("1000", 6);
             await expect(
                 benture.unlockTokens(zeroAddress, unlockAmount)
             ).to.be.revertedWithCustomError(benture, "InvalidTokenAddress");
         });
         it("Should fail to unlock if no pool exists", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let unlockAmount = parseUnits("1000", 6);
             await expect(
                 benture.unlockTokens(randomAddress, unlockAmount)
             ).to.be.revertedWithCustomError(benture, "PoolDoesNotExist");
         });
         it("Should fail to unlock if no lock was made", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let unlockAmount = parseUnits("1000", 6);
             await expect(
                 benture.unlockTokens(origToken.address, unlockAmount)
             ).to.be.revertedWithCustomError(benture, "NoLockedTokens");
         });
         it("Should fail to unlock if amount is greater than lock", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let mintAmount = parseUnits("1000000", 6);
             let lockAmount = parseUnits("1000", 6);
             await origToken.mint(ownerAcc.address, mintAmount);
@@ -560,9 +560,8 @@ describe("Benture Dividend Distributing Contract", () => {
             // #DEE
             describe("ERC20 tokens dividends", () => {
                 it("Should distribute dividends to a single address and use getters", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("1000000", 6);
                     let lockAmount = parseUnits("1000", 6);
                     let claimAmount = parseUnits("100", 6);
@@ -621,9 +620,8 @@ describe("Benture Dividend Distributing Contract", () => {
                 });
 
                 it("Should distribute dividends to a list of addresses and use getters", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("1000000", 6);
                     let lockAmount = parseUnits("1000", 6);
                     let claimAmount = parseUnits("100", 6);
@@ -660,9 +658,8 @@ describe("Benture Dividend Distributing Contract", () => {
                 });
 
                 it("Should distribute dividends if one holder unlocks all tokens and use getters", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("1000000", 6);
                     let lockAmount = parseUnits("1000", 6);
                     let claimAmount = parseUnits("100", 6);
@@ -714,9 +711,8 @@ describe("Benture Dividend Distributing Contract", () => {
             // DEN
             describe("Native tokens dividends", () => {
                 it("Should distribute dividends to a single address and use getters", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("1000000", 6);
                     let lockAmount = parseUnits("1000", 6);
                     let claimAmount = parseEther("1");
@@ -776,9 +772,8 @@ describe("Benture Dividend Distributing Contract", () => {
                 });
 
                 it("Should distribute dividends to a list of addresses and use getters", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("1000000", 6);
                     let lockAmount = parseUnits("1000", 6);
                     let claimAmount = parseEther("1");
@@ -816,9 +811,8 @@ describe("Benture Dividend Distributing Contract", () => {
                 });
 
                 it("Should distribute dividends if one holder unlocks all tokens and use getters", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("1000000", 6);
                     let lockAmount = parseUnits("1000", 6);
                     let claimAmount = parseUnits("100", 6);
@@ -874,9 +868,8 @@ describe("Benture Dividend Distributing Contract", () => {
             // #DWE
             describe("ERC20 tokens dividends", () => {
                 it("Should distribute dividends to a single address and use getters", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("1000000", 6);
                     let lockAmount = parseUnits("1000", 6);
                     let claimAmount = parseUnits("100", 6);
@@ -933,9 +926,8 @@ describe("Benture Dividend Distributing Contract", () => {
                 });
 
                 it("Should distribute dividends to a list of addresses and use getters", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("1000000", 6);
                     let lockAmount1 = parseUnits("1000", 6);
                     let lockAmount2 = parseUnits("3000", 6);
@@ -973,9 +965,8 @@ describe("Benture Dividend Distributing Contract", () => {
                 });
 
                 it("Should distribute dividends if one holder unlocks all tokens and use getters", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("1000000", 6);
                     let lockAmount1 = parseUnits("1000", 6);
                     let lockAmount2 = parseUnits("3000", 6);
@@ -1028,9 +1019,8 @@ describe("Benture Dividend Distributing Contract", () => {
             // #DWN
             describe("Native tokens dividends", () => {
                 it("Should distribute dividends to a single address and use getters", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("1000000", 6);
                     let lockAmount = parseUnits("1000", 6);
                     let claimAmount = parseEther("1");
@@ -1090,9 +1080,8 @@ describe("Benture Dividend Distributing Contract", () => {
                 });
 
                 it("Should distribute dividends to a list of addresses and use getters", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("1000000", 6);
                     let lockAmount1 = parseUnits("1000", 6);
                     let lockAmount2 = parseUnits("3000", 6);
@@ -1131,9 +1120,8 @@ describe("Benture Dividend Distributing Contract", () => {
                 });
 
                 it("Should distribute dividends if one holder unlocks all tokens and use getters", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("1000000", 6);
                     let lockAmount1 = parseUnits("1000", 6);
                     let lockAmount2 = parseUnits("1000", 6);
@@ -1189,9 +1177,8 @@ describe("Benture Dividend Distributing Contract", () => {
     // #DFEW
     describe("Fails for Equal & Weighted Dividends", () => {
         it("Should fail to distribute dividends with invalid parameters", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             await expect(
                 benture.distributeDividends(
                     zeroAddress,
@@ -1236,9 +1223,8 @@ describe("Benture Dividend Distributing Contract", () => {
         });
 
         it("Should fail to distribute too high dividends", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let claimAmount = parseUnits("50000000", 6);
             await distToken
                 .connect(ownerAcc)
@@ -1265,9 +1251,8 @@ describe("Benture Dividend Distributing Contract", () => {
             describe("Claim a single equal ERC20 tokens dividend", () => {
                 // Only test getters in this case
                 it("Should claim a single equal ERC20 tokens dividend and use getters", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("1000000", 6);
                     let lockAmount = parseUnits("1000", 6);
                     let claimAmount = parseUnits("300", 6);
@@ -1309,9 +1294,8 @@ describe("Benture Dividend Distributing Contract", () => {
             // #CLSWE
             describe("Claim a single weighted ERC20 tokens dividend", () => {
                 it("Should claim a single weighted ERC20 tokens dividend", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("1000000", 6);
                     let lockAmount1 = parseUnits("1000", 6);
                     let lockAmount2 = parseUnits("3000", 6);
@@ -1367,9 +1351,8 @@ describe("Benture Dividend Distributing Contract", () => {
             // #CLSEN
             describe("Claim a single equal native tokens dividend", () => {
                 it("Should claim a single equal native tokens dividend and use getters", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("1000000", 6);
                     let lockAmount = parseUnits("1000", 6);
                     let claimAmount = parseEther("1");
@@ -1423,9 +1406,8 @@ describe("Benture Dividend Distributing Contract", () => {
             // #CLSWN
             describe("Claim a single weighted native tokens dividend", () => {
                 it("Should claim a single weighted native tokens dividend", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("1000000", 6);
                     let lockAmount1 = parseUnits("1000", 6);
                     let lockAmount2 = parseUnits("3000", 6);
@@ -1499,9 +1481,8 @@ describe("Benture Dividend Distributing Contract", () => {
         // #CLSC
         describe("Claim a single dividend in complicated scenarios", () => {
             it("Should claim a single dividend from the past", async () => {
-                let {
-                    benture, factory, adminToken, origToken, distToken
-                } = await loadFixture(deploys);
+                let { benture, factory, adminToken, origToken, distToken } =
+                    await loadFixture(deploys);
                 let mintAmount = parseUnits("1000000", 6);
                 let lockAmount = parseUnits("1000", 6);
                 let claimAmount = parseUnits("300", 6);
@@ -1550,9 +1531,8 @@ describe("Benture Dividend Distributing Contract", () => {
             });
 
             it("Should claim dividend after which the lock was changed", async () => {
-                let {
-                    benture, factory, adminToken, origToken, distToken
-                } = await loadFixture(deploys);
+                let { benture, factory, adminToken, origToken, distToken } =
+                    await loadFixture(deploys);
                 let mintAmount = parseUnits("1000000", 6);
                 let lockAmount = parseUnits("1000", 6);
                 let additionalLock = parseUnits("700", 6);
@@ -1592,9 +1572,8 @@ describe("Benture Dividend Distributing Contract", () => {
             });
 
             it("Should claim a single dividend in the most complicated scenario", async () => {
-                let {
-                    benture, factory, adminToken, origToken, distToken
-                } = await loadFixture(deploys);
+                let { benture, factory, adminToken, origToken, distToken } =
+                    await loadFixture(deploys);
                 let mintAmount = parseUnits("10000000", 6);
                 let lockAmount1 = parseUnits("1000", 6);
                 let lockAmount2 = parseUnits("200", 6);
@@ -1792,9 +1771,8 @@ describe("Benture Dividend Distributing Contract", () => {
             // These are tests for `calculateShare` and `findMaxPrev` functions
             describe("Calculate shares for a single distribution", () => {
                 it("Should result in a correct share if user hasn't change his lock amount before the distribution for a long time", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("10000000", 6);
                     let lockAmount1 = parseUnits("1000", 6);
                     let claimAmount = parseUnits("300", 6);
@@ -1874,9 +1852,8 @@ describe("Benture Dividend Distributing Contract", () => {
             // #CLMS
             describe("Claim multiple dividends of the same type", () => {
                 it("Should claim multiple dividends of the same type", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("1000000", 6);
                     let lockAmount = parseUnits("1000", 6);
                     let claimAmount = parseUnits("300", 6);
@@ -1924,9 +1901,8 @@ describe("Benture Dividend Distributing Contract", () => {
             // #CLMD
             describe("Claim multiple dividends of different types", () => {
                 it("Should claim multiple dividends of different types", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("1000000", 6);
                     let lockAmount = parseUnits("1000", 6);
                     let claimAmount = parseUnits("300", 6);
@@ -1975,9 +1951,8 @@ describe("Benture Dividend Distributing Contract", () => {
         // #CLMC
         describe("Claim multiple dividends in complicated scenarios", () => {
             it("Should claim multiple dividends from the past", async () => {
-                let {
-                    benture, factory, adminToken, origToken, distToken
-                } = await loadFixture(deploys);
+                let { benture, factory, adminToken, origToken, distToken } =
+                    await loadFixture(deploys);
                 let mintAmount = parseUnits("1000000", 6);
                 let lockAmount = parseUnits("1000", 6);
                 let claimAmount = parseUnits("300", 6);
@@ -2028,9 +2003,8 @@ describe("Benture Dividend Distributing Contract", () => {
             });
 
             it("Should claim multiple dividends in the most complicated scenario", async () => {
-                let {
-                    benture, factory, adminToken, origToken, distToken
-                } = await loadFixture(deploys);
+                let { benture, factory, adminToken, origToken, distToken } =
+                    await loadFixture(deploys);
                 let mintAmount = parseUnits("10000000", 6);
                 let lockAmount1 = parseUnits("1000", 6);
                 let lockAmount2 = parseUnits("200", 6);
@@ -2167,9 +2141,8 @@ describe("Benture Dividend Distributing Contract", () => {
             });
 
             it("Should claim multiple dividends on any unlock", async () => {
-                let {
-                    benture, factory, adminToken, origToken, distToken
-                } = await loadFixture(deploys);
+                let { benture, factory, adminToken, origToken, distToken } =
+                    await loadFixture(deploys);
                 let mintAmount = parseUnits("10000000", 6);
                 let lockAmount1 = parseUnits("1000", 6);
                 let lockAmount2 = parseUnits("200", 6);
@@ -2321,9 +2294,8 @@ describe("Benture Dividend Distributing Contract", () => {
             // These are tests for `getParticipatedNotClaimed` function, basically
             describe("Correctly find participated distributions", () => {
                 it("Should not include the last (not started) distribution", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("10000000", 6);
                     let lockAmount1 = parseUnits("1000", 6);
                     let lockAmount2 = parseUnits("200", 6);
@@ -2385,9 +2357,8 @@ describe("Benture Dividend Distributing Contract", () => {
                 });
 
                 it("Should not include any dividends if user user locked only after them", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("10000000", 6);
                     let lockAmount1 = parseUnits("1000", 6);
                     let lockAmount2 = parseUnits("200", 6);
@@ -2445,9 +2416,8 @@ describe("Benture Dividend Distributing Contract", () => {
                 });
 
                 it("Should include only one started distribution", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("10000000", 6);
                     let lockAmount1 = parseUnits("1000", 6);
                     let lockAmount2 = parseUnits("200", 6);
@@ -2485,9 +2455,8 @@ describe("Benture Dividend Distributing Contract", () => {
                 });
 
                 it("Should not include any distributions if all were claimed", async () => {
-                    let {
-                        benture, factory, adminToken, origToken, distToken
-                    } = await loadFixture(deploys);
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
                     let mintAmount = parseUnits("10000000", 6);
                     let lockAmount1 = parseUnits("1000", 6);
                     let lockAmount2 = parseUnits("200", 6);
@@ -2559,9 +2528,8 @@ describe("Benture Dividend Distributing Contract", () => {
     // #FCL
     describe("Fails for claiming dividends", () => {
         it("Should fail co claim not started distribution", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let mintAmount = parseUnits("1000000", 6);
             let lockAmount = parseUnits("1000", 6);
             let claimAmount = parseUnits("300", 6);
@@ -2590,9 +2558,8 @@ describe("Benture Dividend Distributing Contract", () => {
         });
 
         it("Should fail to claim dividends if user has no locked tokens", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let claimAmount = parseUnits("300", 6);
 
             await benture.distributeDividends(
@@ -2611,9 +2578,8 @@ describe("Benture Dividend Distributing Contract", () => {
         });
 
         it("Should fail to claim the same distribution more than once", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let mintAmount = parseUnits("1000000", 6);
             let lockAmount = parseUnits("1000", 6);
             let claimAmount = parseUnits("300", 6);
@@ -2644,9 +2610,8 @@ describe("Benture Dividend Distributing Contract", () => {
     describe("Custom Dividends", () => {
         describe("ERC20 tokens dividends", () => {
             it("Should distribute ERC20 tokens custom dividends", async () => {
-                let {
-                    benture, factory, adminToken, origToken, distToken
-                } = await loadFixture(deploys);
+                let { benture, factory, adminToken, origToken, distToken } =
+                    await loadFixture(deploys);
                 let claimAmount1 = parseUnits("500", 6);
                 let claimAmount2 = parseUnits("700", 6);
 
@@ -2678,9 +2643,8 @@ describe("Benture Dividend Distributing Contract", () => {
 
         describe("Native tokens dividends", () => {
             it("Should distribute native tokens custom dividends", async () => {
-                let {
-                    benture, factory, adminToken, origToken, distToken
-                } = await loadFixture(deploys);
+                let { benture, factory, adminToken, origToken, distToken } =
+                    await loadFixture(deploys);
                 let claimAmount1 = parseEther("0.5");
                 let claimAmount2 = parseEther("0.5");
 
@@ -2718,9 +2682,8 @@ describe("Benture Dividend Distributing Contract", () => {
     // #FCU
     describe("Fails for Custom Dividends", () => {
         it("Should fail to distribute custom dividends if any list is empty", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             await expect(
                 benture.distributeDividendsCustom(
                     distToken.address,
@@ -2740,9 +2703,8 @@ describe("Benture Dividend Distributing Contract", () => {
             ).to.be.revertedWithCustomError(benture, "EmptyList");
         });
         it("Should fail to distribute custom dividends if lists have different lengths", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             await expect(
                 benture.distributeDividendsCustom(
                     distToken.address,
@@ -2753,9 +2715,8 @@ describe("Benture Dividend Distributing Contract", () => {
             ).to.be.revertedWithCustomError(benture, "ListsLengthDiffers");
         });
         it("Should fail to distribute custom dividends if not enough native tokens were provided", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let claimAmount1 = parseEther("0.5");
             let claimAmount2 = parseEther("0.5");
 
@@ -2770,9 +2731,8 @@ describe("Benture Dividend Distributing Contract", () => {
             ).to.be.revertedWithCustomError(benture, "NotEnoughNativeTokens");
         });
         it("Should fail to distribute custom dividends if any user has zero address", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let claimAmount1 = parseEther("0.5");
             let claimAmount2 = parseEther("0.5");
 
@@ -2787,9 +2747,8 @@ describe("Benture Dividend Distributing Contract", () => {
             ).to.be.revertedWithCustomError(benture, "InvalidUserAddress");
         });
         it("Should fail to distribute custom dividends if any amount is zero", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let claimAmount1 = parseEther("0.5");
             let claimAmount2 = parseEther("0");
 
@@ -2811,25 +2770,22 @@ describe("Benture Dividend Distributing Contract", () => {
     // #FG
     describe("Fails for getters", () => {
         it("Should fail to get pool with zero address", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             await expect(
                 benture.getPool(zeroAddress)
             ).to.be.revertedWithCustomError(benture, "InvalidTokenAddress");
         });
         it("Should fail to get lockers of zero address tokens", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             await expect(
                 benture.getLockers(zeroAddress)
             ).to.be.revertedWithCustomError(benture, "InvalidTokenAddress");
         });
         it("Should fail to check is user is a locker", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             await expect(
                 benture.isLocker(zeroAddress, clientAcc1.address)
             ).to.be.revertedWithCustomError(benture, "InvalidTokenAddress");
@@ -2838,9 +2794,8 @@ describe("Benture Dividend Distributing Contract", () => {
             ).to.be.revertedWithCustomError(benture, "InvalidUserAddress");
         });
         it("Should fail to get current lock of a user", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             await expect(
                 benture.getCurrentLock(zeroAddress, clientAcc1.address)
             ).to.be.revertedWithCustomError(benture, "InvalidTokenAddress");
@@ -2849,17 +2804,15 @@ describe("Benture Dividend Distributing Contract", () => {
             ).to.be.revertedWithCustomError(benture, "InvalidUserAddress");
         });
         it("Should fail to get a list of distributions started by an admin", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             await expect(
                 benture.getDistributions(zeroAddress)
             ).to.be.revertedWithCustomError(benture, "InvalidAdminAddress");
         });
         it("Should fail to get a distribution", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             await expect(
                 benture.getDistribution(0)
             ).to.be.revertedWithCustomError(benture, "InvalidDistributionId");
@@ -2868,9 +2821,8 @@ describe("Benture Dividend Distributing Contract", () => {
             ).to.be.revertedWithCustomError(benture, "DistributionNotStarted");
         });
         it("Should fail to check if user claimed distribution", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             await expect(
                 benture.hasClaimed(0, clientAcc1.address)
             ).to.be.revertedWithCustomError(benture, "InvalidDistributionId");
@@ -2892,9 +2844,8 @@ describe("Benture Dividend Distributing Contract", () => {
             ).to.be.revertedWithCustomError(benture, "InvalidUserAddress");
         });
         it("Should fail to check if distribution started by admin", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             await expect(
                 benture.checkStartedByAdmin(0, ownerAcc.address)
             ).to.be.revertedWithCustomError(benture, "InvalidDistributionId");
@@ -2916,9 +2867,8 @@ describe("Benture Dividend Distributing Contract", () => {
             ).to.be.revertedWithCustomError(benture, "InvalidAdminAddress");
         });
         it("Should fail to calculate the share of the user", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let mintAmount = parseUnits("1000000", 6);
             let lockAmount = parseUnits("1000", 6);
             let claimAmount = parseUnits("1000", 6);
@@ -2944,9 +2894,8 @@ describe("Benture Dividend Distributing Contract", () => {
     // #S
     describe("Setters", () => {
         it("Should set factory address", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             await benture.connect(ownerAcc).setFactoryAddress(randomAddress);
             expect(await benture.factory()).to.equal(randomAddress);
         });
@@ -2954,9 +2903,8 @@ describe("Benture Dividend Distributing Contract", () => {
 
     describe("Fails for setters", () => {
         it("Should fail to set factory address if user is now owner", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
 
             await expect(
                 benture.connect(clientAcc1).setFactoryAddress(randomAddress)
@@ -2966,14 +2914,16 @@ describe("Benture Dividend Distributing Contract", () => {
 
     describe("Upgrades", () => {
         it("Should have a new method after upgrade", async () => {
-            let {
-                benture, factory, adminToken, origToken, distToken
-            } = await loadFixture(deploys);
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
             let bentureV1Tx = await ethers.getContractFactory("Benture");
             let bentureV2Tx = await ethers.getContractFactory("BentureV2");
 
             let bentureV1 = await upgrades.deployProxy(bentureV1Tx, []);
-            let bentureV2 = await upgrades.upgradeProxy(bentureV1.address, bentureV2Tx);
+            let bentureV2 = await upgrades.upgradeProxy(
+                bentureV1.address,
+                bentureV2Tx
+            );
 
             expect(await bentureV2.agent()).to.equal(47);
         });

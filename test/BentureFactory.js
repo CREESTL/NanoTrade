@@ -1,15 +1,14 @@
 const { ethers } = require("hardhat");
-const { loadFixture } = require ("@nomicfoundation/hardhat-network-helpers");
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expect } = require("chai");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 
 describe("Benture Factory", () => {
-
     let zeroAddress = ethers.constants.AddressZero;
     let parseEther = ethers.utils.parseEther;
 
     // Deploy all contracts before each test suite
-    async function deploys () {
+    async function deploys() {
         [ownerAcc, clientAcc1, clientAcc2] = await ethers.getSigners();
 
         // Deploy dividend-distribution contract
@@ -30,14 +29,24 @@ describe("Benture Factory", () => {
         await adminToken.deployed();
 
         return {
-            ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken,
+            ownerAcc,
+            clientAcc1,
+            clientAcc2,
+            benture,
+            factory,
+            adminToken,
         };
-    };
+    }
 
     describe("Create tokens", () => {
         it("Should create a new ERC20 token and connect it to ERC721 token", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken,
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
             } = await loadFixture(deploys);
             expect(await adminToken.balanceOf(ownerAcc.address)).to.equal(0);
             expect(await factory.lastProducedToken()).to.equal(zeroAddress);
@@ -65,7 +74,12 @@ describe("Benture Factory", () => {
 
         it("Should create a new ERC20 token with correct parameters", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken,
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
             } = await loadFixture(deploys);
             let name = "Dummy";
             let symbol = "DMM";
@@ -96,13 +110,25 @@ describe("Benture Factory", () => {
     describe("Upgrades", () => {
         it("Should have a new method after upgrade", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken,
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
             } = await loadFixture(deploys);
             let factoryV1Tx = await ethers.getContractFactory("BentureFactory");
-            let factoryV2Tx = await ethers.getContractFactory("BentureFactoryV2");
+            let factoryV2Tx = await ethers.getContractFactory(
+                "BentureFactoryV2"
+            );
 
-            let factoryV1 = await upgrades.deployProxy(factoryV1Tx, [benture.address]);
-            let factoryV2 = await upgrades.upgradeProxy(factoryV1.address, factoryV2Tx);
+            let factoryV1 = await upgrades.deployProxy(factoryV1Tx, [
+                benture.address,
+            ]);
+            let factoryV2 = await upgrades.upgradeProxy(
+                factoryV1.address,
+                factoryV2Tx
+            );
 
             expect(await factoryV2.agent()).to.equal(47);
         });

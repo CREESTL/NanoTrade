@@ -1,16 +1,15 @@
 const { ethers, upgrades } = require("hardhat");
-const { loadFixture } = require ("@nomicfoundation/hardhat-network-helpers");
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expect } = require("chai");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { parseUnits, parseEther } = ethers.utils;
 
 describe("Benture Admin Token", () => {
-
     let zeroAddress = ethers.constants.AddressZero;
     let parseEther = ethers.utils.parseEther;
 
     // Deploy all contracts before each test suite
-    async function deploys () {
+    async function deploys() {
         [ownerAcc, clientAcc1, clientAcc2] = await ethers.getSigners();
 
         // Deploy dividend-distribution contract
@@ -61,20 +60,34 @@ describe("Benture Admin Token", () => {
         await ownerAcc.sendTransaction({
             to: factory.address,
             value: parseEther("1"),
-            gasLimit: 30000
+            gasLimit: 30000,
         });
 
-
         return {
-            ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+            ownerAcc,
+            clientAcc1,
+            clientAcc2,
+            benture,
+            factory,
+            adminToken,
+            token,
+            rummy,
+            factorySigner,
         };
-    
-    };
+    }
 
     describe("Constructor", () => {
         it("Should initialize with correct name and symbol", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             expect(await adminToken.name()).to.equal("Benture Manager Token");
             expect(await adminToken.symbol()).to.equal("BMNG");
@@ -82,10 +95,20 @@ describe("Benture Admin Token", () => {
 
         it("Should fail to initialize with zero factory address", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             let tx = await ethers.getContractFactory("BentureAdmin");
-            await expect(upgrades.deployProxy(tx, [zeroAddress])).to.be.revertedWithCustomError(
+            await expect(
+                upgrades.deployProxy(tx, [zeroAddress])
+            ).to.be.revertedWithCustomError(
                 adminToken,
                 "InvalidFactoryAddress"
             );
@@ -95,7 +118,15 @@ describe("Benture Admin Token", () => {
     describe("Getters", () => {
         it("Should check that provided address owns admin token", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             expect(await adminToken.name()).to.equal("Benture Manager Token");
             expect(await adminToken.symbol()).to.equal("BMNG");
@@ -103,7 +134,15 @@ describe("Benture Admin Token", () => {
 
         it("Should fail to check that zero address owns admin token", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             // It should not revert
             await expect(
@@ -113,7 +152,15 @@ describe("Benture Admin Token", () => {
 
         it("Should verify that user controls provided ERC20 token", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             expect(
                 await adminToken.verifyAdminToken(
@@ -131,7 +178,15 @@ describe("Benture Admin Token", () => {
 
         it("Should fail to verify that zero address controls provided ERC20 token", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             await expect(
                 adminToken.verifyAdminToken(zeroAddress, token.address)
@@ -140,7 +195,15 @@ describe("Benture Admin Token", () => {
 
         it("Should fail to verify that user controls provided token with zero address", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             await expect(
                 adminToken.verifyAdminToken(clientAcc1.address, zeroAddress)
@@ -149,7 +212,15 @@ describe("Benture Admin Token", () => {
 
         it("Should get the address of controlled ERC20 token by admin token ID", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             expect(await adminToken.getControlledAddressById(1)).to.equal(
                 token.address
@@ -158,7 +229,15 @@ describe("Benture Admin Token", () => {
 
         it("Should fail to get the address of controlled ERC20 token by invalid admin token ID", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             await expect(
                 adminToken.getControlledAddressById(777)
@@ -167,14 +246,30 @@ describe("Benture Admin Token", () => {
 
         it("Should get the address of the factory", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             expect(await adminToken.getFactory()).to.equal(factory.address);
         });
 
         it("Should get the list of all admin tokens of the admin", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             // First, admin has only one admin token
             let tokenIds = await adminToken.getAdminTokenIds(ownerAcc.address);
@@ -193,7 +288,15 @@ describe("Benture Admin Token", () => {
 
         it("Should fail to get the list of admin tokens for zero address", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             await expect(
                 adminToken.getAdminTokenIds(zeroAddress)
@@ -202,7 +305,15 @@ describe("Benture Admin Token", () => {
 
         it("Should verify that admin controlls several projects", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             await factory.createERC20Token(
                 "Dummy",
@@ -244,7 +355,15 @@ describe("Benture Admin Token", () => {
     describe("Mint", () => {
         it("Should mint a new admin token and connect it to controlled ERC20 token", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             let startBalance = await adminToken.balanceOf(clientAcc1.address);
             expect(
@@ -265,7 +384,15 @@ describe("Benture Admin Token", () => {
 
         it("Should fail to mint a new admin token to zero address", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             await expect(
                 adminToken
@@ -279,7 +406,15 @@ describe("Benture Admin Token", () => {
 
         it("Should fail to mint a new admin token and connect in to zero address", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             await expect(
                 adminToken
@@ -290,7 +425,15 @@ describe("Benture Admin Token", () => {
 
         it("Should fail to mint a new admin token to the same account twice", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             await adminToken
                 .connect(factorySigner)
@@ -307,7 +450,15 @@ describe("Benture Admin Token", () => {
 
         it("Should fail to mint a new admin token if caller is not a factory", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             await expect(
                 adminToken.mintWithERC20Address(
@@ -321,7 +472,15 @@ describe("Benture Admin Token", () => {
     describe("Burn", () => {
         it("Should burn token with provided ID", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             await adminToken
                 .connect(factorySigner)
@@ -353,7 +512,15 @@ describe("Benture Admin Token", () => {
 
         it("Should fail to burn non-existent admin token", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             await adminToken
                 .connect(factorySigner)
@@ -365,7 +532,15 @@ describe("Benture Admin Token", () => {
 
         it("Should fail to burn token if caller is not an owner", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             await adminToken
                 .connect(factorySigner)
@@ -377,7 +552,15 @@ describe("Benture Admin Token", () => {
 
         it("Should burn one of several admin tokens of the user", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             await factory.createERC20Token(
                 "Dummy",
@@ -418,7 +601,15 @@ describe("Benture Admin Token", () => {
     describe("Transfer", () => {
         it("Should transfer token with provided ID from one account to another", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             await adminToken
                 .connect(factorySigner)
@@ -463,7 +654,15 @@ describe("Benture Admin Token", () => {
 
         it("Should fail to transfer non-existent admin token", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             await adminToken
                 .connect(factorySigner)
@@ -477,7 +676,15 @@ describe("Benture Admin Token", () => {
 
         it("Should fail to transfer from zero address", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             await adminToken
                 .connect(factorySigner)
@@ -491,7 +698,15 @@ describe("Benture Admin Token", () => {
 
         it("Should fail to transfer to zero address", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             await adminToken
                 .connect(factorySigner)
@@ -505,7 +720,15 @@ describe("Benture Admin Token", () => {
 
         it("Should fail to transfer if sender does not have any admin tokens", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
             await adminToken
                 .connect(factorySigner)
@@ -523,13 +746,30 @@ describe("Benture Admin Token", () => {
     describe("Upgrades", () => {
         it("Should have a new method after upgrade", async () => {
             let {
-                ownerAcc, clientAcc1, clientAcc2, benture, factory, adminToken, token, rummy, factorySigner
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
             } = await loadFixture(deploys);
-            let adminTokenV1Tx = await ethers.getContractFactory("BentureAdmin");
-            let adminTokenV2Tx = await ethers.getContractFactory("BentureAdminV2");
+            let adminTokenV1Tx = await ethers.getContractFactory(
+                "BentureAdmin"
+            );
+            let adminTokenV2Tx = await ethers.getContractFactory(
+                "BentureAdminV2"
+            );
 
-            let adminTokenV1 = await upgrades.deployProxy(adminTokenV1Tx, [factory.address]);
-            let adminTokenV2 = await upgrades.upgradeProxy(adminTokenV1.address, adminTokenV2Tx);
+            let adminTokenV1 = await upgrades.deployProxy(adminTokenV1Tx, [
+                factory.address,
+            ]);
+            let adminTokenV2 = await upgrades.upgradeProxy(
+                adminTokenV1.address,
+                adminTokenV2Tx
+            );
 
             expect(await adminTokenV2.agent()).to.equal(47);
         });

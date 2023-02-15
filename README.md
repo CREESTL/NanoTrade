@@ -35,12 +35,12 @@ The Benture is an investing marketplace, connecting entrepreneurs with investors
   POLYGONSCAN_API_KEY=***your polygonscan API key***
   ```
 - Copy your wallet's private key (see [Wallets](#wallets)) to `.env` file
+
   ```
   ACC_PRIVATE_KEY=***your private key***
   ```
 
   :warning:**DO NOT SHARE YOUR .env FILE IN ANY WAY OR YOU RISK TO LOSE ALL YOUR FUNDS**:warning:
-
 
 <a name="build"/>
 ### Build
@@ -55,8 +55,6 @@ npx hardhat compile
 ```
 npx hardhat test
 ```
-
-
 
 <a name="run"/>
 ### Run Scripts
@@ -96,14 +94,18 @@ Make sure you have _enough real MATIC tokens_ in your wallet. Deployment to the 
 ```
 
 c) **Hardhat** network
-  - Run Hardhat node locally. All *deploy scripts* will be executed as well:
-  ```
-  npx hardhat node
-  ```
-  - Run sripts on the node
-  ```
-  npx hardhat run *script name here* --network localhost
-  ```
+
+- Run Hardhat node locally. All _deploy scripts_ will be executed as well:
+
+```
+npx hardhat node
+```
+
+- Run sripts on the node
+
+```
+npx hardhat run *script name here* --network localhost
+```
 
 <a name="wallets"/>
 
@@ -187,38 +189,40 @@ Let's assume that Alice created a new ABC token using [BentureFactory](#factory)
 
 This is a dividend-distributing contract. Dividends are distributed among [BentureProducedTokens](#token) [lockers](#locker) (or among any users in case of [custom](#custom) distribution) .
 
-*Entities*
+_Entities_
 <a name="member"/>
-- *Member*. A member of a project. A user who has bought any number of project tokens.
-<a name="pool"/>
-- *Pool*. A storage where members can lock their tokens.
-<a name="distribution"/>
-- *Distribution*. A single distribution of dividend tokens initialized by the entrepreneur and targeting some number of users.
-<a name="locker"/>
-- *Locker*. A member who has locked any number of his tokens inside the pool.
 
-*Types of dividends*:
+- _Member_. A member of a project. A user who has bought any number of project tokens.
+  <a name="pool"/>
+- _Pool_. A storage where members can lock their tokens.
+  <a name="distribution"/>
+- _Distribution_. A single distribution of dividend tokens initialized by the entrepreneur and targeting some number of users.
+  <a name="locker"/>
+- _Locker_. A member who has locked any number of his tokens inside the pool.
+
+_Types of dividends_:
 
 1. Dividends can be payed in one of **3** ways:
    1.1 _Equal_. Each locker receives an equal amount of dividends.
    1.2 _Weighted_. Each locker receives an amount of dividends proportional to the amount of tokens he has locked. <a name="custom"/>
-   1.3 _Custom_. The entrepreneur provides list of users and amounts of tokens they are supposed to receive. Each user from the list then receives an amount of dividend tokens intended for him. It is *not* necessary that users should be lockers in this case.
+   1.3 _Custom_. The entrepreneur provides list of users and amounts of tokens they are supposed to receive. Each user from the list then receives an amount of dividend tokens intended for him. It is _not_ necessary that users should be lockers in this case.
 
-   *NOTE*:
+   _NOTE_:
+
    - Equal and Weighted distributions have unique numbers (IDs) whereas custom distributions do not.
 
 2. Dividends can be payed in one of two kinds of tokens:
    2.1 _ERC20 tokens_
    2.2 _Native tokens_
 
-
 **Entrepreneur side**
 
 The main role of the entrepreneur in this contract is to initialize distributions.
 
-*__Normal dividends__* (Equal & Weighted)
+_**Normal dividends**_ (Equal & Weighted)
 
-Imagine that Alice is an admin of some project. She knows that many other users have bought and locked tokens of the project. She decides to reward them with some amount of tokens. Alice initializes *equal* or *weighted* distribution. She provides:
+Imagine that Alice is an admin of some project. She knows that many other users have bought and locked tokens of the project. She decides to reward them with some amount of tokens. Alice initializes _equal_ or _weighted_ distribution. She provides:
+
 - The address of token to which lockers she would like to transfer dividends
 - The address of the token in which the dividends should be paid ([zero address](https://etherscan.io/address/0x0000000000000000000000000000000000000000) for native tokens)
 - The amount of tokens to transfer
@@ -226,43 +230,49 @@ Imagine that Alice is an admin of some project. She knows that many other users 
 
 After that, the provided amount of tokens is transferred from Alice's balance to the contract's balance and **is stored there** until lockers [claim](#claim) their dividends.
 
-*NOTE*:
-- Before starting the distribution with an *N* amount of ERC20 tokens, Alice must approve a transfer of at least *N* tokens to the `Benture` contract.
+_NOTE_:
 
-*__Custom dividends__*
+- Before starting the distribution with an _N_ amount of ERC20 tokens, Alice must approve a transfer of at least _N_ tokens to the `Benture` contract.
 
-This type of dividends is a bulk tokens distribution. It has no connection with projects and pools. Designed to transfer tokens to a list of receivers. Can be initialized by *any user*.
+_**Custom dividends**_
+
+This type of dividends is a bulk tokens distribution. It has no connection with projects and pools. Designed to transfer tokens to a list of receivers. Can be initialized by _any user_.
 
 A user should provide:
+
 - The address of the token in which the dividends should be paid ([zero address](https://etherscan.io/address/0x0000000000000000000000000000000000000000) for native tokens)
 - The list of addresses of users (receivers)
-- The list of amounts of tokens (one per receiver, may be *different* for different receivers)
+- The list of amounts of tokens (one per receiver, may be _different_ for different receivers)
 - The total amount of tokens
 
 After that, the provided amount of tokens is transferred from Alice's balance to the contract's balance and distributed (**actually transferred**) among users. Each one receives the corresponding amount from the amounts list.
 
-*NOTE*:
-- Before starting the distribution with an *N* amount of ERC20 tokens, Alice must approve a transfer of at least *N* tokens to the `Benture` contract
-- The users and amounts lists may be of arbitrary length. The bigger they are, the higher the chance of custom dividends transaction failing because of `out of gas` EVM error. That is why a special gas check was added into the contract. **If more than 2/3 of block gas limit was spent, the distribution stops**. That means *some part* of users will receive their shares, whereas others will not. The transaction *does not revert*!
+_NOTE_:
+
+- Before starting the distribution with an _N_ amount of ERC20 tokens, Alice must approve a transfer of at least _N_ tokens to the `Benture` contract
+- The users and amounts lists may be of arbitrary length. The bigger they are, the higher the chance of custom dividends transaction failing because of `out of gas` EVM error. That is why a special gas check was added into the contract. **If more than 2/3 of block gas limit was spent, the distribution stops**. That means _some part_ of users will receive their shares, whereas others will not. The transaction _does not revert_!
 - **Admin pays for gas**
 
 **Employee side**
 
-Employees (members) can *lock* tokens and *claim dividends*.
+Employees (members) can _lock_ tokens and _claim dividends_.
 
-*__Normal distributions__* (Equal & Weighted)
+_**Normal distributions**_ (Equal & Weighted)
 
-In order to be able to receive dividends, a member should become a *locker*. To become one, a member needs to lock project tokens inside the pool of the project. After a distribution was initialized, a locker can claim his dividends shares.
+In order to be able to receive dividends, a member should become a _locker_. To become one, a member needs to lock project tokens inside the pool of the project. After a distribution was initialized, a locker can claim his dividends shares.
 
-*Locking tokens*
-- *Locking portion of tokens*. A user can lock an arbitrary amount of tokens. The amount must be greater than 1 and less than or equal to user's balance.
-- *Locking all tokens*. A user can lock his total balance of tokens.
+_Locking tokens_
 
-*Unlocking tokens*
-- *Unlocking portion of tokens*. A user can unlock an arbitrary amount of tokens. The amount must be greater than 1 and less or equal to the amount of tokens he has locked
-- *Unlocking all tokens*. A user can unlock all tokens he has previously locked
+- _Locking portion of tokens_. A user can lock an arbitrary amount of tokens. The amount must be greater than 1 and less than or equal to user's balance.
+- _Locking all tokens_. A user can lock his total balance of tokens.
 
-*NOTE*:
+_Unlocking tokens_
+
+- _Unlocking portion of tokens_. A user can unlock an arbitrary amount of tokens. The amount must be greater than 1 and less or equal to the amount of tokens he has locked
+- _Unlocking all tokens_. A user can unlock all tokens he has previously locked
+
+_NOTE_:
+
 - **Unlock of any amount of tokens triggers claim of all distributions a user has participated in**
 
 <a name="claim"/>
@@ -270,12 +280,13 @@ In order to be able to receive dividends, a member should become a *locker*. To 
 - *Claiming a single dividend*. As it was stated above, all normal distributions have a unique ID. A locker can claim dividend of a distribution with a specific ID. For that he needs to know the ID.
 - *Claiming multiple dividends*. A locker can claim dividends of multiple distributions. For that he needs to know IDs of all these distributions. IDs can be provided in any order.
 
-*NOTE*:
-- Locker's share is calculated *when he claims it*.
-- In case of claiming multiple dividends, the list of IDs may be of arbitrary length. The bigger it is, the higher the chance of claim transaction failing because of `out of gas` EVM error. That is why a special gas check was addes into the contract. **If more than 2/3 of block gas limit was spent, the claim stops**. That means, *some part* of dividends from the list will be claimed, whereas others will not. The transaction *does not revert*!
+_NOTE_:
+
+- Locker's share is calculated _when he claims it_.
+- In case of claiming multiple dividends, the list of IDs may be of arbitrary length. The bigger it is, the higher the chance of claim transaction failing because of `out of gas` EVM error. That is why a special gas check was addes into the contract. **If more than 2/3 of block gas limit was spent, the claim stops**. That means, _some part_ of dividends from the list will be claimed, whereas others will not. The transaction _does not revert_!
 - **Locker pays for gas**
 
-*__Custom distributions__*
+_**Custom distributions**_
 
 To take part in custom dividends distribution the user does not need to do anything. It's up to admin to include or not include user into the receivers list. If he gets included in the list, he then receives his share immediately. No claim process required.
 
@@ -301,8 +312,7 @@ Each employee can have _multiple salary schedules with different parameters_ sim
 There can be an employee with no schedules at all. He will not be able to claim any salaries.
 An entrepreneur is also able to **remove an employee** (fire him). If he decides to do that when the employee has not claimed his salary, then the employee _automatically receives_ the pending amount of salary tokens for the number of days he was working (even if it happens in the middle of the salary period). That is, an entrepreneur can not fire an employee at the very end of the period and leave him with no salary paid at all.
 _An entrepreneur can remove (fire) an employee only if the employee has received (manually or automatically) all salaries appointed to him in the current project by all salary schedules for all days of work_.
-An entrepreneur can **add** or **remove** periods from an employee's schedule.  Periods are added or removed from the end of the schedule.
-
+An entrepreneur can **add** or **remove** periods from an employee's schedule. Periods are added or removed from the end of the schedule.
 
 **Employee side**
 Employee should **claim** salaries himself. He can do that whenever he wants (assuming that he has pending salaries). Notice, that he claims _all pending salaries_. So if he did not claim the salary for 3 months and does that on the 4th month then he would receive the total sum of tokens for all 4 months at once. He _can not_ claim salary in parts. An employee is free to _never_ claim his salaries at all as well. Only 3 cases may lead to an employee receiving salary during N-th period:
@@ -314,11 +324,12 @@ Employee should **claim** salaries himself. He can do that whenever he wants (as
 As it was stated above, an entrepreneur allows the `Salary` contract to transfer tokens to employees when necessary. But if he allows to transfer S tokens from his balance to pay a salary and _then decreases_ the allowance to E (E < S) - an employee _will not be able_ to claim the salary he was expecting to receive (S). He will also fail to claim his salary if an entrepreneur _does not have enough tokens_ (i.e. less then the total amount of tokens in salary schedule). So it is up to an entrepreneur to make sure that he owns enough tokens to pay his employees accoding to schedules.
 
 ---
+
 <a name="issues"/>
 **[Known Issues]**
 
-*Tests Coverage*
+_Tests Coverage_
 
-`distributeDividendsCustom` and `claimMultipleDividends` functions of `Benture` contract contain checks for amount of gas spent. Tests for these functions pass successfully using `npx hardhat test`, **but they fail** using `npx hardhat coverage`. The reason is that while checking for coverage percentage, contracts are deployed and executed on a special `coverage` network (*not hardhat node*) where gas costs are much higher than in hardhat network. For example, if `claimMultipleDividends([1, 2, 3, 4 ... 50])` costs 200k gas on hardhat network and block gas limit is 500k, it executes as expected (all dividends are claimed) and `expect` statement (which expects all the dividens to be claimed) in the tests also passes successfully. But the same function may cost 700k gas on `coverage` network with the same block gas limit. Therefor, *only some part* of dividends will be claimed and `expect` statement (which expects all the dividens to be claimed) *fails*. And so does the whole test-case.
-For this reason, coverage report displays **incorrect** results. It may display that `claimMultipleDividends` function was not covered with tests (because *they failed*), whereas in fact it was covered with tests.
-To sum up:  coverage percentage of `Benture` contract is incorrect and can not be corrected.
+`distributeDividendsCustom` and `claimMultipleDividends` functions of `Benture` contract contain checks for amount of gas spent. Tests for these functions pass successfully using `npx hardhat test`, **but they fail** using `npx hardhat coverage`. The reason is that while checking for coverage percentage, contracts are deployed and executed on a special `coverage` network (_not hardhat node_) where gas costs are much higher than in hardhat network. For example, if `claimMultipleDividends([1, 2, 3, 4 ... 50])` costs 200k gas on hardhat network and block gas limit is 500k, it executes as expected (all dividends are claimed) and `expect` statement (which expects all the dividens to be claimed) in the tests also passes successfully. But the same function may cost 700k gas on `coverage` network with the same block gas limit. Therefor, _only some part_ of dividends will be claimed and `expect` statement (which expects all the dividens to be claimed) _fails_. And so does the whole test-case.
+For this reason, coverage report displays **incorrect** results. It may display that `claimMultipleDividends` function was not covered with tests (because _they failed_), whereas in fact it was covered with tests.
+To sum up: coverage percentage of `Benture` contract is incorrect and can not be corrected.

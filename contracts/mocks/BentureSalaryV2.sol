@@ -13,7 +13,13 @@ import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeab
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 /// @title Salary contract. A contract to manage salaries
-contract BentureSalaryV2 is IBentureSalary, Initializable, OwnableUpgradeable, UUPSUpgradeable, ReentrancyGuardUpgradeable  {
+contract BentureSalaryV2 is
+    IBentureSalary,
+    Initializable,
+    OwnableUpgradeable,
+    UUPSUpgradeable,
+    ReentrancyGuardUpgradeable
+{
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
@@ -28,10 +34,12 @@ contract BentureSalaryV2 is IBentureSalary, Initializable, OwnableUpgradeable, U
     mapping(address => string) private names;
 
     /// @dev Mapping from admins address to its array of employees
-    mapping(address => EnumerableSetUpgradeable.AddressSet) private adminToEmployees;
+    mapping(address => EnumerableSetUpgradeable.AddressSet)
+        private adminToEmployees;
 
     /// @dev Mapping from employee address to its array of admins
-    mapping(address => EnumerableSetUpgradeable.AddressSet) private employeeToAdmins;
+    mapping(address => EnumerableSetUpgradeable.AddressSet)
+        private employeeToAdmins;
 
     /// @dev Mapping from salary ID to its info
     mapping(uint256 => SalaryInfo) private salaryById;
@@ -47,8 +55,7 @@ contract BentureSalaryV2 is IBentureSalary, Initializable, OwnableUpgradeable, U
     }
 
     /// @param adminTokenAddress The address of the BentureAdmin Token
-    function initialize(address adminTokenAddress) initializer public {
-
+    function initialize(address adminTokenAddress) public initializer {
         __Ownable_init();
         __UUPSUpgradeable_init();
 
@@ -58,7 +65,7 @@ contract BentureSalaryV2 is IBentureSalary, Initializable, OwnableUpgradeable, U
         bentureAdminToken = adminTokenAddress;
     }
 
-    function agent() pure public returns(uint256) {
+    function agent() public pure returns (uint256) {
         return 47;
     }
 
@@ -348,8 +355,10 @@ contract BentureSalaryV2 is IBentureSalary, Initializable, OwnableUpgradeable, U
         }
 
         if (
-            IERC20Upgradeable(_salary.tokenAddress).allowance(msg.sender, address(this)) <
-            totalTokenAmount - alreadyPayed
+            IERC20Upgradeable(_salary.tokenAddress).allowance(
+                msg.sender,
+                address(this)
+            ) < totalTokenAmount - alreadyPayed
         ) {
             revert NotEnoughTokensAllowed();
         }
@@ -391,8 +400,10 @@ contract BentureSalaryV2 is IBentureSalary, Initializable, OwnableUpgradeable, U
         }
 
         if (
-            IERC20Upgradeable(tokenAddress).allowance(msg.sender, address(this)) <
-            totalTokenAmount
+            IERC20Upgradeable(tokenAddress).allowance(
+                msg.sender,
+                address(this)
+            ) < totalTokenAmount
         ) {
             revert NotEnoughTokensAllowed();
         }
@@ -516,9 +527,7 @@ contract BentureSalaryV2 is IBentureSalary, Initializable, OwnableUpgradeable, U
         );
     }
 
-    function _authorizeUpgrade(address newImplementation)
-        internal
-        onlyOwner
-        override
-    {}
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal override onlyOwner {}
 }

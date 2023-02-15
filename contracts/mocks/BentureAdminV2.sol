@@ -14,7 +14,14 @@ import "../interfaces/IBentureProducedToken.sol";
 import "../interfaces/IBentureAdmin.sol";
 
 /// @title A custom ERC721 contract that allows to mint controlled ERC20 tokens
-contract BentureAdminV2 is IBentureAdmin, Initializable, ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
+contract BentureAdminV2 is
+    IBentureAdmin,
+    Initializable,
+    ERC721Upgradeable,
+    OwnableUpgradeable,
+    UUPSUpgradeable,
+    ReentrancyGuardUpgradeable
+{
     using CountersUpgradeable for CountersUpgradeable.Counter;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
     using StringsUpgradeable for uint256;
@@ -45,7 +52,7 @@ contract BentureAdminV2 is IBentureAdmin, Initializable, ERC721Upgradeable, Owna
 
     /// @dev Creates an "empty" NFT
     /// @param factoryAddress_ The address of the factory minting admin tokens
-    function initialize(address factoryAddress_) initializer public {
+    function initialize(address factoryAddress_) public initializer {
         __ERC721_init("Benture Manager Token", "BMNG");
         __Ownable_init();
         __UUPSUpgradeable_init();
@@ -56,7 +63,7 @@ contract BentureAdminV2 is IBentureAdmin, Initializable, ERC721Upgradeable, Owna
         _factoryAddress = factoryAddress_;
     }
 
-    function agent() pure public returns(uint256) {
+    function agent() public pure returns (uint256) {
         return 47;
     }
 
@@ -232,9 +239,7 @@ contract BentureAdminV2 is IBentureAdmin, Initializable, ERC721Upgradeable, Owna
         emit AdminTokenTransferred(from, to, tokenId);
     }
 
-    function _authorizeUpgrade(address newImplementation)
-        internal
-        onlyOwner
-        override
-    {}
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal override onlyOwner {}
 }

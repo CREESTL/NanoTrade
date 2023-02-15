@@ -34,7 +34,7 @@ contract BentureFactoryV2 is
 
     receive() external payable {}
 
-    function agent() pure public returns(uint256) {
+    function agent() public pure returns (uint256) {
         return 47;
     }
 

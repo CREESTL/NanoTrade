@@ -35,8 +35,11 @@ async function main() {
     // Verify implementation
     console.log(`[${contractName}][Implementation]: Start of Verification...`);
 
-    let bentureImplAddress = await upgrades.erc1967.getImplementationAddress(benture.address);
-    OUTPUT_DEPLOY[network.name][contractName].implementationAddress = bentureImplAddress;
+    let bentureImplAddress = await upgrades.erc1967.getImplementationAddress(
+        benture.address
+    );
+    OUTPUT_DEPLOY[network.name][contractName].implementationAddress =
+        bentureImplAddress;
     if (network.name === "polygon_mainnet") {
         url = "https://polygonscan.com/address/" + bentureImplAddress + "#code";
     } else if (network.name === "polygon_testnet") {
@@ -50,14 +53,15 @@ async function main() {
         await hre.run("verify:verify", {
             address: bentureImplAddress,
         });
-    } catch (error) {
-    }
+    } catch (error) {}
     // Initialize implementation if it has not been initialized yet
-    let bentureImpl = await ethers.getContractAt("BentureFactory", bentureImplAddress);
+    let bentureImpl = await ethers.getContractAt(
+        "BentureFactory",
+        bentureImplAddress
+    );
     try {
         await bentureImpl.initialize();
-    } catch (error) {
-    }
+    } catch (error) {}
     console.log(`[${contractName}][Implementation]: Verification Finished!`);
 
     // Verify proxy
@@ -69,17 +73,15 @@ async function main() {
             "https://mumbai.polygonscan.com/address/" +
             benture.address +
             "#code";
-        }
+    }
     OUTPUT_DEPLOY[network.name][contractName].proxyVerification = url;
 
     try {
         await hre.run("verify:verify", {
             address: benture.address,
         });
-    } catch (error) {
-    }
+    } catch (error) {}
     console.log(`[${contractName}][Proxy]: Verification Finished!`);
-
 
     // ====================================================
 
@@ -102,8 +104,11 @@ async function main() {
     // Verify implementation
     console.log(`[${contractName}][Implementation]: Start of Verification...`);
 
-    let factoryImplAddress = await upgrades.erc1967.getImplementationAddress(factory.address);
-    OUTPUT_DEPLOY[network.name][contractName].implementationAddress = factoryImplAddress;
+    let factoryImplAddress = await upgrades.erc1967.getImplementationAddress(
+        factory.address
+    );
+    OUTPUT_DEPLOY[network.name][contractName].implementationAddress =
+        factoryImplAddress;
     if (network.name === "polygon_mainnet") {
         url = "https://polygonscan.com/address/" + factoryImplAddress + "#code";
     } else if (network.name === "polygon_testnet") {
@@ -117,14 +122,15 @@ async function main() {
         await hre.run("verify:verify", {
             address: factoryImplAddress,
         });
-    } catch (error) {
-    }
+    } catch (error) {}
     // Initialize implementation if it has not been initialized yet
-    let factoryImpl = await ethers.getContractAt("BentureFactory", factoryImplAddress);
+    let factoryImpl = await ethers.getContractAt(
+        "BentureFactory",
+        factoryImplAddress
+    );
     try {
         await factoryImpl.initialize(benture.address);
-    } catch (error) {
-    }
+    } catch (error) {}
     console.log(`[${contractName}][Implementation]: Verification Finished!`);
 
     // Verify proxy
@@ -136,17 +142,15 @@ async function main() {
             "https://mumbai.polygonscan.com/address/" +
             factory.address +
             "#code";
-        }
+    }
     OUTPUT_DEPLOY[network.name][contractName].proxyVerification = url;
 
     try {
         await hre.run("verify:verify", {
             address: factory.address,
         });
-    } catch (error) {
-    }
+    } catch (error) {}
     console.log(`[${contractName}][Proxy]: Verification Finished!`);
-
 
     // ====================================================
 
@@ -165,8 +169,11 @@ async function main() {
 
     // Verify implementation
     console.log(`[${contractName}][Implementation]: Start of Verification...`);
-    let adminImplAddress = await upgrades.erc1967.getImplementationAddress(adminToken.address);
-    OUTPUT_DEPLOY[network.name][contractName].implementationAddress = adminImplAddress;
+    let adminImplAddress = await upgrades.erc1967.getImplementationAddress(
+        adminToken.address
+    );
+    OUTPUT_DEPLOY[network.name][contractName].implementationAddress =
+        adminImplAddress;
     if (network.name === "polygon_mainnet") {
         url = "https://polygonscan.com/address/" + adminImplAddress + "#code";
     } else if (network.name === "polygon_testnet") {
@@ -180,14 +187,15 @@ async function main() {
         await hre.run("verify:verify", {
             address: adminImplAddress,
         });
-    } catch (error) {
-    }
+    } catch (error) {}
     // Initialize implementation if it has not been initialized before
-    let adminImpl = await ethers.getContractAt("BentureAdmin", adminImplAddress);
+    let adminImpl = await ethers.getContractAt(
+        "BentureAdmin",
+        adminImplAddress
+    );
     try {
         await adminImpl.initialize(factory.address);
-    } catch (error) {
-    }
+    } catch (error) {}
     console.log(`[${contractName}][Implementation]: Verification Finished!`);
 
     // Verify proxy
@@ -199,15 +207,14 @@ async function main() {
             "https://mumbai.polygonscan.com/address/" +
             adminToken.address +
             "#code";
-        }
+    }
     OUTPUT_DEPLOY[network.name][contractName].proxyVerification = url;
 
     try {
         await hre.run("verify:verify", {
             address: adminToken.address,
         });
-    } catch (error) {
-    }
+    } catch (error) {}
     console.log(`[${contractName}][Proxy]: Verification Finished!`);
 
     // ====================================================
@@ -227,8 +234,11 @@ async function main() {
 
     // Verify implementation
     console.log(`[${contractName}][Implementation]: Start of Verification...`);
-    let salaryImplAddress = await upgrades.erc1967.getImplementationAddress(salary.address);
-    OUTPUT_DEPLOY[network.name][contractName].implementationAddress = salaryImplAddress;
+    let salaryImplAddress = await upgrades.erc1967.getImplementationAddress(
+        salary.address
+    );
+    OUTPUT_DEPLOY[network.name][contractName].implementationAddress =
+        salaryImplAddress;
     if (network.name === "polygon_mainnet") {
         url = "https://polygonscan.com/address/" + salaryImplAddress + "#code";
     } else if (network.name === "polygon_testnet") {
@@ -242,14 +252,15 @@ async function main() {
         await hre.run("verify:verify", {
             address: salaryImplAddress,
         });
-    } catch (error) {
-    }
+    } catch (error) {}
     // Initialize implementation if it has not been initialized before
-    let salaryImpl = await ethers.getContractAt("BentureSalary", salaryImplAddress);
+    let salaryImpl = await ethers.getContractAt(
+        "BentureSalary",
+        salaryImplAddress
+    );
     try {
         await salaryImpl.initialize(adminToken.address);
-    } catch (error) {
-    }
+    } catch (error) {}
     console.log(`[${contractName}][Implementation]: Verification Finished!`);
 
     // Verify proxy
@@ -261,17 +272,15 @@ async function main() {
             "https://mumbai.polygonscan.com/address/" +
             salary.address +
             "#code";
-        }
+    }
     OUTPUT_DEPLOY[network.name][contractName].proxyVerification = url;
 
     try {
         await hre.run("verify:verify", {
             address: salary.address,
         });
-    } catch (error) {
-    }
+    } catch (error) {}
     console.log(`[${contractName}][Proxy]: Verification Finished!`);
-
 
     // ====================================================
 
@@ -281,7 +290,8 @@ async function main() {
     );
 
     console.log(
-        `\n***Deployment and verification are completed!***\n***See Results in "${__dirname + "/deployOutput.json"
+        `\n***Deployment and verification are completed!***\n***See Results in "${
+            __dirname + "/deployOutput.json"
         }" file***`
     );
 }
