@@ -495,6 +495,10 @@ contract Benture is
         if (amount == 0) {
             revert InvalidDividendsAmount();
         }
+        // No dividends can be distributed if there are no lockers in the pool
+        if (pools[origToken].lockers.length() == 0) {
+            revert NoLockersInThePool();
+        }
         if (distToken != address(0)) {
             // NOTE: Caller should approve transfer of at least `amount` of tokens with `ERC20.approve()`
             // before calling this function
