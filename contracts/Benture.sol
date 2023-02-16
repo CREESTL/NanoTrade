@@ -34,7 +34,6 @@ contract Benture is
         // The address of the token inside the pool
         address token;
         // The list of all lockers of the pool
-        EnumerableSetUpgradeable.AddressSet lockers;
         // The amount of locked tokens
         uint256 totalLocked;
         // Mapping from user address to the amount of tokens currently locked by the user in the pool
