@@ -11,9 +11,9 @@ describe("Benture Produced Token", () => {
     async function deploys() {
         [ownerAcc, clientAcc1, clientAcc2] = await ethers.getSigners();
 
-        // Deploy a factory contract
+        // Deploy dividend-distribution contract
         let bentureTx = await ethers.getContractFactory("Benture");
-        let benture = await bentureTx.deploy();
+        let benture = await upgrades.deployProxy(bentureTx, []);
         await benture.deployed();
 
         // Deploy a factory contract
