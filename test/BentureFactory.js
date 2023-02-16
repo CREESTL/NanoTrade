@@ -13,7 +13,7 @@ describe("Benture Factory", () => {
 
         // Deploy dividend-distribution contract
         let bentureTx = await ethers.getContractFactory("Benture");
-        let benture = await bentureTx.deploy();
+        let benture = await upgrades.deployProxy(bentureTx, []);
         await benture.deployed();
 
         // Deploy a factory contract

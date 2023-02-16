@@ -10,6 +10,7 @@ interface IBentureErrors {
     error InvalidLockAmount();
     error CallerIsNotLocker();
     error PoolDoesNotExist();
+    error NoLockersInThePool();
     error EmptyList();
     error ListsLengthDiffers();
     error WrongTokenInsideThePool();
