@@ -560,6 +560,8 @@ describe("Benture Dividend Distributing Contract", () => {
         describe("Equal dividends", () => {
             // #DEE
             describe("ERC20 tokens dividends", () => {
+
+
                 it("Should distribute dividends to a single address and use getters", async () => {
                     let { benture, factory, adminToken, origToken, distToken } =
                         await loadFixture(deploys);
@@ -2596,6 +2598,101 @@ describe("Benture Dividend Distributing Contract", () => {
                         await benture.hasClaimed(3, clientAcc1.address)
                     ).to.equal(true);
                 });
+
+                it("Should determine that user took part in all distributions even if he only locked before the first one", async () => {
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
+                    let mintAmount = parseUnits("1000000", 6);
+                    let lockAmount1 = parseUnits("10", 6);
+                    let lockAmount2 = parseUnits("5", 6);
+                    let lockAmount3 = parseUnits("5", 6);
+                    let claimAmount = parseUnits("19", 6);
+
+                    await origToken.mint(clientAcc1.address, mintAmount);
+                    await origToken.mint(clientAcc2.address, mintAmount);
+                    await origToken.mint(ownerAcc.address, mintAmount.mul(1000));
+
+                    expect(await origToken.balanceOf(benture.address)).to.equal(0);
+
+                    // Lock 10 from acc1
+                    await origToken
+                        .connect(clientAcc1)
+                        .approve(benture.address, lockAmount1);
+                    await benture
+                        .connect(clientAcc1)
+                        .lockTokens(origToken.address, lockAmount1);
+
+                    // That's the only lock of the user. But he should take part in all 2 distributions
+                    // Lock 5 from acc2
+                    await origToken
+                        .connect(clientAcc2)
+                        .approve(benture.address, lockAmount2);
+                    await benture
+                        .connect(clientAcc2)
+                        .lockTokens(origToken.address, lockAmount2);
+
+
+                    // Distribute 19
+                    // each gets 9.5
+                    await
+                        benture.distributeDividends(
+                            origToken.address,
+                            origToken.address,
+                            claimAmount,
+                            true
+                        );
+
+                    // Lock 5 from acc1
+                    await origToken
+                        .connect(clientAcc1)
+                        .approve(benture.address, lockAmount3);
+                    await benture
+                        .connect(clientAcc1)
+                        .lockTokens(origToken.address, lockAmount3);
+
+                    // Distribute 19 again
+                    // each gets 9.5
+                    await
+                        benture.distributeDividends(
+                            origToken.address,
+                            origToken.address,
+                            claimAmount,
+                            true
+                        );
+
+                    expect(await benture.connect(clientAcc1).getMyShare(1)).to.equal(parseUnits("9.5", 6));
+                    expect(await benture.connect(clientAcc1).getMyShare(2)).to.equal(parseUnits("9.5", 6));
+                    expect(await benture.connect(clientAcc2).getMyShare(1)).to.equal(parseUnits("9.5", 6));
+                    expect(await benture.connect(clientAcc2).getMyShare(2)).to.equal(parseUnits("9.5", 6));
+
+                    let user1StartBalance = await origToken.balanceOf(clientAcc1.address);
+                    let user2StartBalance = await origToken.balanceOf(clientAcc2.address);
+
+
+                    // Unlock all tokens from both accs
+                    // acc1 should unlock 15 and receive 19 as dividends, total 34
+                    // acc2 should unlock 5 and receive 19 as dividends, total 24
+                    await benture.connect(clientAcc1).unlockAllTokens(origToken.address);
+                    await benture.connect(clientAcc2).unlockAllTokens(origToken.address);
+
+
+                    let user1EndBalance = await origToken.balanceOf(clientAcc1.address);
+                    let user2EndBalance = await origToken.balanceOf(clientAcc2.address);
+
+                    let diff1 = user1EndBalance.sub(user1StartBalance);
+                    let diff2 = user2EndBalance.sub(user2StartBalance);
+
+                    expect(diff1).to.equal(parseUnits("34", 6));
+                    expect(diff2).to.equal(parseUnits("24", 6));
+
+                    expect(await benture.hasClaimed(1, clientAcc1.address)).to.equal(true);
+                    expect(await benture.hasClaimed(1, clientAcc2.address)).to.equal(true);
+
+                    expect(await origToken.balanceOf(benture.address)).to.equal(0);
+
+
+                });
+
             });
         });
     });
