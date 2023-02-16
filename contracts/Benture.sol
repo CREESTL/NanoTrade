@@ -250,12 +250,9 @@ contract Benture is
 
         // If there is only one such distribution that means that
         // this was only one distribution in total and it has started
-        // Check that he hasn't claimed it and if so - return
+        // Check that he hasn't claimed
         if (allIds.length == 1) {
-            if (!distributions[allIds[0]].hasClaimed[user]) {
-                return allIds;
-            } else {
-                // Else return an empty array
+            if (distributions[allIds[0]].hasClaimed[user]) {
                 return new uint256[](0);
             }
         }
@@ -378,6 +375,35 @@ contract Benture is
                 }
             }
         }
+
+        // Now `tookPart` is the array of distributions in which user took part until
+        // the last distribution before which the lock was changed. But there can be more!
+        // Need to extend `tookPart` in this case
+
+        // If the last distribution from `tookPart`
+        // is less than the current distribution ID, that means that the user took part in all
+        // distributions from that one and until the current one
+        if (tookPart[tookPart.length - 1] <= distributionIds.current()) {
+            // An array that copies `tookPart` and appends all new IDs
+            // It's length is a sum of `tookPart` and the amount of new IDs to be addres
+            uint256[] memory temp = new uint256[](tookPart.length + (distributionIds.current()) - tookPart[tookPart.length - 1]);
+            uint256 incrementingPart = 1;
+            for (uint256 i = 0; i < temp.length; i++) {
+                // Copy `tookPart`
+                if (i < tookPart.length) {
+                    temp[i] = tookPart[i];
+                // Append new IDs
+                } else {
+                    temp[i] = temp[tookPart.length - 1] + incrementingPart;
+                    incrementingPart++;
+                }
+            }
+
+            tookPart = temp;
+
+        }
+
+
         return tookPart;
     }
 
