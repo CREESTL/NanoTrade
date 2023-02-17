@@ -23,9 +23,14 @@ contract BentureFactory is
     /// @dev The address of the last token that was produced by the factory
     address private _lastProducedToken;
 
+
+    /// @notice Set a `Benture` contract address
+    /// @param bentureAddress_ The address of `Benture` contract
     function initialize(address bentureAddress_) public initializer {
+
         __Ownable_init();
         __UUPSUpgradeable_init();
+
         if (bentureAddress_ == address(0)) {
             revert BentureAddressIsZero();
         }

@@ -56,6 +56,7 @@ contract BentureAdmin is
         __ERC721_init("Benture Manager Token", "BMNG");
         __Ownable_init();
         __UUPSUpgradeable_init();
+        __ReentrancyGuard_init();
 
         if (factoryAddress_ == address(0)) {
             revert InvalidFactoryAddress();

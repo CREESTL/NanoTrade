@@ -2,20 +2,18 @@
 
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "./BentureProducedToken.sol";
 import "./interfaces/IBenture.sol";
-import "./interfaces/IBentureProducedToken.sol";
-import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
-
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @title Dividends distributing contract
 contract Benture is
@@ -26,10 +24,7 @@ contract Benture is
     ReentrancyGuardUpgradeable
 {
     using CountersUpgradeable for CountersUpgradeable.Counter;
-    // TODO
-    // Use SafeERC20Upgradeable here???
-    using SafeERC20 for IERC20;
-    using SafeERC20 for IBentureProducedToken;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
     /// @dev Pool to lock tokens
@@ -39,7 +34,6 @@ contract Benture is
         // The address of the token inside the pool
         address token;
         // The list of all lockers of the pool
-        EnumerableSetUpgradeable.AddressSet lockers;
         // The amount of locked tokens
         uint256 totalLocked;
         // Mapping from user address to the amount of tokens currently locked by the user in the pool
@@ -128,6 +122,8 @@ contract Benture is
     /// @dev The contract must be able to receive ether to pay dividends with it
     receive() external payable {}
 
+
+    /// @notice Initialize all parent contracts
     function initialize() public initializer {
         __Ownable_init();
         __UUPSUpgradeable_init();
@@ -206,7 +202,7 @@ contract Benture is
         // NOTE: User must approve transfer of at least `amount` of tokens
         //       before calling this function
         // Transfer tokens from user to the contract
-        IBentureProducedToken(origToken).safeTransferFrom(
+        IERC20Upgradeable(origToken).safeTransferFrom(
             msg.sender,
             address(this),
             amount
@@ -216,7 +212,7 @@ contract Benture is
     /// @notice Locks all user's tokens in the pool
     /// @param origToken The address of the token to lock
     function lockAllTokens(address origToken) public {
-        uint256 wholeBalance = IBentureProducedToken(origToken).balanceOf(
+        uint256 wholeBalance = IERC20Upgradeable(origToken).balanceOf(
             msg.sender
         );
         lockTokens(origToken, wholeBalance);
@@ -484,7 +480,7 @@ contract Benture is
         emit TokensUnlocked(msg.sender, origToken, amount);
 
         // Transfer unlocked tokens from contract to the user
-        IBentureProducedToken(origToken).safeTransfer(msg.sender, amount);
+        IERC20Upgradeable(origToken).safeTransfer(msg.sender, amount);
     }
 
     /// @notice Unlocks all locked tokens of the user in the pool
@@ -529,7 +525,7 @@ contract Benture is
             // NOTE: Caller should approve transfer of at least `amount` of tokens with `ERC20.approve()`
             // before calling this function
             // Transfer tokens from admin to the contract
-            IERC20(distToken).safeTransferFrom(
+            IERC20Upgradeable(distToken).safeTransferFrom(
                 msg.sender,
                 address(this),
                 amount
@@ -725,7 +721,7 @@ contract Benture is
             }
         } else {
             // Send ERC20 tokens
-            IERC20(distribution.distToken).safeTransfer(msg.sender, share);
+            IERC20Upgradeable(distribution.distToken).safeTransfer(msg.sender, share);
         }
     }
 
@@ -784,7 +780,7 @@ contract Benture is
         // to this contract first
         // NOTE: Caller must approve transfer of at least `totalAmount` of tokens to this contract
         if (token != address(0)) {
-            IERC20(token).safeTransferFrom(
+            IERC20Upgradeable(token).safeTransferFrom(
                 msg.sender,
                 address(this),
                 totalAmount
@@ -814,7 +810,7 @@ contract Benture is
                 }
             } else {
                 // Other ERC20 tokens
-                IERC20(token).safeTransfer(users[i], amounts[i]);
+                IERC20Upgradeable(token).safeTransfer(users[i], amounts[i]);
             }
             // Increase the number of users who received their shares
             count++;
