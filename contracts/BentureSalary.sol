@@ -54,10 +54,13 @@ contract BentureSalary is
         _;
     }
 
+    /// @notice Set the address of the admin token
     /// @param adminTokenAddress The address of the BentureAdmin Token
     function initialize(address adminTokenAddress) public initializer {
+
         __Ownable_init();
         __UUPSUpgradeable_init();
+        __ReentrancyGuard_init();
 
         if (adminTokenAddress == address(0)) {
             revert ZeroAddress();

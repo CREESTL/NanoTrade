@@ -123,6 +123,8 @@ contract Benture is
     /// @dev The contract must be able to receive ether to pay dividends with it
     receive() external payable {}
 
+
+    /// @notice Initialize all parent contracts
     function initialize() public initializer {
         __Ownable_init();
         __UUPSUpgradeable_init();
