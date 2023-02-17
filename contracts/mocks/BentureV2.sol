@@ -123,7 +123,6 @@ contract BentureV2 is
     /// @dev The contract must be able to receive ether to pay dividends with it
     receive() external payable {}
 
-
     /// @notice Initialize all parent contracts
     function initialize() public initializer {
         __Ownable_init();
@@ -387,13 +386,17 @@ contract BentureV2 is
         if (tookPart[tookPart.length - 1] <= distributionIds.current()) {
             // An array that copies `tookPart` and appends all new IDs
             // It's length is a sum of `tookPart` and the amount of new IDs to be addres
-            uint256[] memory temp = new uint256[](tookPart.length + (distributionIds.current()) - tookPart[tookPart.length - 1]);
+            uint256[] memory temp = new uint256[](
+                tookPart.length +
+                    (distributionIds.current()) -
+                    tookPart[tookPart.length - 1]
+            );
             uint256 incrementingPart = 1;
             for (uint256 i = 0; i < temp.length; i++) {
                 // Copy `tookPart`
                 if (i < tookPart.length) {
                     temp[i] = tookPart[i];
-                // Append new IDs
+                    // Append new IDs
                 } else {
                     temp[i] = temp[tookPart.length - 1] + incrementingPart;
                     incrementingPart++;
@@ -401,9 +404,7 @@ contract BentureV2 is
             }
 
             tookPart = temp;
-
         }
-
 
         return tookPart;
     }
@@ -726,7 +727,10 @@ contract BentureV2 is
             }
         } else {
             // Send ERC20 tokens
-            IERC20Upgradeable(distribution.distToken).safeTransfer(msg.sender, share);
+            IERC20Upgradeable(distribution.distToken).safeTransfer(
+                msg.sender,
+                share
+            );
         }
     }
 

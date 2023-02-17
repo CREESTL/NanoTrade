@@ -741,6 +741,17 @@ error NoLockedTokens()
 
 
 
+### NoLockersInThePool
+
+```solidity
+error NoLockersInThePool()
+```
+
+
+
+
+
+
 ### NotEnoughNativeTokens
 
 ```solidity

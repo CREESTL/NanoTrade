@@ -76,7 +76,6 @@ describe("Benture Dividend Distributing Contract", () => {
             .connect(ownerAcc)
             .approve(benture.address, parseUnits("10000000", 6));
 
-
         return {
             benture,
             factory,
@@ -560,8 +559,6 @@ describe("Benture Dividend Distributing Contract", () => {
         describe("Equal dividends", () => {
             // #DEE
             describe("ERC20 tokens dividends", () => {
-
-
                 it("Should distribute dividends to a single address and use getters", async () => {
                     let { benture, factory, adminToken, origToken, distToken } =
                         await loadFixture(deploys);
@@ -1622,8 +1619,12 @@ describe("Benture Dividend Distributing Contract", () => {
                 // to distribute dividends
                 let initialLock = parseUnits("1000", 6);
                 await origToken.mint(clientAcc3.address, initialLock);
-                await origToken.connect(clientAcc3).approve(benture.address, initialLock);
-                await benture.connect(clientAcc3).lockAllTokens(origToken.address);
+                await origToken
+                    .connect(clientAcc3)
+                    .approve(benture.address, initialLock);
+                await benture
+                    .connect(clientAcc3)
+                    .lockAllTokens(origToken.address);
 
                 let mintAmount = parseUnits("10000000", 6);
                 let lockAmount1 = parseUnits("1000", 6);
@@ -2063,8 +2064,12 @@ describe("Benture Dividend Distributing Contract", () => {
                 // to distribute dividends
                 let initialLock = parseUnits("1000", 6);
                 await origToken.mint(clientAcc3.address, initialLock);
-                await origToken.connect(clientAcc3).approve(benture.address, initialLock);
-                await benture.connect(clientAcc3).lockAllTokens(origToken.address);
+                await origToken
+                    .connect(clientAcc3)
+                    .approve(benture.address, initialLock);
+                await benture
+                    .connect(clientAcc3)
+                    .lockAllTokens(origToken.address);
 
                 let mintAmount = parseUnits("10000000", 6);
                 let lockAmount1 = parseUnits("1000", 6);
@@ -2209,8 +2214,12 @@ describe("Benture Dividend Distributing Contract", () => {
                 // to distribute dividends
                 let initialLock = parseUnits("1000", 6);
                 await origToken.mint(clientAcc3.address, initialLock);
-                await origToken.connect(clientAcc3).approve(benture.address, initialLock);
-                await benture.connect(clientAcc3).lockAllTokens(origToken.address);
+                await origToken
+                    .connect(clientAcc3)
+                    .approve(benture.address, initialLock);
+                await benture
+                    .connect(clientAcc3)
+                    .lockAllTokens(origToken.address);
 
                 let mintAmount = parseUnits("10000000", 6);
                 let lockAmount1 = parseUnits("1000", 6);
@@ -2433,8 +2442,12 @@ describe("Benture Dividend Distributing Contract", () => {
                     // to distribute dividends
                     let initialLock = parseUnits("1000", 6);
                     await origToken.mint(clientAcc3.address, initialLock);
-                    await origToken.connect(clientAcc3).approve(benture.address, initialLock);
-                    await benture.connect(clientAcc3).lockAllTokens(origToken.address);
+                    await origToken
+                        .connect(clientAcc3)
+                        .approve(benture.address, initialLock);
+                    await benture
+                        .connect(clientAcc3)
+                        .lockAllTokens(origToken.address);
 
                     let mintAmount = parseUnits("10000000", 6);
                     let lockAmount1 = parseUnits("1000", 6);
@@ -2610,9 +2623,14 @@ describe("Benture Dividend Distributing Contract", () => {
 
                     await origToken.mint(clientAcc1.address, mintAmount);
                     await origToken.mint(clientAcc2.address, mintAmount);
-                    await origToken.mint(ownerAcc.address, mintAmount.mul(1000));
+                    await origToken.mint(
+                        ownerAcc.address,
+                        mintAmount.mul(1000)
+                    );
 
-                    expect(await origToken.balanceOf(benture.address)).to.equal(0);
+                    expect(await origToken.balanceOf(benture.address)).to.equal(
+                        0
+                    );
 
                     // Lock 10 from acc1
                     await origToken
@@ -2631,16 +2649,14 @@ describe("Benture Dividend Distributing Contract", () => {
                         .connect(clientAcc2)
                         .lockTokens(origToken.address, lockAmount2);
 
-
                     // Distribute 19
                     // each gets 9.5
-                    await
-                        benture.distributeDividends(
-                            origToken.address,
-                            origToken.address,
-                            claimAmount,
-                            true
-                        );
+                    await benture.distributeDividends(
+                        origToken.address,
+                        origToken.address,
+                        claimAmount,
+                        true
+                    );
 
                     // Lock 5 from acc1
                     await origToken
@@ -2652,32 +2668,49 @@ describe("Benture Dividend Distributing Contract", () => {
 
                     // Distribute 19 again
                     // each gets 9.5
-                    await
-                        benture.distributeDividends(
-                            origToken.address,
-                            origToken.address,
-                            claimAmount,
-                            true
-                        );
+                    await benture.distributeDividends(
+                        origToken.address,
+                        origToken.address,
+                        claimAmount,
+                        true
+                    );
 
-                    expect(await benture.connect(clientAcc1).getMyShare(1)).to.equal(parseUnits("9.5", 6));
-                    expect(await benture.connect(clientAcc1).getMyShare(2)).to.equal(parseUnits("9.5", 6));
-                    expect(await benture.connect(clientAcc2).getMyShare(1)).to.equal(parseUnits("9.5", 6));
-                    expect(await benture.connect(clientAcc2).getMyShare(2)).to.equal(parseUnits("9.5", 6));
+                    expect(
+                        await benture.connect(clientAcc1).getMyShare(1)
+                    ).to.equal(parseUnits("9.5", 6));
+                    expect(
+                        await benture.connect(clientAcc1).getMyShare(2)
+                    ).to.equal(parseUnits("9.5", 6));
+                    expect(
+                        await benture.connect(clientAcc2).getMyShare(1)
+                    ).to.equal(parseUnits("9.5", 6));
+                    expect(
+                        await benture.connect(clientAcc2).getMyShare(2)
+                    ).to.equal(parseUnits("9.5", 6));
 
-                    let user1StartBalance = await origToken.balanceOf(clientAcc1.address);
-                    let user2StartBalance = await origToken.balanceOf(clientAcc2.address);
-
+                    let user1StartBalance = await origToken.balanceOf(
+                        clientAcc1.address
+                    );
+                    let user2StartBalance = await origToken.balanceOf(
+                        clientAcc2.address
+                    );
 
                     // Unlock all tokens from both accs
                     // acc1 should unlock 15 and receive 19 as dividends, total 34
                     // acc2 should unlock 5 and receive 19 as dividends, total 24
-                    await benture.connect(clientAcc1).unlockAllTokens(origToken.address);
-                    await benture.connect(clientAcc2).unlockAllTokens(origToken.address);
+                    await benture
+                        .connect(clientAcc1)
+                        .unlockAllTokens(origToken.address);
+                    await benture
+                        .connect(clientAcc2)
+                        .unlockAllTokens(origToken.address);
 
-
-                    let user1EndBalance = await origToken.balanceOf(clientAcc1.address);
-                    let user2EndBalance = await origToken.balanceOf(clientAcc2.address);
+                    let user1EndBalance = await origToken.balanceOf(
+                        clientAcc1.address
+                    );
+                    let user2EndBalance = await origToken.balanceOf(
+                        clientAcc2.address
+                    );
 
                     let diff1 = user1EndBalance.sub(user1StartBalance);
                     let diff2 = user2EndBalance.sub(user2StartBalance);
@@ -2685,14 +2718,17 @@ describe("Benture Dividend Distributing Contract", () => {
                     expect(diff1).to.equal(parseUnits("34", 6));
                     expect(diff2).to.equal(parseUnits("24", 6));
 
-                    expect(await benture.hasClaimed(1, clientAcc1.address)).to.equal(true);
-                    expect(await benture.hasClaimed(1, clientAcc2.address)).to.equal(true);
+                    expect(
+                        await benture.hasClaimed(1, clientAcc1.address)
+                    ).to.equal(true);
+                    expect(
+                        await benture.hasClaimed(1, clientAcc2.address)
+                    ).to.equal(true);
 
-                    expect(await origToken.balanceOf(benture.address)).to.equal(0);
-
-
+                    expect(await origToken.balanceOf(benture.address)).to.equal(
+                        0
+                    );
                 });
-
             });
         });
     });
@@ -2738,7 +2774,9 @@ describe("Benture Dividend Distributing Contract", () => {
             // to distribute dividends
             let initialLock = parseUnits("1000", 6);
             await origToken.mint(clientAcc3.address, initialLock);
-            await origToken.connect(clientAcc3).approve(benture.address, initialLock);
+            await origToken
+                .connect(clientAcc3)
+                .approve(benture.address, initialLock);
             await benture.connect(clientAcc3).lockAllTokens(origToken.address);
 
             await benture.distributeDividends(
@@ -3015,7 +3053,9 @@ describe("Benture Dividend Distributing Contract", () => {
             // to distribute dividends
             let initialLock = parseUnits("1000", 6);
             await origToken.mint(clientAcc3.address, initialLock);
-            await origToken.connect(clientAcc3).approve(benture.address, initialLock);
+            await origToken
+                .connect(clientAcc3)
+                .approve(benture.address, initialLock);
             await benture.connect(clientAcc3).lockAllTokens(origToken.address);
 
             await benture.distributeDividends(
@@ -3045,7 +3085,9 @@ describe("Benture Dividend Distributing Contract", () => {
             // to distribute dividends
             let initialLock = parseUnits("1000", 6);
             await origToken.mint(clientAcc3.address, initialLock);
-            await origToken.connect(clientAcc3).approve(benture.address, initialLock);
+            await origToken
+                .connect(clientAcc3)
+                .approve(benture.address, initialLock);
             await benture.connect(clientAcc3).lockAllTokens(origToken.address);
 
             await benture.distributeDividends(
@@ -3071,12 +3113,13 @@ describe("Benture Dividend Distributing Contract", () => {
                 "InvalidDistribution"
             );
 
-
             // One user has to lock tokens in the pool so that admin would be able
             // to distribute dividends
             let initialLock = parseUnits("1000", 6);
             await origToken.mint(clientAcc3.address, initialLock);
-            await origToken.connect(clientAcc3).approve(benture.address, initialLock);
+            await origToken
+                .connect(clientAcc3)
+                .approve(benture.address, initialLock);
             await benture.connect(clientAcc3).lockAllTokens(origToken.address);
 
             await benture.distributeDividends(
