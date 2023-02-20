@@ -17,19 +17,34 @@ describe("Benture Dividend Distributing Contract", () => {
 
         // Deploy dividend-distribution contract
         let bentureTx = await ethers.getContractFactory("Benture");
-        let benture = await upgrades.deployProxy(bentureTx, []);
+        let benture = await upgrades.deployProxy(bentureTx, [], {
+            initializer: "initialize",
+            kind: "uups",
+        });
         await benture.deployed();
 
         // Deploy a factory contract
-        let factoryTx = await ethers.getContractFactory("BentureFactory");
-        let factory = await upgrades.deployProxy(factoryTx, [benture.address]);
+        let factoryTx = await ethers.getContractFactory(
+            "contracts/BentureFactory.sol:BentureFactory"
+        );
+        let factory = await upgrades.deployProxy(factoryTx, [benture.address], {
+            initializer: "initialize",
+            kind: "uups",
+        });
         await factory.deployed();
 
         await benture.setFactoryAddress(factory.address);
 
         // Deploy an admin token (ERC721)
         let adminTx = await ethers.getContractFactory("BentureAdmin");
-        let adminToken = await upgrades.deployProxy(adminTx, [factory.address]);
+        let adminToken = await upgrades.deployProxy(
+            adminTx,
+            [factory.address],
+            {
+                initializer: "initialize",
+                kind: "uups",
+            }
+        );
         await adminToken.deployed();
 
         // Create new ERC20 and ERC721 and assign them to caller (owner)
@@ -46,7 +61,7 @@ describe("Benture Dividend Distributing Contract", () => {
         // Get the address of the last ERC20 token produced in the factory
         let origTokenAddress = await factory.lastProducedToken();
         let origToken = await ethers.getContractAt(
-            "BentureProducedToken",
+            "contracts/BentureProducedToken.sol:BentureProducedToken",
             origTokenAddress
         );
 
@@ -62,7 +77,7 @@ describe("Benture Dividend Distributing Contract", () => {
         // The address of `lastProducedToken` of factory gets changed here
         let distTokenAddress = await factory.lastProducedToken();
         let distToken = await ethers.getContractAt(
-            "BentureProducedToken",
+            "contracts/BentureProducedToken.sol:BentureProducedToken",
             distTokenAddress
         );
 
@@ -103,7 +118,7 @@ describe("Benture Dividend Distributing Contract", () => {
             ).to.emit(benture, "PoolCreated");
             let grummyAddress = await factory.lastProducedToken();
             let grummy = await ethers.getContractAt(
-                "BentureProducedToken",
+                "contracts/BentureProducedToken.sol:BentureProducedToken",
                 grummyAddress
             );
             const {
@@ -3163,10 +3178,16 @@ describe("Benture Dividend Distributing Contract", () => {
             let bentureV1Tx = await ethers.getContractFactory("Benture");
             let bentureV2Tx = await ethers.getContractFactory("BentureV2");
 
-            let bentureV1 = await upgrades.deployProxy(bentureV1Tx, []);
+            let bentureV1 = await upgrades.deployProxy(bentureV1Tx, [], {
+                initializer: "initialize",
+                kind: "uups",
+            });
             let bentureV2 = await upgrades.upgradeProxy(
                 bentureV1.address,
-                bentureV2Tx
+                bentureV2Tx,
+                {
+                    kind: "uups",
+                }
             );
 
             expect(await bentureV2.agent()).to.equal(47);

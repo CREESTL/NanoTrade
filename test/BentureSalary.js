@@ -20,19 +20,39 @@ describe("Salary", () => {
 
         // Deploy dividend-distribution contract
         let bentureTx = await ethers.getContractFactory("Benture");
-        let benture = await upgrades.deployProxy(bentureTx, []);
+        let benture = await upgrades.deployProxy(
+            bentureTx,
+            [],
+            {},
+            {
+                initializer: "initialize",
+                kind: "uups",
+            }
+        );
         await benture.deployed();
 
         // Deploy a factory contract
-        let factoryTx = await ethers.getContractFactory("BentureFactory");
-        let factory = await upgrades.deployProxy(factoryTx, [benture.address]);
+        let factoryTx = await ethers.getContractFactory(
+            "contracts/BentureFactory.sol:BentureFactory"
+        );
+        let factory = await upgrades.deployProxy(factoryTx, [benture.address], {
+            initializer: "initialize",
+            kind: "uups",
+        });
         await factory.deployed();
 
         await benture.setFactoryAddress(factory.address);
 
         // Deploy an admin token (ERC721)
         let adminTx = await ethers.getContractFactory("BentureAdmin");
-        let adminToken = await upgrades.deployProxy(adminTx, [factory.address]);
+        let adminToken = await upgrades.deployProxy(
+            adminTx,
+            [factory.address],
+            {
+                initializer: "initialize",
+                kind: "uups",
+            }
+        );
         await adminToken.deployed();
 
         // Create new ERC20 and ERC721 and assign them to caller (owner)
@@ -49,7 +69,7 @@ describe("Salary", () => {
         // Get the address of the last ERC20 token produced in the factory
         let origTokenAddress = await factory.lastProducedToken();
         let origToken = await ethers.getContractAt(
-            "BentureProducedToken",
+            "contracts/BentureProducedToken.sol:BentureProducedToken",
             origTokenAddress
         );
 
@@ -65,7 +85,7 @@ describe("Salary", () => {
         // The address of `lastProducedToken` of factory gets changed here
         let distTokenAddress = await factory.lastProducedToken();
         let distToken = await ethers.getContractAt(
-            "BentureProducedToken",
+            "contracts/BentureProducedToken.sol:BentureProducedToken",
             distTokenAddress
         );
 
@@ -85,7 +105,14 @@ describe("Salary", () => {
         await rummy.deployed();
 
         let salaryTx = await ethers.getContractFactory("BentureSalary");
-        let salary = await upgrades.deployProxy(salaryTx, [adminToken.address]);
+        let salary = await upgrades.deployProxy(
+            salaryTx,
+            [adminToken.address],
+            {
+                initializer: "initialize",
+                kind: "uups",
+            }
+        );
         await salary.deployed();
 
         let mockERC20Tx = await ethers.getContractFactory("MockERC20");
@@ -2433,9 +2460,14 @@ describe("Salary", () => {
             } = await loadFixture(deploys);
             let newSalaryTx = await ethers.getContractFactory("BentureSalary");
             await expect(
-                upgrades.deployProxy(newSalaryTx, [
-                    "0x0000000000000000000000000000000000000000",
-                ])
+                upgrades.deployProxy(
+                    newSalaryTx,
+                    ["0x0000000000000000000000000000000000000000"],
+                    {
+                        initializer: "initialize",
+                        kind: "uups",
+                    }
+                )
             ).to.be.revertedWithCustomError(salary, "ZeroAddress");
         });
 
@@ -2557,12 +2589,20 @@ describe("Salary", () => {
             let salaryV1Tx = await ethers.getContractFactory("BentureSalary");
             let salaryV2Tx = await ethers.getContractFactory("BentureSalaryV2");
 
-            let salaryV1 = await upgrades.deployProxy(salaryV1Tx, [
-                benture.address,
-            ]);
+            let salaryV1 = await upgrades.deployProxy(
+                salaryV1Tx,
+                [benture.address],
+                {
+                    initializer: "initialize",
+                    kind: "uups",
+                }
+            );
             let salaryV2 = await upgrades.upgradeProxy(
                 salaryV1.address,
-                salaryV2Tx
+                salaryV2Tx,
+                {
+                    kind: "uups",
+                }
             );
 
             expect(await salaryV2.agent()).to.equal(47);
