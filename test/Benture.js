@@ -3123,6 +3123,12 @@ describe("Benture Dividend Distributing Contract", () => {
             let lockAmount = parseUnits("1000", 6);
             let claimAmount = parseUnits("1000", 6);
 
+            await expect(benture.getMyShare(1)).to.be.revertedWithCustomError(
+                benture,
+                "InvalidDistribution"
+            );
+
+
             await expect(benture.getMyShare(777)).to.be.revertedWithCustomError(
                 benture,
                 "InvalidDistribution"

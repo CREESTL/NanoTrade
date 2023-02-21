@@ -631,7 +631,16 @@ contract Benture is
         uint256 id,
         address user
     ) internal view returns (uint256) {
+
+        if (id > distributionIds.current()) {
+            revert InvalidDistribution();
+        }
+        if (user == address(0)) {
+            revert InvalidUserAddress();
+        }
+
         Distribution storage distribution = distributions[id];
+
         Pool storage pool = pools[distribution.origToken];
 
         uint256 share;
@@ -978,10 +987,11 @@ contract Benture is
         return false;
     }
 
-    /// @notice Returns the share of the user in a given distribution
+    /// @notice Returns the share of the user in one of the previously
+    ///         started distributions.
     /// @param id The ID of the distribution to calculate share in
     function getMyShare(uint256 id) external view returns (uint256) {
-        if (id > distributionIds.current() + 1) {
+        if (id > distributionIds.current()) {
             revert InvalidDistribution();
         }
         // Only lockers might have shares
