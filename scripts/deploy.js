@@ -60,7 +60,7 @@ async function main() {
     } catch (error) {}
     // Initialize implementation if it has not been initialized yet
     let bentureImpl = await ethers.getContractAt(
-        "BentureFactory",
+        "Benture",
         bentureImplAddress
     );
     try {
@@ -94,7 +94,7 @@ async function main() {
     // Deploy proxy and implementation
     contractName = "BentureFactory";
     console.log(`[${contractName}]: Start of Deployment...`);
-    _contractProto = await ethers.getContractFactory(contractName);
+    _contractProto = await ethers.getContractFactory("contracts/BentureFactory.sol:BentureFactory");
     factory = await upgrades.deployProxy(_contractProto, [benture.address], {
         initializer: "initialize",
         kind: "uups",
@@ -132,7 +132,7 @@ async function main() {
     } catch (error) {}
     // Initialize implementation if it has not been initialized yet
     let factoryImpl = await ethers.getContractAt(
-        "BentureFactory",
+        "contracts/BentureFactory.sol:BentureFactory",
         factoryImplAddress
     );
     try {
