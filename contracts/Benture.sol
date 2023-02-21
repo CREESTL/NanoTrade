@@ -778,6 +778,10 @@ contract Benture is
         uint256[] calldata amounts,
         uint256 totalAmount
     ) public payable nonReentrant {
+        // Total amount of tokens can't be zero
+        if (totalAmount == 0) {
+            revert InvalidDividendsAmount();
+        }
         // Lists can't be empty
         if ((users.length == 0) || (amounts.length == 0)) {
             revert EmptyList();
