@@ -760,6 +760,7 @@ contract Benture is
             count++;
             // Check that no more than 2/3 of block gas limit was spent
             if (gasleft() <= gasThreshold) {
+                emit GasLimitReached(gasleft(), block.gaslimit);
                 break;
             }
         }
@@ -805,6 +806,7 @@ contract Benture is
             );
         }
 
+
         // Only 2/3 of block gas limit could be spent. So 1/3 should be left.
         uint256 gasThreshold = (block.gaslimit * 1) / 3;
 
@@ -834,6 +836,7 @@ contract Benture is
             count++;
             // Check that no more than 2/3 of block gas limit was spent
             if (gasleft() <= gasThreshold) {
+                emit GasLimitReached(gasleft(), block.gaslimit);
                 break;
             }
         }

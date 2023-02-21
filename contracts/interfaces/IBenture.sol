@@ -180,4 +180,10 @@ interface IBenture is IBentureErrors {
     /// @param count The total number of users who received their shares
     ///              Counting starts from the first user and does not skip any users
     event CustomDividendsDistributed(address indexed token, uint256 count);
+
+    /// @dev Indicates that 2/3 of block gas limit was spent during the
+    ///      iteration inside the contract method
+    /// @param gasLeft How much gas was used
+    /// @param gasLimit The block gas limit
+    event GasLimitReached(uint256 gasLeft, uint256 gasLimit);
 }
