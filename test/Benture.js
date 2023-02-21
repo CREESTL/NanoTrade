@@ -2841,6 +2841,8 @@ describe("Benture Dividend Distributing Contract", () => {
     // #CU
     describe("Custom Dividends", () => {
         describe("ERC20 tokens dividends", () => {
+
+
             it("Should distribute ERC20 tokens custom dividends", async () => {
                 let { benture, factory, adminToken, origToken, distToken } =
                     await loadFixture(deploys);
@@ -2870,6 +2872,37 @@ describe("Benture Dividend Distributing Contract", () => {
 
                 expect(endBalance1.sub(startBalance1)).to.equal(claimAmount1);
                 expect(endBalance2.sub(startBalance2)).to.equal(claimAmount2);
+            });
+
+            it("Should distribute ERC20 tokens custom dividends if one receiver is sender", async () => {
+                let { benture, factory, adminToken, origToken, distToken } =
+                    await loadFixture(deploys);
+
+                let startBalance1 = await distToken.balanceOf(ownerAcc.address);
+                let startBalance3 = await distToken.balanceOf(benture.address);
+
+                await expect(
+                    benture.connect(ownerAcc).distributeDividendsCustom(
+                        distToken.address,
+                        // Owner sends tokens to himself
+                        [ownerAcc.address, clientAcc1.address],
+                        // Use low amounts
+                        [1, 2],
+                        3
+                    )
+                )
+                    .to.emit(benture, "CustomDividendsDistributed")
+                    .withArgs(anyValue, anyValue);
+
+                let endBalance1 = await distToken.balanceOf(ownerAcc.address);
+                let endBalance2 = await distToken.balanceOf(clientAcc1.address);
+                let endBalance3 = await distToken.balanceOf(benture.address);
+
+                // Owner sent 3 tokens to the contract and received 1 back.
+                expect(startBalance1.sub(endBalance1)).to.equal(2);
+                expect(endBalance2).to.equal(2);
+                expect(endBalance3).to.equal(startBalance3);
+
             });
         });
 
