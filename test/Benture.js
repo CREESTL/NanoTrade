@@ -2888,8 +2888,7 @@ describe("Benture Dividend Distributing Contract", () => {
                         [ownerAcc.address, clientAcc1.address],
                         // Use low amounts
                         [1, 2],
-                        3,
-                        {value: parseEther("0.00000000002")}
+                        3
                     )
                 )
                     .to.emit(benture, "CustomDividendsDistributed")
