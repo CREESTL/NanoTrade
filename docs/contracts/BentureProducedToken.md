@@ -2,7 +2,7 @@
 
 
 
-
+> An ERC20 project token
 
 
 

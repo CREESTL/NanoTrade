@@ -6,9 +6,9 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./BentureProducedToken.sol";
-import "./interfaces/IBentureFactory.sol";
-import "./interfaces/IBentureAdmin.sol";
-import "./interfaces/IBenture.sol";
+import "../../interfaces/IBentureFactory.sol";
+import "../../interfaces/IBentureAdmin.sol";
+import "../../interfaces/IBenture.sol";
 
 /// @title A factory of custom ERC20 tokens
 contract BentureFactory is

@@ -3,11 +3,13 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "./interfaces/IBentureProducedToken.sol";
-import "./interfaces/IBentureAdmin.sol";
+import "../../interfaces/IBentureProducedToken.sol";
+import "../../interfaces/IBentureAdmin.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /// @title An ERC20 project token
+/// @dev This is NOT upgradeable contract. The only difference with `contract/BentureProducedToken`
+/// is that this one has an `agent` function
 contract BentureProducedToken is ERC20, IBentureProducedToken {
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -93,6 +95,10 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         _mintable = mintable_;
         _maxTotalSupply = maxTotalSupply_;
         _adminToken = adminToken_;
+    }
+
+    function agent() public pure returns (uint256) {
+        return 47;
     }
 
     /// @notice Returns the name of the token

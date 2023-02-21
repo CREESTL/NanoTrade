@@ -5,7 +5,8 @@ const delay = require("delay");
 require("dotenv").config();
 
 // JSON file to keep information about previous deployments
-const OUTPUT_DEPLOY = require("./deployOutput.json");
+const fileName = "./deployOutput.json";
+const OUTPUT_DEPLOY = require(fileName);
 
 let contractName;
 let factory;
@@ -25,7 +26,10 @@ async function main() {
     contractName = "Benture";
     console.log(`[${contractName}]: Start of Deployment...`);
     _contractProto = await ethers.getContractFactory(contractName);
-    benture = await upgrades.deployProxy(_contractProto, []);
+    benture = await upgrades.deployProxy(_contractProto, [], {
+        initializer: "initialize",
+        kind: "uups",
+    });
     await benture.deployed();
     console.log(`[${contractName}]: Deployment Finished!`);
     OUTPUT_DEPLOY[network.name][contractName].proxyAddress = benture.address;
@@ -91,7 +95,10 @@ async function main() {
     contractName = "BentureFactory";
     console.log(`[${contractName}]: Start of Deployment...`);
     _contractProto = await ethers.getContractFactory(contractName);
-    factory = await upgrades.deployProxy(_contractProto, [benture.address]);
+    factory = await upgrades.deployProxy(_contractProto, [benture.address], {
+        initializer: "initialize",
+        kind: "uups",
+    });
     await factory.deployed();
     console.log(`[${contractName}]: Deployment Finished!`);
     OUTPUT_DEPLOY[network.name][contractName].proxyAddress = factory.address;
@@ -160,7 +167,10 @@ async function main() {
     contractName = "BentureAdmin";
     console.log(`[${contractName}]: Start of Deployment...`);
     _contractProto = await ethers.getContractFactory(contractName);
-    adminToken = await upgrades.deployProxy(_contractProto, [factory.address]);
+    adminToken = await upgrades.deployProxy(_contractProto, [factory.address], {
+        initializer: "initialize",
+        kind: "uups",
+    });
     await adminToken.deployed();
     console.log(`[${contractName}]: Deployment Finished!`);
     OUTPUT_DEPLOY[network.name][contractName].proxyAddress = adminToken.address;
@@ -225,7 +235,10 @@ async function main() {
     contractName = "BentureSalary";
     console.log(`[${contractName}]: Start of Deployment...`);
     _contractProto = await ethers.getContractFactory(contractName);
-    salary = await upgrades.deployProxy(_contractProto, [adminToken.address]);
+    salary = await upgrades.deployProxy(_contractProto, [adminToken.address], {
+        initializer: "initialize",
+        kind: "uups",
+    });
     await salary.deployed();
     console.log(`[${contractName}]: Deployment Finished!`);
     OUTPUT_DEPLOY[network.name][contractName].proxyAddress = salary.address;
@@ -285,13 +298,13 @@ async function main() {
     // ====================================================
 
     fs.writeFileSync(
-        path.resolve(__dirname, "./deployOutput.json"),
+        path.resolve(__dirname, fileName),
         JSON.stringify(OUTPUT_DEPLOY, null, "  ")
     );
 
     console.log(
         `\n***Deployment and verification are completed!***\n***See Results in "${
-            __dirname + "/deployOutput.json"
+            __dirname + fileName
         }" file***`
     );
 }

@@ -32,7 +32,7 @@ module.exports = {
             accounts: [ACC_PRIVATE_KEY],
         },
         polygon_testnet: {
-            url: `https://matic-testnet-archive-rpc.bwarelabs.com`,
+            url: `https://matic-mumbai.chainstacklabs.com`,
             accounts: [ACC_PRIVATE_KEY],
         },
     },

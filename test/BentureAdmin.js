@@ -14,19 +14,34 @@ describe("Benture Admin Token", () => {
 
         // Deploy dividend-distribution contract
         let bentureTx = await ethers.getContractFactory("Benture");
-        let benture = await upgrades.deployProxy(bentureTx, []);
+        let benture = await upgrades.deployProxy(bentureTx, [], {
+            initializer: "initialize",
+            kind: "uups",
+        });
         await benture.deployed();
 
         // Deploy a factory contract
-        let factoryTx = await ethers.getContractFactory("BentureFactory");
-        let factory = await upgrades.deployProxy(factoryTx, [benture.address]);
+        let factoryTx = await ethers.getContractFactory(
+            "contracts/BentureFactory.sol:BentureFactory"
+        );
+        let factory = await upgrades.deployProxy(factoryTx, [benture.address], {
+            initializer: "initialize",
+            kind: "uups",
+        });
         await factory.deployed();
 
         await benture.setFactoryAddress(factory.address);
 
         // Deploy an admin token (ERC721)
         let adminTx = await ethers.getContractFactory("BentureAdmin");
-        let adminToken = await upgrades.deployProxy(adminTx, [factory.address]);
+        let adminToken = await upgrades.deployProxy(
+            adminTx,
+            [factory.address],
+            {
+                initializer: "initialize",
+                kind: "uups",
+            }
+        );
         await adminToken.deployed();
 
         // Create new ERC20 and ERC721 and assign them to caller (owner)
@@ -43,7 +58,7 @@ describe("Benture Admin Token", () => {
         // Get the address of the last ERC20 token produced in the factory
         let tokenAddress = await factory.lastProducedToken();
         let token = await ethers.getContractAt(
-            "BentureProducedToken",
+            "contracts/BentureProducedToken.sol:BentureProducedToken",
             tokenAddress
         );
 
@@ -107,7 +122,10 @@ describe("Benture Admin Token", () => {
             } = await loadFixture(deploys);
             let tx = await ethers.getContractFactory("BentureAdmin");
             await expect(
-                upgrades.deployProxy(tx, [zeroAddress])
+                upgrades.deployProxy(tx, [zeroAddress], {
+                    initializer: "initialize",
+                    kind: "uups",
+                })
             ).to.be.revertedWithCustomError(
                 adminToken,
                 "InvalidFactoryAddress"
@@ -326,7 +344,7 @@ describe("Benture Admin Token", () => {
 
             newTokenAddress = await factory.lastProducedToken();
             newToken = await ethers.getContractAt(
-                "BentureProducedToken",
+                "contracts/BentureProducedToken.sol:BentureProducedToken",
                 newTokenAddress
             );
             expect(
@@ -573,7 +591,7 @@ describe("Benture Admin Token", () => {
             // Now owner has 2 admin tokens
             newTokenAddress = await factory.lastProducedToken();
             newToken = await ethers.getContractAt(
-                "BentureProducedToken",
+                "contracts/BentureProducedToken.sol:BentureProducedToken",
                 newTokenAddress
             );
             let startBalance = await adminToken.balanceOf(ownerAcc.address);
@@ -763,12 +781,21 @@ describe("Benture Admin Token", () => {
                 "BentureAdminV2"
             );
 
-            let adminTokenV1 = await upgrades.deployProxy(adminTokenV1Tx, [
-                factory.address,
-            ]);
+            let adminTokenV1 = await upgrades.deployProxy(
+                adminTokenV1Tx,
+                [factory.address],
+                {
+                    initializer: "initialize",
+                    kind: "uups",
+                }
+            );
+
             let adminTokenV2 = await upgrades.upgradeProxy(
                 adminTokenV1.address,
-                adminTokenV2Tx
+                adminTokenV2Tx,
+                {
+                    kind: "uups",
+                }
             );
 
             expect(await adminTokenV2.agent()).to.equal(47);

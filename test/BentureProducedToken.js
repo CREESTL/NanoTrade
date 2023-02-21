@@ -13,19 +13,34 @@ describe("Benture Produced Token", () => {
 
         // Deploy dividend-distribution contract
         let bentureTx = await ethers.getContractFactory("Benture");
-        let benture = await upgrades.deployProxy(bentureTx, []);
+        let benture = await upgrades.deployProxy(bentureTx, [], {
+            initializer: "initialize",
+            kind: "uups",
+        });
         await benture.deployed();
 
         // Deploy a factory contract
-        let factoryTx = await ethers.getContractFactory("BentureFactory");
-        let factory = await upgrades.deployProxy(factoryTx, [benture.address]);
+        let factoryTx = await ethers.getContractFactory(
+            "contracts/BentureFactory.sol:BentureFactory"
+        );
+        let factory = await upgrades.deployProxy(factoryTx, [benture.address], {
+            initializer: "initialize",
+            kind: "uups",
+        });
         await factory.deployed();
 
         await benture.setFactoryAddress(factory.address);
 
         // Deploy an admin token (ERC721)
         let adminTx = await ethers.getContractFactory("BentureAdmin");
-        let adminToken = await upgrades.deployProxy(adminTx, [factory.address]);
+        let adminToken = await upgrades.deployProxy(
+            adminTx,
+            [factory.address],
+            {
+                initializer: "initialize",
+                kind: "uups",
+            }
+        );
         await adminToken.deployed();
 
         // Create new ERC20 and ERC721 and assign them to caller (owner)
@@ -42,7 +57,7 @@ describe("Benture Produced Token", () => {
         // Get the address of the last ERC20 token produced in the factory
         let tokenAddress = await factory.lastProducedToken();
         let token = await ethers.getContractAt(
-            "BentureProducedToken",
+            "contracts/BentureProducedToken.sol:BentureProducedToken",
             tokenAddress
         );
 
@@ -115,7 +130,7 @@ describe("Benture Produced Token", () => {
             // Get the address of the last ERC20 token produced in the factory
             let newTokenAddress = await factory.lastProducedToken();
             let newToken = await ethers.getContractAt(
-                "BentureProducedToken",
+                "contracts/BentureProducedToken.sol:BentureProducedToken",
                 newTokenAddress
             );
             // Actually it's not infinite. It's a max possible value in Solidity - type(uint256).max
@@ -233,7 +248,7 @@ describe("Benture Produced Token", () => {
 
             newAddress = await factory.lastProducedToken();
             newToken = await ethers.getContractAt(
-                "BentureProducedToken",
+                "contracts/BentureProducedToken.sol:BentureProducedToken",
                 newAddress
             );
 
