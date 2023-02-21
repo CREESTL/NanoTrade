@@ -631,7 +631,16 @@ contract Benture is
         uint256 id,
         address user
     ) internal view returns (uint256) {
+
+        if (id > distributionIds.current()) {
+            revert InvalidDistribution();
+        }
+        if (user == address(0)) {
+            revert InvalidUserAddress();
+        }
+
         Distribution storage distribution = distributions[id];
+
         Pool storage pool = pools[distribution.origToken];
 
         uint256 share;
@@ -751,6 +760,7 @@ contract Benture is
             count++;
             // Check that no more than 2/3 of block gas limit was spent
             if (gasleft() <= gasThreshold) {
+                emit GasLimitReached(gasleft(), block.gaslimit);
                 break;
             }
         }
@@ -769,6 +779,10 @@ contract Benture is
         uint256[] calldata amounts,
         uint256 totalAmount
     ) public payable nonReentrant {
+        // Total amount of tokens can't be zero
+        if (totalAmount == 0) {
+            revert InvalidDividendsAmount();
+        }
         // Lists can't be empty
         if ((users.length == 0) || (amounts.length == 0)) {
             revert EmptyList();
@@ -791,6 +805,7 @@ contract Benture is
                 totalAmount
             );
         }
+
 
         // Only 2/3 of block gas limit could be spent. So 1/3 should be left.
         uint256 gasThreshold = (block.gaslimit * 1) / 3;
@@ -821,6 +836,7 @@ contract Benture is
             count++;
             // Check that no more than 2/3 of block gas limit was spent
             if (gasleft() <= gasThreshold) {
+                emit GasLimitReached(gasleft(), block.gaslimit);
                 break;
             }
         }
@@ -978,10 +994,11 @@ contract Benture is
         return false;
     }
 
-    /// @notice Returns the share of the user in a given distribution
+    /// @notice Returns the share of the user in one of the previously
+    ///         started distributions.
     /// @param id The ID of the distribution to calculate share in
     function getMyShare(uint256 id) external view returns (uint256) {
-        if (id > distributionIds.current() + 1) {
+        if (id > distributionIds.current()) {
             revert InvalidDistribution();
         }
         // Only lockers might have shares

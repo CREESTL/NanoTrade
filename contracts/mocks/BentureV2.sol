@@ -755,6 +755,7 @@ contract BentureV2 is
             count++;
             // Check that no more than 2/3 of block gas limit was spent
             if (gasleft() <= gasThreshold) {
+                emit GasLimitReached(gasleft(), block.gaslimit);
                 break;
             }
         }
@@ -825,6 +826,7 @@ contract BentureV2 is
             count++;
             // Check that no more than 2/3 of block gas limit was spent
             if (gasleft() <= gasThreshold) {
+                emit GasLimitReached(gasleft(), block.gaslimit);
                 break;
             }
         }

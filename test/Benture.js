@@ -2841,6 +2841,7 @@ describe("Benture Dividend Distributing Contract", () => {
     // #CU
     describe("Custom Dividends", () => {
         describe("ERC20 tokens dividends", () => {
+
             it("Should distribute ERC20 tokens custom dividends", async () => {
                 let { benture, factory, adminToken, origToken, distToken } =
                     await loadFixture(deploys);
@@ -2870,6 +2871,38 @@ describe("Benture Dividend Distributing Contract", () => {
 
                 expect(endBalance1.sub(startBalance1)).to.equal(claimAmount1);
                 expect(endBalance2.sub(startBalance2)).to.equal(claimAmount2);
+            });
+
+            it("Should distribute ERC20 tokens custom dividends if one receiver is sender", async () => {
+                let { benture, factory, adminToken, origToken, distToken } =
+                    await loadFixture(deploys);
+
+                let startBalance1 = await distToken.balanceOf(ownerAcc.address);
+                let startBalance2 = await distToken.balanceOf(clientAcc1.address);
+                let startBalance3 = await distToken.balanceOf(benture.address);
+
+                await expect(
+                    benture.connect(ownerAcc).distributeDividendsCustom(
+                        distToken.address,
+                        // Owner sends tokens to himself
+                        [ownerAcc.address, clientAcc1.address],
+                        // Use low amounts
+                        [1, 2],
+                        3
+                    )
+                )
+                    .to.emit(benture, "CustomDividendsDistributed")
+                    .withArgs(anyValue, anyValue);
+
+                let endBalance1 = await distToken.balanceOf(ownerAcc.address);
+                let endBalance2 = await distToken.balanceOf(clientAcc1.address);
+                let endBalance3 = await distToken.balanceOf(benture.address);
+
+                // Owner sent 3 tokens to the contract and received 1 back.
+                expect(startBalance1.sub(endBalance1)).to.equal(2);
+                expect(endBalance2.sub(startBalance2)).to.equal(2);
+                expect(endBalance3).to.equal(startBalance3);
+
             });
         });
 
@@ -2913,6 +2946,27 @@ describe("Benture Dividend Distributing Contract", () => {
     });
     // #FCU
     describe("Fails for Custom Dividends", () => {
+        it("Should fail to distribute custom dividends if total amount is zero", async () => {
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
+            await expect(
+                benture.distributeDividendsCustom(
+                    distToken.address,
+                    [clientAcc1.address, clientAcc2.address],
+                    [1, 2],
+                    0
+                )
+            ).to.be.revertedWithCustomError(benture, "InvalidDividendsAmount");
+
+            await expect(
+                benture.distributeDividendsCustom(
+                    distToken.address,
+                    [clientAcc1.address, clientAcc2.address],
+                    [],
+                    3
+                )
+            ).to.be.revertedWithCustomError(benture, "EmptyList");
+        });
         it("Should fail to distribute custom dividends if any list is empty", async () => {
             let { benture, factory, adminToken, origToken, distToken } =
                 await loadFixture(deploys);
@@ -2997,7 +3051,7 @@ describe("Benture Dividend Distributing Contract", () => {
     });
 
     // #G
-    describe("Getters", () => {});
+    describe("Getters", () => { });
 
     // #FG
     describe("Fails for getters", () => {
@@ -3122,6 +3176,12 @@ describe("Benture Dividend Distributing Contract", () => {
             let mintAmount = parseUnits("1000000", 6);
             let lockAmount = parseUnits("1000", 6);
             let claimAmount = parseUnits("1000", 6);
+
+            await expect(benture.getMyShare(1)).to.be.revertedWithCustomError(
+                benture,
+                "InvalidDistribution"
+            );
+
 
             await expect(benture.getMyShare(777)).to.be.revertedWithCustomError(
                 benture,
