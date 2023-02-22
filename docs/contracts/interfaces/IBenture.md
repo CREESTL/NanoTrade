@@ -443,6 +443,23 @@ event DividendsStarted(address indexed origToken, address indexed distToken, uin
 | amount `indexed` | uint256 | The amount of tokens that will be paid |
 | isEqual  | bool | Indicates whether distribution will be equal |
 
+### GasLimitReached
+
+```solidity
+event GasLimitReached(uint256 gasLeft, uint256 gasLimit)
+```
+
+
+
+*Indicates that 2/3 of block gas limit was spent during the      iteration inside the contract method*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| gasLeft  | uint256 | How much gas was used |
+| gasLimit  | uint256 | The block gas limit |
+
 ### MultipleDividendsClaimed
 
 ```solidity

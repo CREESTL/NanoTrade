@@ -235,7 +235,7 @@ Returns the array of lockers of the pool
 function getMyShare(uint256 id) external view returns (uint256)
 ```
 
-Returns the share of the user in a given distribution
+Returns the share of the user in one of the previously         started distributions.
 
 
 
@@ -597,6 +597,23 @@ event DividendsStarted(address indexed origToken, address indexed distToken, uin
 | distToken `indexed` | address | undefined |
 | amount `indexed` | uint256 | undefined |
 | isEqual  | bool | undefined |
+
+### GasLimitReached
+
+```solidity
+event GasLimitReached(uint256 gasLeft, uint256 gasLimit)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| gasLeft  | uint256 | undefined |
+| gasLimit  | uint256 | undefined |
 
 ### Initialized
 
