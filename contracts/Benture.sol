@@ -749,18 +749,27 @@ contract Benture is
     }
 
     function _claimMultipleDividends(uint256[] memory ids) private {
-        // Only 2/3 of block gas limit could be spent. So 1/3 should be left.
-        uint256 gasThreshold = (block.gaslimit * 1) / 3;
 
+        // The amount of gas spent for all operations below
+        uint256 gasSpent = 0;
+        // Only 2/3 of block gas limit could be spent.
+        uint256 gasThreshold = (block.gaslimit * 2) / 3;
+
+        uint256 lastGasLeft = gasleft();
         uint256 count;
 
         for (uint256 i = 0; i < ids.length; i++) {
             _claimDividends(ids[i]);
             // Increase the number of users who received their shares
             count++;
+            // Calculate the amount of gas spent for one iteration
+            uint256 gasSpentPerIteration = lastGasLeft - gasleft();
+            lastGasLeft = gasleft();
+            // Increase the total amount of gas spent
+            gasSpent += gasSpentPerIteration;
             // Check that no more than 2/3 of block gas limit was spent
-            if (gasleft() <= gasThreshold) {
-                emit GasLimitReached(gasleft(), block.gaslimit);
+            if (gasSpent >= gasThreshold) {
+                emit GasLimitReached(gasSpent, block.gaslimit);
                 break;
             }
         }
@@ -779,6 +788,12 @@ contract Benture is
         uint256[] calldata amounts,
         uint256 totalAmount
     ) public payable nonReentrant {
+
+        // The amount of gas spent for all operations below
+        uint256 gasSpent = 0;
+        // Only 2/3 of block gas limit could be spent.
+        uint256 gasThreshold = (block.gaslimit * 2) / 3;
+
         // Total amount of tokens can't be zero
         if (totalAmount == 0) {
             revert InvalidDividendsAmount();
@@ -806,10 +821,7 @@ contract Benture is
             );
         }
 
-
-        // Only 2/3 of block gas limit could be spent. So 1/3 should be left.
-        uint256 gasThreshold = (block.gaslimit * 1) / 3;
-
+        uint256 lastGasLeft = gasleft();
         uint256 count;
 
         // Distribute dividends to each of the holders
@@ -834,9 +846,15 @@ contract Benture is
             }
             // Increase the number of users who received their shares
             count++;
+
+            // Calculate the amount of gas spent for one iteration
+            uint256 gasSpentPerIteration = lastGasLeft - gasleft();
+            lastGasLeft = gasleft();
+            // Increase the total amount of gas spent
+            gasSpent += gasSpentPerIteration;
             // Check that no more than 2/3 of block gas limit was spent
-            if (gasleft() <= gasThreshold) {
-                emit GasLimitReached(gasleft(), block.gaslimit);
+            if (gasSpent >= gasThreshold) {
+                emit GasLimitReached(gasSpent, block.gaslimit);
                 break;
             }
         }
