@@ -16,7 +16,6 @@ interface IBentureErrors {
     error WrongTokenInsideThePool();
     error UserDoesNotHaveProjectTokens();
     error UserDoesNotHaveAnAdminToken();
-    error TransferFailed();
     error InvalidUnlockAmount();
     error NoLockedTokens();
     error WithdrawTooBig();
