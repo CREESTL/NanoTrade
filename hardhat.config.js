@@ -5,6 +5,7 @@ require("@openzeppelin/hardhat-upgrades");
 require("@nomiclabs/hardhat-etherscan");
 require("@nomicfoundation/hardhat-chai-matchers");
 require("hardhat-tracer");
+require('hardhat-contract-sizer');
 require("solidity-coverage");
 require("hardhat-gas-reporter");
 require("@primitivefi/hardhat-dodoc");
@@ -61,6 +62,12 @@ module.exports = {
         runOnCompile: false,
         freshOutput: true,
         outputDir: "./docs/contracts",
+    },
+    contractSizer: {
+        alphaSort: true,
+        disambiguatePaths: true,
+        strict: true,
+        runOnCompile: true,
     },
     etherscan: {
         apiKey: {
