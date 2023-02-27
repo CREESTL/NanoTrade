@@ -2859,8 +2859,7 @@ describe("Benture Dividend Distributing Contract", () => {
                     benture.distributeDividendsCustom(
                         distToken.address,
                         [clientAcc1.address, clientAcc2.address],
-                        [claimAmount1, claimAmount2],
-                        claimAmount1.add(claimAmount2)
+                        [claimAmount1, claimAmount2]
                     )
                 )
                     .to.emit(benture, "CustomDividendsDistributed")
@@ -2873,35 +2872,36 @@ describe("Benture Dividend Distributing Contract", () => {
                 expect(endBalance2.sub(startBalance2)).to.equal(claimAmount2);
             });
 
-            it("Should distribute ERC20 tokens custom dividends if one receiver is sender", async () => {
+            it("Should distribute ERC20 tokens custom dividends to all receivers", async () => {
                 let { benture, factory, adminToken, origToken, distToken } =
                     await loadFixture(deploys);
 
-                let startBalance1 = await distToken.balanceOf(ownerAcc.address);
-                let startBalance2 = await distToken.balanceOf(clientAcc1.address);
+                let startBalance1 = await distToken.balanceOf(clientAcc1.address);
+                let startBalance2 = await distToken.balanceOf(clientAcc2.address);
                 let startBalance3 = await distToken.balanceOf(benture.address);
+                let startBalance4 = await distToken.balanceOf(ownerAcc.address);
 
                 await expect(
                     benture.connect(ownerAcc).distributeDividendsCustom(
                         distToken.address,
                         // Owner sends tokens to himself
-                        [ownerAcc.address, clientAcc1.address],
+                        [clientAcc1.address, clientAcc2.address],
                         // Use low amounts
-                        [1, 2],
-                        3
+                        [1, 2]
                     )
                 )
                     .to.emit(benture, "CustomDividendsDistributed")
                     .withArgs(anyValue, anyValue);
 
-                let endBalance1 = await distToken.balanceOf(ownerAcc.address);
-                let endBalance2 = await distToken.balanceOf(clientAcc1.address);
+                let endBalance1 = await distToken.balanceOf(clientAcc1.address);
+                let endBalance2 = await distToken.balanceOf(clientAcc2.address);
                 let endBalance3 = await distToken.balanceOf(benture.address);
+                let endBalance4 = await distToken.balanceOf(ownerAcc.address);
 
-                // Owner sent 3 tokens to the contract and received 1 back.
-                expect(startBalance1.sub(endBalance1)).to.equal(2);
+                expect(endBalance1.sub(startBalance1)).to.equal(1);
                 expect(endBalance2.sub(startBalance2)).to.equal(2);
                 expect(endBalance3).to.equal(startBalance3);
+                expect((startBalance4).sub(endBalance4)).to.equal(3);
 
             });
         });
@@ -2925,7 +2925,6 @@ describe("Benture Dividend Distributing Contract", () => {
                         zeroAddress,
                         [clientAcc1.address, clientAcc2.address],
                         [claimAmount1, claimAmount2],
-                        claimAmount1.add(claimAmount2),
                         { value: claimAmount1.add(claimAmount2) }
                     )
                 )
@@ -2953,8 +2952,7 @@ describe("Benture Dividend Distributing Contract", () => {
                 benture.distributeDividendsCustom(
                     distToken.address,
                     [clientAcc1.address, clientAcc2.address],
-                    [1, 2],
-                    0
+                    [0, 2]
                 )
             ).to.be.revertedWithCustomError(benture, "InvalidDividendsAmount");
 
@@ -2962,8 +2960,7 @@ describe("Benture Dividend Distributing Contract", () => {
                 benture.distributeDividendsCustom(
                     distToken.address,
                     [clientAcc1.address, clientAcc2.address],
-                    [],
-                    3
+                    []
                 )
             ).to.be.revertedWithCustomError(benture, "EmptyList");
         });
@@ -2974,8 +2971,7 @@ describe("Benture Dividend Distributing Contract", () => {
                 benture.distributeDividendsCustom(
                     distToken.address,
                     [],
-                    [1, 2],
-                    3
+                    [1, 2]
                 )
             ).to.be.revertedWithCustomError(benture, "EmptyList");
 
@@ -2983,8 +2979,7 @@ describe("Benture Dividend Distributing Contract", () => {
                 benture.distributeDividendsCustom(
                     distToken.address,
                     [clientAcc1.address, clientAcc2.address],
-                    [],
-                    3
+                    []
                 )
             ).to.be.revertedWithCustomError(benture, "EmptyList");
         });
@@ -2995,8 +2990,7 @@ describe("Benture Dividend Distributing Contract", () => {
                 benture.distributeDividendsCustom(
                     distToken.address,
                     [clientAcc1.address],
-                    [1, 2],
-                    3
+                    [1, 2]
                 )
             ).to.be.revertedWithCustomError(benture, "ListsLengthDiffers");
         });
@@ -3011,10 +3005,9 @@ describe("Benture Dividend Distributing Contract", () => {
                     zeroAddress,
                     [clientAcc1.address, clientAcc2.address],
                     [claimAmount1, claimAmount2],
-                    claimAmount1.add(claimAmount2),
                     { value: claimAmount1.div(5) }
                 )
-            ).to.be.revertedWithCustomError(benture, "NotEnoughNativeTokens");
+            ).to.be.revertedWithCustomError(benture, "NativeTokenTransferFailed");
         });
         it("Should fail to distribute custom dividends if any user has zero address", async () => {
             let { benture, factory, adminToken, origToken, distToken } =
@@ -3027,7 +3020,6 @@ describe("Benture Dividend Distributing Contract", () => {
                     zeroAddress,
                     [clientAcc1.address, zeroAddress],
                     [claimAmount1, claimAmount2],
-                    claimAmount1.add(claimAmount2),
                     { value: claimAmount1.add(claimAmount2) }
                 )
             ).to.be.revertedWithCustomError(benture, "InvalidUserAddress");
@@ -3043,10 +3035,26 @@ describe("Benture Dividend Distributing Contract", () => {
                     zeroAddress,
                     [clientAcc1.address, clientAcc2.address],
                     [claimAmount1, claimAmount2],
-                    claimAmount1.add(claimAmount2),
                     { value: claimAmount1.add(claimAmount2) }
                 )
             ).to.be.revertedWithCustomError(benture, "InvalidDividendsAmount");
+        });
+
+        it("Should fail to distribute custom dividends if sender is receiver", async () => {
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
+
+
+            await expect(
+                benture.connect(ownerAcc).distributeDividendsCustom(
+                    distToken.address,
+                    // Owner sends tokens to himself
+                    [ownerAcc.address, clientAcc2.address],
+                    // Use low amounts
+                    [1, 2]
+                )
+            )
+                .to.be.revertedWithCustomError(distToken, "SenderCanNotBeAReceiver");
         });
     });
 

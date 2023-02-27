@@ -781,12 +781,10 @@ contract Benture is
     /// @param token The address of the token to be distributed
     /// @param users The list of addresses of users to receive tokens
     /// @param amounts The list of amounts each user has to receive
-    /// @param totalAmount The total amount of `token`s to be distributed. Sum of `amounts` array.
     function distributeDividendsCustom(
         address token,
         address[] calldata users,
-        uint256[] calldata amounts,
-        uint256 totalAmount
+        uint256[] calldata amounts
     ) public payable nonReentrant {
 
         // The amount of gas spent for all operations below
@@ -794,10 +792,6 @@ contract Benture is
         // Only 2/3 of block gas limit could be spent.
         uint256 gasThreshold = (block.gaslimit * 2) / 3;
 
-        // Total amount of tokens can't be zero
-        if (totalAmount == 0) {
-            revert InvalidDividendsAmount();
-        }
         // Lists can't be empty
         if ((users.length == 0) || (amounts.length == 0)) {
             revert EmptyList();
@@ -805,20 +799,6 @@ contract Benture is
         // Lists length should be the same
         if (users.length != amounts.length) {
             revert ListsLengthDiffers();
-        }
-        // If dividends are to be paid in native tokens, check that enough native tokens were provided
-        if ((token == address(0)) && (msg.value < totalAmount)) {
-            revert NotEnoughNativeTokens();
-        }
-        // If dividends are to be paid in ERC20 tokens, transfer ERC20 tokens from caller
-        // to this contract first
-        // NOTE: Caller must approve transfer of at least `totalAmount` of tokens to this contract
-        if (token != address(0)) {
-            IERC20Upgradeable(token).safeTransferFrom(
-                msg.sender,
-                address(this),
-                totalAmount
-            );
         }
 
         uint256 lastGasLeft = gasleft();
@@ -838,11 +818,17 @@ contract Benture is
                 // Native tokens (wei)
                 (bool success, ) = users[i].call{value: amounts[i]}("");
                 if (!success) {
-                    revert TransferFailed();
+                    revert NativeTokenTransferFailed();
                 }
             } else {
+                // NOTE: Admin has to approve transfer of at least (sum of `amounts`) tokens
+                //       for this contract address
                 // Other ERC20 tokens
-                IERC20Upgradeable(token).safeTransfer(users[i], amounts[i]);
+                IERC20Upgradeable(token).safeTransferFrom(
+                    msg.sender,
+                    users[i],
+                    amounts[i]
+                );
             }
             // Increase the number of users who received their shares
             count++;

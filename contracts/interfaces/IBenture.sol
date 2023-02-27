@@ -56,12 +56,10 @@ interface IBenture is IBentureErrors {
     /// @param token The address of the token to be distributed
     /// @param users The list of addresses of users to receive tokens
     /// @param amounts The list of amounts each user has to receive
-    /// @param totalAmount The total amount of `token`s to be distributed. Sum of `amounts` array.
     function distributeDividendsCustom(
         address token,
         address[] calldata users,
-        uint256[] calldata amounts,
-        uint256 totalAmount
+        uint256[] calldata amounts
     ) external payable;
 
     /// @notice Sets the token factory contract address
