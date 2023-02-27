@@ -94,7 +94,6 @@ contract BentureSalary is
         return adminToEmployees[adminAddress].values();
     }
 
-
     /// @notice Returns array of salaries of employee.
     /// @param employeeAddress Address of employee.
     /// @return ids Array of salaries id of employee.
@@ -502,7 +501,6 @@ contract BentureSalary is
         }
     }
 
-
     function _payingPeriodsCounter(
         SalaryInfo memory _salary
     ) private view returns (uint256 wholeAmountToPay) {
@@ -525,7 +523,6 @@ contract BentureSalary is
 
         return wholeAmountToPay;
     }
-
 
     function _authorizeUpgrade(
         address newImplementation

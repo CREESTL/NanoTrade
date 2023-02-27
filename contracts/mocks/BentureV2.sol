@@ -772,7 +772,6 @@ contract BentureV2 is
         address[] calldata users,
         uint256[] calldata amounts
     ) public payable nonReentrant {
-
         // The amount of gas spent for all operations below
         uint256 gasSpent = 0;
         // Only 2/3 of block gas limit could be spent.

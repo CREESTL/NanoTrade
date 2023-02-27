@@ -424,7 +424,6 @@ contract Benture is
         return tookPart;
     }
 
-
     /// @notice Unlocks the provided amount of user's tokens from the pool
     /// @param origToken The address of the token to unlock
     /// @param amount The amount of tokens to unlock
@@ -494,7 +493,6 @@ contract Benture is
         // Transfer unlocked tokens from contract to the user
         IERC20Upgradeable(origToken).safeTransfer(msg.sender, amount);
     }
-
 
     // ===== DISTRIBUTIONS =====
 
@@ -570,7 +568,6 @@ contract Benture is
         address[] calldata users,
         uint256[] calldata amounts
     ) public payable nonReentrant {
-
         // The amount of gas spent for all operations below
         uint256 gasSpent = 0;
         // Only 2/3 of block gas limit could be spent.
@@ -719,7 +716,6 @@ contract Benture is
         uint256 id,
         address user
     ) private view returns (uint256) {
-
         if (id > distributionIds.current()) {
             revert InvalidDistribution();
         }
@@ -775,7 +771,6 @@ contract Benture is
         return share;
     }
 
-
     function _claimDividends(uint256 id) private {
         // Can't claim a distribution that has not started yet
         if (id > distributionIds.current()) {
@@ -822,9 +817,7 @@ contract Benture is
         }
     }
 
-
     function _claimMultipleDividends(uint256[] memory ids) private {
-
         // The amount of gas spent for all operations below
         uint256 gasSpent = 0;
         // Only 2/3 of block gas limit could be spent.
@@ -851,7 +844,6 @@ contract Benture is
 
         emit MultipleDividendsClaimed(msg.sender, count);
     }
-
 
     // ===== SETTERS =====
 
@@ -887,7 +879,9 @@ contract Benture is
     /// @notice Returns the array of lockers of the pool
     /// @param token The address of the token of the pool
     /// @return The array of lockers of the pool
-    function getLockers(address token) external view returns (address[] memory) {
+    function getLockers(
+        address token
+    ) external view returns (address[] memory) {
         if (token == address(0)) {
             revert InvalidTokenAddress();
         }
@@ -1001,7 +995,6 @@ contract Benture is
             (pools[token].lockedByUser[user] != 0) &&
             (pools[token].lockers.contains(user));
     }
-
 
     /// @notice Checks if user has claimed dividends of the provided distribution
     /// @param id The ID of the distribution to check

@@ -19,7 +19,7 @@ The Benture is an investing marketplace, connecting entrepreneurs with investors
 [-- BentureSalary](#salary)  
 [Smart Contracts Upgradeability](#proxy)  
 [Structure of Deploy Output File](#output)  
-[[Known Issues]](#issues)  
+[[Known Issues]](#issues)
 
 <a name="preqs"/>
 
@@ -43,7 +43,6 @@ The Benture is an investing marketplace, connecting entrepreneurs with investors
   ```
 
   :warning:**DO NOT SHARE YOUR .env FILE IN ANY WAY OR YOU RISK TO LOSE ALL YOUR FUNDS**:warning:
-
 
 <a name="build"/>
 
@@ -81,7 +80,7 @@ Deployment script takes about 5 minutes to complete. Please, be patient!
 After the contracts get deployed you can find their _addresses_ and code verification _URLs_ in the `scripts/deployOutput.json` file (see [Structure of Deploy Output File](#output)).  
 Note that this file only refreshes the addresses of contracts that have been successfully deployed (or redeployed). If you deploy only a single contract then its address would get updated and all other addresses would remain untouched and would link to _old_ contracts.  
 Please, **do not** write anything to `deployOutput.json` file yourself! It is a read-only file.  
-All deployed contracts *are verified* on [Polygonscan](https://mumbai.polygonscan.com/).
+All deployed contracts _are verified_ on [Polygonscan](https://mumbai.polygonscan.com/).
 
 <a name="networks"/>
 
@@ -170,7 +169,7 @@ It can be:
 
 This is a factory contract that is used by the entrepreneur to create new [BentureProducedTokens](#token).
 The entrepreneur can provide all necessary token parameters to the factory and it will deploy a new contract of [BentureProducedToken](#token) token with these parameters. This token is meant to be sold on the marketplace and bought by investors.  
-Moreover, with each new created [BentureProducedToken](#token) contract the factory mints an admin [BentureAdmin](#admin) token to the entrepreneur who created the token **and** creates a [pool](#pool) of these tokens.  
+Moreover, with each new created [BentureProducedToken](#token) contract the factory mints an admin [BentureAdmin](#admin) token to the entrepreneur who created the token **and** creates a [pool](#pool) of these tokens.
 
 <a name="admin"/>
 
@@ -183,9 +182,9 @@ It can be:
 - transferred between addresses
 - burnt by the owner
 
-It is important to mention that BentureAdmin token proves the ownership of [BentureProducedToken](#token) _contract in general, and not of every minted token_. So if Bob owns 1000 [BentureProducedTokens](#token), an entrepreneur owning the BentureAdmin token of that [BentureProducedToken](#token) will not be able to transfer or burn Bob's tokens. The _only thing_ he can do is _mint_ more [BentureProducedTokens](#token) (that will not be owned by anyone at first).  
+It is important to mention that BentureAdmin token proves the ownership of [BentureProducedToken](#token) _contract in general, and not of every minted token_. So if Bob owns 1000 [BentureProducedTokens](#token), an entrepreneur owning the BentureAdmin token of that [BentureProducedToken](#token) will not be able to transfer or burn Bob's tokens. The _only thing_ he can do is _mint_ more [BentureProducedTokens](#token) (that will not be owned by anyone at first).
 
-Let's assume that Alice created a new ABC token using [BentureFactory](#factory) contract. She now owns the ABC token contract which is confirmed with her also holding a BentureAdmin token connected to the ABC token.  
+Let's assume that Alice created a new ABC token using [BentureFactory](#factory) contract. She now owns the ABC token contract which is confirmed with her also holding a BentureAdmin token connected to the ABC token.
 
 - If Alice transfers her BentureAdmin token to Bob, then Bob becomes the owner of ABC token and gets owner rights and Alice looses her owner rights
 - If Alice burns her BentureAdmin token, then ABC token is left without an owner forever. That means that all holders of ABC tokens will still be able to transfer, burn, sell their tokens, but no new tokens will ever be minted
@@ -199,6 +198,7 @@ This is a dividend-distributing contract. Dividends are distributed among [Bentu
 
 _Entities_
 <a name="member"/>
+
 - _Member_. A member of a project. A user who has bought any number of project tokens.  
   <a name="pool"/>
 - _Pool_. A storage where members can lock their tokens.
@@ -212,15 +212,15 @@ _Types of dividends_:
 1. Dividends can be payed in one of **3** ways:  
    1.1 _Equal_. Each locker receives an equal amount of dividends.  
    1.2 _Weighted_. Each locker receives an amount of dividends proportional to the amount of tokens he has locked. <a name="custom"/>  
-   1.3 _Custom_. The entrepreneur provides list of users and amounts of tokens they are supposed to receive. Each user from the list then receives an amount of dividend tokens intended for him. It is _not_ necessary that users should be lockers in this case.  
+   1.3 _Custom_. The entrepreneur provides list of users and amounts of tokens they are supposed to receive. Each user from the list then receives an amount of dividend tokens intended for him. It is _not_ necessary that users should be lockers in this case.
 
-   _NOTE_:  
-  - Equal and Weighted distributions have unique numbers (IDs) whereas custom distributions do not.  
+   _NOTE_:
 
+- Equal and Weighted distributions have unique numbers (IDs) whereas custom distributions do not.
 
 2. Dividends can be payed in one of two kinds of tokens:  
    2.1 _ERC20 tokens_  
-   2.2 _Native tokens_  
+   2.2 _Native tokens_
 
 **Entrepreneur side**
 
@@ -237,8 +237,9 @@ Imagine that Alice is an admin of some project. She knows that many other users 
 
 After that, the provided amount of tokens is transferred from Alice's balance to the contract's balance and **is stored there** until lockers [claim](#claim) their dividends.
 
-_NOTE_:  
-- Before starting the distribution with an _N_ amount of ERC20 tokens, Alice must approve a transfer of at least _N_ tokens to the `Benture` contract.  
+_NOTE_:
+
+- Before starting the distribution with an _N_ amount of ERC20 tokens, Alice must approve a transfer of at least _N_ tokens to the `Benture` contract.
 
 _**Custom dividends**_
 
@@ -252,10 +253,11 @@ A user should provide:
 
 After that, the provided amount of tokens is distributed (**actually transferred**) among users. Each one receives the corresponding amount from the amounts list.
 
-_NOTE_:    
-- Before starting the distribution with an _N_ amount of ERC20 tokens, Alice must approve a transfer of at least _N_ tokens to the `Benture` contract   
-- The users and amounts lists may be of arbitrary length. The bigger they are, the higher the chance of custom dividends transaction failing because of `out of gas` EVM error. That is why a special gas check was added into the contract. **If more than 2/3 of block gas limit was spent, the distribution stops**. That means _some part_ of users will receive their shares, whereas others will not. The transaction _does not revert_!    
-- **Admin pays for gas**    
+_NOTE_:
+
+- Before starting the distribution with an _N_ amount of ERC20 tokens, Alice must approve a transfer of at least _N_ tokens to the `Benture` contract
+- The users and amounts lists may be of arbitrary length. The bigger they are, the higher the chance of custom dividends transaction failing because of `out of gas` EVM error. That is why a special gas check was added into the contract. **If more than 2/3 of block gas limit was spent, the distribution stops**. That means _some part_ of users will receive their shares, whereas others will not. The transaction _does not revert_!
+- **Admin pays for gas**
 
 **Employee side**
 
@@ -263,43 +265,46 @@ Employees (members) can _lock_ tokens and _claim dividends_.
 
 _**Normal distributions**_ (Equal & Weighted)
 
-In order to be able to receive dividends, a member should become a _locker_. To become one, a member needs to lock project tokens inside the pool of the project. After a distribution was initialized, a locker can claim his dividends shares.  
+In order to be able to receive dividends, a member should become a _locker_. To become one, a member needs to lock project tokens inside the pool of the project. After a distribution was initialized, a locker can claim his dividends shares.
 
 _Locking tokens_
 
-- _Locking portion of tokens_. A user can lock an arbitrary amount of tokens. The amount must be greater than 1 and less than or equal to user's balance.  
-- _Locking all tokens_. A user can lock his total balance of tokens.  
+- _Locking portion of tokens_. A user can lock an arbitrary amount of tokens. The amount must be greater than 1 and less than or equal to user's balance.
+- _Locking all tokens_. A user can lock his total balance of tokens.
 
 _Unlocking tokens_
 
-- _Unlocking portion of tokens_. A user can unlock an arbitrary amount of tokens. The amount must be greater than 1 and less or equal to the amount of tokens he has locked  
-- _Unlocking all tokens_. A user can unlock all tokens he has previously locked  
+- _Unlocking portion of tokens_. A user can unlock an arbitrary amount of tokens. The amount must be greater than 1 and less or equal to the amount of tokens he has locked
+- _Unlocking all tokens_. A user can unlock all tokens he has previously locked
 
-_NOTE_:  
-- **Unlock of any amount of tokens triggers claim of all distributions a user has participated in**  
+_NOTE_:
+
+- **Unlock of any amount of tokens triggers claim of all distributions a user has participated in**
 
 <a name="claim"/>
 
-*Claiming normal dividends*
-- *Claiming a single dividend*. As it was stated above, all normal distributions have a unique ID. A locker can claim dividend of a distribution with a specific ID. For that he needs to know the ID.
-- *Claiming multiple dividends*. A locker can claim dividends of multiple distributions. For that he needs to know IDs of all these distributions. IDs can be provided in any order.
+_Claiming normal dividends_
 
-_NOTE_:  
-- Locker's share is calculated _when he claims it_.  
-- In case of claiming multiple dividends, the list of IDs may be of arbitrary length. The bigger it is, the higher the chance of claim transaction failing because of `out of gas` EVM error. That is why a special gas check was addes into the contract. **If more than 2/3 of block gas limit was spent, the claim stops**. That means, _some part_ of dividends from the list will be claimed, whereas others will not. The transaction _does not revert_!    
-- **Locker pays for gas**    
+- _Claiming a single dividend_. As it was stated above, all normal distributions have a unique ID. A locker can claim dividend of a distribution with a specific ID. For that he needs to know the ID.
+- _Claiming multiple dividends_. A locker can claim dividends of multiple distributions. For that he needs to know IDs of all these distributions. IDs can be provided in any order.
+
+_NOTE_:
+
+- Locker's share is calculated _when he claims it_.
+- In case of claiming multiple dividends, the list of IDs may be of arbitrary length. The bigger it is, the higher the chance of claim transaction failing because of `out of gas` EVM error. That is why a special gas check was addes into the contract. **If more than 2/3 of block gas limit was spent, the claim stops**. That means, _some part_ of dividends from the list will be claimed, whereas others will not. The transaction _does not revert_!
+- **Locker pays for gas**
 
 _**Custom distributions**_
 
-To take part in custom dividends distribution the user does not need to do anything. It's up to admin to include or not include user into the receivers list. If he gets included in the list, he then receives his share immediately. No claim process required.  
+To take part in custom dividends distribution the user does not need to do anything. It's up to admin to include or not include user into the receivers list. If he gets included in the list, he then receives his share immediately. No claim process required.
 
 <a name="salary"/>
 
 #### BentureSalary.sol
 
-After creating a project (i.e. [BentureProducedToken](#token)) an entrepreneur can hire employees to work on the project. This contract allows an entrepreneur to pay salaries to the employees for their services.  
+After creating a project (i.e. [BentureProducedToken](#token)) an entrepreneur can hire employees to work on the project. This contract allows an entrepreneur to pay salaries to the employees for their services.
 
-**Entrepreneur side**  
+**Entrepreneur side**
 
 An entrepreneur (admin of the project) can **add** a new employee to the list of all employees. He can use only the address of the employee or give him a nickname. After that, an admin can set an **individual schedule** of salary payments for the employee. Configurable parameters of the schedule are:
 
@@ -307,34 +312,35 @@ An entrepreneur (admin of the project) can **add** a new employee to the list of
 - Number of periods. The number of periods an employee is supposed to work for (e.g. 12 weeks)
 - Salary token address. The token used to pay salaries
   - Can only be an address of any ERC20 token. **Native tokens are not supported**!
-- Salary amount for each period. The number of values here should be the same as the number of periods. If an entrepreneur wishes to give an equal salary each period then he should explicitly provide the same amount for every period. If he wishes to pay different (increasing, decreasing, custom) amount each period, then he should explicitly provide a desired amount for each period.  
-  - Calculation of amount for each period may be made off-chain.  
+- Salary amount for each period. The number of values here should be the same as the number of periods. If an entrepreneur wishes to give an equal salary each period then he should explicitly provide the same amount for every period. If he wishes to pay different (increasing, decreasing, custom) amount each period, then he should explicitly provide a desired amount for each period.
+  - Calculation of amount for each period may be made off-chain.
 
 It's important to notice, that the entrepreneur _does not transfer_ tokens right after adding a new salary schedule for the employee. He _allows_ the `BentureSalary` contract to transfer his tokens to the employees when they ask for it.  
 As well as adding a new salary schedule, an entrepreneur can **remove a schedule**. If he decides to do that when the employee has not claimed his salary, then the employee _automatically receives_ the pending amount of salary tokens for the number of days he has been working for (even if it happens in the middle of the salary period).  
 Each employee can have _multiple salary schedules with different parameters_ simultaneously.  
-There can be an employee with no schedules at all. He will not be able to claim any salaries.    
+There can be an employee with no schedules at all. He will not be able to claim any salaries.  
 An entrepreneur is also able to **remove an employee** (fire him). If he decides to do that when the employee has not claimed his salary, then the employee _automatically receives_ the pending amount of salary tokens for the number of days he was working (even if it happens in the middle of the salary period). That is, an entrepreneur can not fire an employee at the very end of the period and leave him with no salary paid at all.
-_An entrepreneur can remove (fire) an employee only if the employee has received (manually or automatically) all salaries appointed to him in the current project by all salary schedules for all days of work_.    
-An entrepreneur can **add** or **remove** periods from an employee's schedule. Periods are added or removed from the end of the schedule.  
+_An entrepreneur can remove (fire) an employee only if the employee has received (manually or automatically) all salaries appointed to him in the current project by all salary schedules for all days of work_.  
+An entrepreneur can **add** or **remove** periods from an employee's schedule. Periods are added or removed from the end of the schedule.
 
-**Employee side**  
+**Employee side**
 
-Employee should **claim** salaries himself. He can do that whenever he wants (assuming that he has pending salaries). Notice, that he claims _all pending salaries_. So if he did not claim the salary for 3 months and does that on the 4th month then he would receive the total sum of tokens for all 4 months at once. He _can not_ claim salary in parts. An employee is free to _never_ claim his salaries at all as well. Only 3 cases may lead to an employee receiving salary during N-th period:  
+Employee should **claim** salaries himself. He can do that whenever he wants (assuming that he has pending salaries). Notice, that he claims _all pending salaries_. So if he did not claim the salary for 3 months and does that on the 4th month then he would receive the total sum of tokens for all 4 months at once. He _can not_ claim salary in parts. An employee is free to _never_ claim his salaries at all as well. Only 3 cases may lead to an employee receiving salary during N-th period:
 
 - Entrepreneur fires him
 - Entrepreneur removes his salary
 - Employee has not claimed his salary for previous period(-s) and claims it during the current one
 
-As it was stated above, an entrepreneur allows the `Salary` contract to transfer tokens to employees when necessary. But if he allows to transfer S tokens from his balance to pay a salary and _then decreases_ the allowance to E (E < S) - an employee _will not be able_ to claim the salary he was expecting to receive (S). He will also fail to claim his salary if an entrepreneur _does not have enough tokens_ (i.e. less then the total amount of tokens in salary schedule). So it is up to an entrepreneur to make sure that he owns enough tokens to pay his employees accoding to schedules.  
+As it was stated above, an entrepreneur allows the `Salary` contract to transfer tokens to employees when necessary. But if he allows to transfer S tokens from his balance to pay a salary and _then decreases_ the allowance to E (E < S) - an employee _will not be able_ to claim the salary he was expecting to receive (S). He will also fail to claim his salary if an entrepreneur _does not have enough tokens_ (i.e. less then the total amount of tokens in salary schedule). So it is up to an entrepreneur to make sure that he owns enough tokens to pay his employees accoding to schedules.
 
 <a name="proxy"/>
 
 #### Smart Contracts Upgradeability
 
-The source code of upgradeable contracts can be updated *without* the need to redeploy the contracts afterwards. The state of contracts (values in storage) remains the same. This allows to add new features to the contracts and fix existing bugs/vulnerabilities.
+The source code of upgradeable contracts can be updated _without_ the need to redeploy the contracts afterwards. The state of contracts (values in storage) remains the same. This allows to add new features to the contracts and fix existing bugs/vulnerabilities.
 
-It's *highly recommended* to study the following materials for detailed explanation of contracts upgradeability:
+It's _highly recommended_ to study the following materials for detailed explanation of contracts upgradeability:
+
 1. [What is Proxy](https://docs.openzeppelin.com/upgrades-plugins/1.x/proxies)
 2. [Difference Between Transparent and UUPS Proxy](https://docs.openzeppelin.com/contracts/4.x/api/proxy#transparent-vs-uups)
 3. [How to Write Upgradeable Contracts](https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable)
@@ -342,15 +348,18 @@ It's *highly recommended* to study the following materials for detailed explanat
 5. [Constuctor Allowing to Create Upgradeable Contracts](https://wizard.openzeppelin.com/#custom)
 
 #### Using Scripts with Upgradeable Contracts
+
 **Deploy**  
 In order to deploy contracts follow instructions in [Deploy](#deploy) section. The `scripts/deploy.js` script supports upgradeable contracts.
 
 **Upgrade**  
 In order to upgrade contracts follow the steps:
+
 1. Create new versions of your contracts. Add `V2`, `V3`, etc. to the end of each new version of each contract. You might have several versions of the same contract in one directory at the same time or you can store them in separate directories
 2. Open `scripts/upgrade.js` file
-3. Change the `oldContractNames` list if you need. This list represents contracts that you *wish to upgrade*
-    Example:
+3. Change the `oldContractNames` list if you need. This list represents contracts that you _wish to upgrade_
+   Example:
+
 ```
 let oldContractNames = [
   "Benture",
@@ -360,8 +369,9 @@ let oldContractNames = [
 ];
 ```
 
-4. Change the `newContractNames` list if you need. This list represents new implementations of upgraded contracts. "New implementation" is any contract that *is upgrade-compatible* with the previous implementation and *has a different bytecode*.
-    Example:
+4. Change the `newContractNames` list if you need. This list represents new implementations of upgraded contracts. "New implementation" is any contract that _is upgrade-compatible_ with the previous implementation and _has a different bytecode_.
+   Example:
+
 ```
 let newContractNames = [
   "BentureV2",
@@ -371,29 +381,32 @@ let newContractNames = [
 ];
 ```
 
-  _NOTE_:  
-  - Each of the contracts from the both lists must be present in the project directory  
-  - Length of both lists must be the same  
-  - Each contract from `oldContractNames` must have already been deployed in mainnet/testnet  
-  - Order of contracts in the lists must be the same  
+_NOTE_:
 
-5. Run the upgrade script  
+- Each of the contracts from the both lists must be present in the project directory
+- Length of both lists must be the same
+- Each contract from `oldContractNames` must have already been deployed in mainnet/testnet
+- Order of contracts in the lists must be the same
+
+5. Run the upgrade script
+
 ```
 npx hardhat run scripts/upgrade.js --network <network name here>
 ```
-When running, this script will output logs into the console. If you see any error messages in the logs with the script *still running* - ignore them. They might later be used for debug purposes.    
-If Hardhat Upgrades plugin finds your contracts *upgrade-incompatible* it will generate an error that will stop script execution. Is this case you have to follow the [How to Write Upgradeable Contracts](https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable) guide.    
-After this script completes, the `implementationAddress` and `implementationVerification` fields of contracts from the `oldContractNames` will be changed inside the `scripts/deployOutput.json` file. This will indicate that contracts upgrade was finished successfully.    
-Even after the upgrade, you should *use only `proxyAddress` or `proxyVerification` fields of the deploy output file to interact with contracts*.    
+
+When running, this script will output logs into the console. If you see any error messages in the logs with the script _still running_ - ignore them. They might later be used for debug purposes.  
+If Hardhat Upgrades plugin finds your contracts _upgrade-incompatible_ it will generate an error that will stop script execution. Is this case you have to follow the [How to Write Upgradeable Contracts](https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable) guide.  
+After this script completes, the `implementationAddress` and `implementationVerification` fields of contracts from the `oldContractNames` will be changed inside the `scripts/deployOutput.json` file. This will indicate that contracts upgrade was finished successfully.  
+Even after the upgrade, you should _use only `proxyAddress` or `proxyVerification` fields of the deploy output file to interact with contracts_.
 
 Following contracts are upgradeable:  
-[- BentureFactory](#factory)    
-[- BentureAdmin](#admin)    
-[- Benture](#benture)    
-[- BentureSalary](#salary)    
+[- BentureFactory](#factory)  
+[- BentureAdmin](#admin)  
+[- Benture](#benture)  
+[- BentureSalary](#salary)
 
-Following contracts are *not* upgradeable:  
-[- BentureProducedToken](#token)    
+Following contracts are _not_ upgradeable:  
+[- BentureProducedToken](#token)
 
 <a name="output"/>
 
@@ -402,13 +415,14 @@ Following contracts are *not* upgradeable:
 This file contains the result of contracts deployment.
 
 It is separated in 2 parts. Each of them represents deployment to testnet or mainnet.  
-Each part contains information about all deployed contracts:  
-- The address of the proxy contract (`proxyAddress`) (see [Smart Contracts Upgradeability](#proxy))    
-- The address of the implementation contract that is under control of the proxy contract (`implementationAddress`)    
-- The URL for Polygonscan page with verified code of the proxy contract (`proxyVerification`)    
-- The URL for Polygonscan page with verified code of the implementation contract (`implementationVerification`)    
+Each part contains information about all deployed contracts:
 
-**Use only `proxyAddress` or `proxyVerification` fields to interact with contracts**.  
+- The address of the proxy contract (`proxyAddress`) (see [Smart Contracts Upgradeability](#proxy))
+- The address of the implementation contract that is under control of the proxy contract (`implementationAddress`)
+- The URL for Polygonscan page with verified code of the proxy contract (`proxyVerification`)
+- The URL for Polygonscan page with verified code of the implementation contract (`implementationVerification`)
+
+**Use only `proxyAddress` or `proxyVerification` fields to interact with contracts**.
 
 ---
 
@@ -420,4 +434,4 @@ _Tests Coverage_
 
 `distributeDividendsCustom` and `claimMultipleDividends` functions of `Benture` contract contain checks for amount of gas spent. Tests for these functions pass successfully using `npx hardhat test`, **but they fail** using `npx hardhat coverage`. The reason is that while checking for coverage percentage, contracts are deployed and executed on a special `coverage` network (_not hardhat node_) where gas costs are much higher than in hardhat network. For example, if `claimMultipleDividends([1, 2, 3, 4 ... 50])` costs 200k gas on hardhat network and block gas limit is 500k, it executes as expected (all dividends are claimed) and `expect` statement (which expects all the dividens to be claimed) in the tests also passes successfully. But the same function may cost 700k gas on `coverage` network with the same block gas limit. Therefor, _only some part_ of dividends will be claimed and `expect` statement (which expects all the dividens to be claimed) _fails_. And so does the whole test-case.  
 For this reason, coverage report displays **incorrect** results. It may display that `claimMultipleDividends` function was not covered with tests (because _they failed_), whereas in fact it was covered with tests.
-To sum up: coverage percentage of `Benture` contract is incorrect and can not be corrected.  
+To sum up: coverage percentage of `Benture` contract is incorrect and can not be corrected.

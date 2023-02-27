@@ -103,7 +103,7 @@ Allows admin to distribute dividends among lockers
 ### distributeDividendsCustom
 
 ```solidity
-function distributeDividendsCustom(address token, address[] users, uint256[] amounts, uint256 totalAmount) external payable
+function distributeDividendsCustom(address token, address[] users, uint256[] amounts) external payable
 ```
 
 Allows admin to distribute provided amounts of tokens to the provided list of users
@@ -117,7 +117,6 @@ Allows admin to distribute provided amounts of tokens to the provided list of us
 | token | address | The address of the token to be distributed |
 | users | address[] | The list of addresses of users to receive tokens |
 | amounts | uint256[] | The list of amounts each user has to receive |
-| totalAmount | uint256 | The total amount of `token`s to be distributed. Sum of `amounts` array. |
 
 ### factory
 
@@ -999,17 +998,6 @@ error PoolAlreadyExists()
 
 ```solidity
 error PoolDoesNotExist()
-```
-
-
-
-
-
-
-### TransferFailed
-
-```solidity
-error TransferFailed()
 ```
 
 

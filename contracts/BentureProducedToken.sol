@@ -117,7 +117,6 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         return _maxTotalSupply;
     }
 
-
     /// @notice Checks if user is an admin of this token
     /// @param account The address to check
     /// @return True if user has admin token. Otherwise - false.

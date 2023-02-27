@@ -129,7 +129,6 @@ contract BentureAdmin is
         return _factoryAddress;
     }
 
-
     /// @notice Mints a new ERC721 token with the address of the controlled ERC20 token
     /// @param to The address of the receiver of the token
     /// @param ERC20Address The address of the controlled ERC20 token
