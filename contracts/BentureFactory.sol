@@ -23,6 +23,8 @@ contract BentureFactory is
     /// @dev The address of the last token that was produced by the factory
     address private _lastProducedToken;
 
+    receive() external payable {}
+
     /// @notice Set a `Benture` contract address
     /// @param bentureAddress_ The address of `Benture` contract
     function initialize(address bentureAddress_) public initializer {
@@ -34,8 +36,6 @@ contract BentureFactory is
         }
         bentureAddress = bentureAddress_;
     }
-
-    receive() external payable {}
 
     /// @notice Returns the address of the produced ERC20 token
     /// @return The address of the produced ERC20 token

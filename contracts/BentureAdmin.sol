@@ -27,7 +27,7 @@ contract BentureAdmin is
     using StringsUpgradeable for uint256;
 
     /// @dev Incrementing IDs of admin tokens
-    CountersUpgradeable.Counter internal _tokenIds;
+    CountersUpgradeable.Counter private _tokenIds;
     /// @dev Mapping from ERC721 token IDs to controlled ERC20 token addresses
     mapping(uint256 => address) private _adminToControlled;
     /// @dev Reverse mapping for `_adminToControlled`
@@ -129,30 +129,6 @@ contract BentureAdmin is
         return _factoryAddress;
     }
 
-    /// @notice Creates a relatioship between controlled ERC20 token address and an admin ERC721 token ID
-    /// @param tokenId The ID of the admin ERC721 token
-    /// @param ERC20Address The address of the controlled ERC20 token
-    function setControlledAddress(
-        uint256 tokenId,
-        address ERC20Address
-    ) internal onlyFactory {
-        if (ERC20Address == address(0)) {
-            revert InvalidTokenAddress();
-        }
-        _requireMinted(tokenId);
-        _adminToControlled[tokenId] = ERC20Address;
-        _controlledToAdmin[ERC20Address] = tokenId;
-    }
-
-    /// @notice Deletes one admin token from the list of all project tokens owned by the admin
-    /// @param admin The address of the admin of several projects
-    /// @param tokenId The ID of the admin token to delete
-    function deleteOneId(address admin, uint256 tokenId) internal {
-        bool removed = _holderToIds[admin].remove(tokenId);
-        if (!removed) {
-            revert FailedToDeleteTokenID();
-        }
-    }
 
     /// @notice Mints a new ERC721 token with the address of the controlled ERC20 token
     /// @param to The address of the receiver of the token
@@ -205,6 +181,31 @@ contract BentureAdmin is
 
         super._burn(tokenId);
         emit AdminTokenBurnt(tokenId);
+    }
+
+    /// @notice Creates a relatioship between controlled ERC20 token address and an admin ERC721 token ID
+    /// @param tokenId The ID of the admin ERC721 token
+    /// @param ERC20Address The address of the controlled ERC20 token
+    function setControlledAddress(
+        uint256 tokenId,
+        address ERC20Address
+    ) internal onlyFactory {
+        if (ERC20Address == address(0)) {
+            revert InvalidTokenAddress();
+        }
+        _requireMinted(tokenId);
+        _adminToControlled[tokenId] = ERC20Address;
+        _controlledToAdmin[ERC20Address] = tokenId;
+    }
+
+    /// @notice Deletes one admin token from the list of all project tokens owned by the admin
+    /// @param admin The address of the admin of several projects
+    /// @param tokenId The ID of the admin token to delete
+    function deleteOneId(address admin, uint256 tokenId) internal {
+        bool removed = _holderToIds[admin].remove(tokenId);
+        if (!removed) {
+            revert FailedToDeleteTokenID();
+        }
     }
 
     /// @notice Transfers admin token with the provided ID from one address to another address

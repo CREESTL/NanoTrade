@@ -11,17 +11,21 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 contract BentureProducedToken is ERC20, IBentureProducedToken {
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    string internal _tokenName;
-    string internal _tokenSymbol;
-    uint8 internal _decimals;
-    bool internal _mintable;
+    /// @dev The name of the token
+    string private _tokenName;
+    /// @dev The symbol of the token
+    string private _tokenSymbol;
+    /// @dev The number of decimals of the token
+    uint8 private _decimals;
+    /// @dev Mintability of the token
+    bool private _mintable;
     /// @dev The address of the admin token has to be provided in order
     ///      to verify user's ownership of that token
-    address internal _adminToken;
+    address private _adminToken;
     /// @dev The maximum number of tokens to be minted
-    uint256 internal _maxTotalSupply;
+    uint256 private _maxTotalSupply;
     /// @dev A list of addresses of tokens holders
-    EnumerableSet.AddressSet internal _holders;
+    EnumerableSet.AddressSet private _holders;
 
     /// @dev Checks if mintability is activated
     modifier WhenMintable() {
@@ -95,39 +99,6 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         _adminToken = adminToken_;
     }
 
-    /// @notice Returns the name of the token
-    /// @return The name of the token
-    function name()
-        public
-        view
-        override(ERC20, IBentureProducedToken)
-        returns (string memory)
-    {
-        return _tokenName;
-    }
-
-    /// @notice Returns the symbol of the token
-    /// @return The symbol of the token
-    function symbol()
-        public
-        view
-        override(ERC20, IBentureProducedToken)
-        returns (string memory)
-    {
-        return _tokenSymbol;
-    }
-
-    /// @notice Returns number of decimals of the token
-    /// @return The number of decimals of the token
-    function decimals()
-        public
-        view
-        override(ERC20, IBentureProducedToken)
-        returns (uint8)
-    {
-        return _decimals;
-    }
-
     /// @notice Indicates whether the token is mintable or not
     /// @return True if the token is mintable. False - if it is not
     function mintable() external view override returns (bool) {
@@ -146,17 +117,11 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         return _maxTotalSupply;
     }
 
-    /// @notice Checks if the address is a holder
-    /// @param account The address to check
-    /// @return True if address is a holder. False if it is not
-    function isHolder(address account) public view returns (bool) {
-        return _holders.contains(account);
-    }
 
     /// @notice Checks if user is an admin of this token
     /// @param account The address to check
     /// @return True if user has admin token. Otherwise - false.
-    function checkAdmin(address account) public view returns (bool) {
+    function checkAdmin(address account) external view returns (bool) {
         // This reverts. Does not return boolean.
         return
             IBentureAdmin(_adminToken).verifyAdminToken(account, address(this));
@@ -203,6 +168,46 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
                 revert DeletingHolderFailed();
             }
         }
+    }
+
+    /// @notice Returns the name of the token
+    /// @return The name of the token
+    function name()
+        public
+        view
+        override(ERC20, IBentureProducedToken)
+        returns (string memory)
+    {
+        return _tokenName;
+    }
+
+    /// @notice Returns the symbol of the token
+    /// @return The symbol of the token
+    function symbol()
+        public
+        view
+        override(ERC20, IBentureProducedToken)
+        returns (string memory)
+    {
+        return _tokenSymbol;
+    }
+
+    /// @notice Returns number of decimals of the token
+    /// @return The number of decimals of the token
+    function decimals()
+        public
+        view
+        override(ERC20, IBentureProducedToken)
+        returns (uint8)
+    {
+        return _decimals;
+    }
+
+    /// @notice Checks if the address is a holder
+    /// @param account The address to check
+    /// @return True if address is a holder. False if it is not
+    function isHolder(address account) public view returns (bool) {
+        return _holders.contains(account);
     }
 
     /// @notice Moves tokens from one account to another account

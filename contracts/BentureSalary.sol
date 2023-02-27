@@ -85,6 +85,36 @@ contract BentureSalary is
         return employeeToAdmins[employeeAddress].values();
     }
 
+    /// @notice Returns the array of employees of admin.
+    /// @param adminAddress Address of admin.
+    /// @return employees The array of employees of admin.
+    function getEmployeesByAdmin(
+        address adminAddress
+    ) external view returns (address[] memory employees) {
+        return adminToEmployees[adminAddress].values();
+    }
+
+
+    /// @notice Returns array of salaries of employee.
+    /// @param employeeAddress Address of employee.
+    /// @return ids Array of salaries id of employee.
+    function getSalariesIdByEmployeeAndAdmin(
+        address employeeAddress,
+        address adminAddress
+    ) external view returns (uint256[] memory ids) {
+        return
+            employeeToAdminToSalaryId[employeeAddress][adminAddress].values();
+    }
+
+    /// @notice Returns salary by ID.
+    /// @param salaryId Id of SalaryInfo.
+    /// @return salary SalaryInfo by ID.
+    function getSalaryById(
+        uint256 salaryId
+    ) external view returns (SalaryInfo memory salary) {
+        return salaryById[salaryId];
+    }
+
     /// @notice Sets new or changes current name of the employee.
     /// @param employeeAddress Address of employee.
     /// @param name New name of employee.
@@ -180,106 +210,6 @@ contract BentureSalary is
     /// @dev Anyone can call this method. No restrictions.
     function withdrawSalary(uint256 salaryId) external nonReentrant {
         _withdrawSalary(salaryId);
-    }
-
-    function _withdrawSalary(uint256 salaryId) public {
-        SalaryInfo storage _salary = salaryById[salaryId];
-        if (_salary.employee != msg.sender) {
-            revert NotEmployeeForThisSalary();
-        }
-        uint256 periodsToPay = (block.timestamp -
-            (_salary.amountOfWithdrawals *
-                _salary.periodDuration +
-                _salary.salaryStartTime)) / _salary.periodDuration;
-        if (
-            periodsToPay + _salary.amountOfWithdrawals >=
-            _salary.amountOfPeriods
-        ) {
-            /// @dev The case when an employee withdraw salary after the end of all periods
-            periodsToPay =
-                _salary.amountOfPeriods -
-                _salary.amountOfWithdrawals;
-        }
-
-        if (periodsToPay != 0) {
-            /// @dev The case when there are periods for payment
-            uint256 toPay;
-            for (
-                uint256 i = _salary.amountOfWithdrawals;
-                i < _salary.amountOfWithdrawals + periodsToPay;
-                i++
-            ) {
-                toPay = toPay + _salary.tokensAmountPerPeriod[i];
-            }
-
-            _salary.amountOfWithdrawals =
-                _salary.amountOfWithdrawals +
-                periodsToPay;
-
-            /// @dev Transfer tokens from the employer's wallet to the employee's wallet
-            IERC20Upgradeable(_salary.tokenAddress).safeTransferFrom(
-                _salary.employer,
-                _salary.employee,
-                toPay
-            );
-
-            emit EmployeeSalaryClaimed(
-                _salary.employee,
-                _salary.employer,
-                salaryById[salaryId]
-            );
-        }
-    }
-
-    /// @notice Returns the array of employees of admin.
-    /// @param adminAddress Address of admin.
-    /// @return employees The array of employees of admin.
-    function getEmployeesByAdmin(
-        address adminAddress
-    ) external view returns (address[] memory employees) {
-        return adminToEmployees[adminAddress].values();
-    }
-
-    /// @notice Returns true if user is employee for admin and False if not.
-    /// @param adminAddress Address of admin.
-    /// @param employeeAddress Address of employee.
-    /// @return isEmployee True if user is employee for admin. False if not.
-    function checkIfUserIsEmployeeOfAdmin(
-        address adminAddress,
-        address employeeAddress
-    ) public view returns (bool isEmployee) {
-        return adminToEmployees[adminAddress].contains(employeeAddress);
-    }
-
-    /// @notice Returns true if user is admin for employee and False if not.
-    /// @param employeeAddress Address of employee.
-    /// @param adminAddress Address of admin.
-    /// @return isAdmin True if user is admin for employee. False if not.
-    function checkIfUserIsAdminOfEmployee(
-        address employeeAddress,
-        address adminAddress
-    ) public view returns (bool isAdmin) {
-        return employeeToAdmins[employeeAddress].contains(adminAddress);
-    }
-
-    /// @notice Returns array of salaries of employee.
-    /// @param employeeAddress Address of employee.
-    /// @return ids Array of salaries id of employee.
-    function getSalariesIdByEmployeeAndAdmin(
-        address employeeAddress,
-        address adminAddress
-    ) external view returns (uint256[] memory ids) {
-        return
-            employeeToAdminToSalaryId[employeeAddress][adminAddress].values();
-    }
-
-    /// @notice Returns salary by ID.
-    /// @param salaryId Id of SalaryInfo.
-    /// @return salary SalaryInfo by ID.
-    function getSalaryById(
-        uint256 salaryId
-    ) external view returns (SalaryInfo memory salary) {
-        return salaryById[salaryId];
     }
 
     /// @notice Removes periods from salary
@@ -421,6 +351,28 @@ contract BentureSalary is
         emit EmployeeSalaryAdded(employeeAddress, msg.sender, _salary);
     }
 
+    /// @notice Returns true if user is employee for admin and False if not.
+    /// @param adminAddress Address of admin.
+    /// @param employeeAddress Address of employee.
+    /// @return isEmployee True if user is employee for admin. False if not.
+    function checkIfUserIsEmployeeOfAdmin(
+        address adminAddress,
+        address employeeAddress
+    ) public view returns (bool isEmployee) {
+        return adminToEmployees[adminAddress].contains(employeeAddress);
+    }
+
+    /// @notice Returns true if user is admin for employee and False if not.
+    /// @param employeeAddress Address of employee.
+    /// @param adminAddress Address of admin.
+    /// @return isAdmin True if user is admin for employee. False if not.
+    function checkIfUserIsAdminOfEmployee(
+        address employeeAddress,
+        address adminAddress
+    ) public view returns (bool isAdmin) {
+        return employeeToAdmins[employeeAddress].contains(adminAddress);
+    }
+
     /// @notice Returns amount of pending salary.
     /// @param salaryId Salary ID.
     /// @return salaryAmount Amount of pending salary.
@@ -474,30 +426,6 @@ contract BentureSalary is
         return 0;
     }
 
-    function _payingPeriodsCounter(
-        SalaryInfo memory _salary
-    ) private view returns (uint256 wholeAmountToPay) {
-        //uint256 timePassed = block.timestamp - (_salary.amountOfWithdrawals * _salary.periodDuration + _salary.salaryStartTime);
-        uint256 timePassedFromLastWithdrawal = block.timestamp -
-            (_salary.amountOfWithdrawals *
-                _salary.periodDuration +
-                _salary.salaryStartTime);
-        uint256 periodsPassed = timePassedFromLastWithdrawal /
-            _salary.periodDuration;
-
-        for (
-            uint256 i = _salary.amountOfWithdrawals;
-            i < _salary.amountOfWithdrawals + periodsPassed;
-            i++
-        ) {
-            wholeAmountToPay =
-                wholeAmountToPay +
-                _salary.tokensAmountPerPeriod[i];
-        }
-
-        return wholeAmountToPay;
-    }
-
     /// @notice Removes salary from employee.
     /// @param salaryId ID of employee salary.
     /// @dev Only admin can call this method.
@@ -524,6 +452,80 @@ contract BentureSalary is
             amountToPay
         );
     }
+
+    function _withdrawSalary(uint256 salaryId) public {
+        SalaryInfo storage _salary = salaryById[salaryId];
+        if (_salary.employee != msg.sender) {
+            revert NotEmployeeForThisSalary();
+        }
+        uint256 periodsToPay = (block.timestamp -
+            (_salary.amountOfWithdrawals *
+                _salary.periodDuration +
+                _salary.salaryStartTime)) / _salary.periodDuration;
+        if (
+            periodsToPay + _salary.amountOfWithdrawals >=
+            _salary.amountOfPeriods
+        ) {
+            /// @dev The case when an employee withdraw salary after the end of all periods
+            periodsToPay =
+                _salary.amountOfPeriods -
+                _salary.amountOfWithdrawals;
+        }
+
+        if (periodsToPay != 0) {
+            /// @dev The case when there are periods for payment
+            uint256 toPay;
+            for (
+                uint256 i = _salary.amountOfWithdrawals;
+                i < _salary.amountOfWithdrawals + periodsToPay;
+                i++
+            ) {
+                toPay = toPay + _salary.tokensAmountPerPeriod[i];
+            }
+
+            _salary.amountOfWithdrawals =
+                _salary.amountOfWithdrawals +
+                periodsToPay;
+
+            /// @dev Transfer tokens from the employer's wallet to the employee's wallet
+            IERC20Upgradeable(_salary.tokenAddress).safeTransferFrom(
+                _salary.employer,
+                _salary.employee,
+                toPay
+            );
+
+            emit EmployeeSalaryClaimed(
+                _salary.employee,
+                _salary.employer,
+                salaryById[salaryId]
+            );
+        }
+    }
+
+
+    function _payingPeriodsCounter(
+        SalaryInfo memory _salary
+    ) private view returns (uint256 wholeAmountToPay) {
+        uint256 timePassedFromLastWithdrawal = block.timestamp -
+            (_salary.amountOfWithdrawals *
+                _salary.periodDuration +
+                _salary.salaryStartTime);
+        uint256 periodsPassed = timePassedFromLastWithdrawal /
+            _salary.periodDuration;
+
+        for (
+            uint256 i = _salary.amountOfWithdrawals;
+            i < _salary.amountOfWithdrawals + periodsPassed;
+            i++
+        ) {
+            wholeAmountToPay =
+                wholeAmountToPay +
+                _salary.tokensAmountPerPeriod[i];
+        }
+
+        return wholeAmountToPay;
+    }
+
 
     function _authorizeUpgrade(
         address newImplementation
