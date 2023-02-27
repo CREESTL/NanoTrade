@@ -4,6 +4,7 @@ require("@nomiclabs/hardhat-ethers");
 require("@openzeppelin/hardhat-upgrades");
 require("@nomiclabs/hardhat-etherscan");
 require("@nomicfoundation/hardhat-chai-matchers");
+require("hardhat-tracer");
 require("solidity-coverage");
 require("hardhat-gas-reporter");
 require("@primitivefi/hardhat-dodoc");
