@@ -163,7 +163,6 @@ contract BentureSalary is
         address employeeAddress,
         address projectToken
     ) external onlyAdmin {
-
         // Same employee cannot be added to one project more than once
         if (checkIfUserInProject(employeeAddress, projectToken)) {
             revert AlreadyInProject();

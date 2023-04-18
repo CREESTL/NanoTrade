@@ -68,7 +68,6 @@ describe("Salary", () => {
             adminToken.address
         );
 
-
         // Get the address of the last ERC20 token produced in the factory
         let origTokenAddress = await factory.lastProducedToken();
         let origToken = await ethers.getContractAt(
@@ -77,14 +76,16 @@ describe("Salary", () => {
         );
 
         // Deploy another ERC20 in order to have a distToken
-        await factory.connect(adminAcc1).createERC20Token(
-            "Slummy",
-            "SMM",
-            18,
-            true,
-            1_000_000_000,
-            adminToken.address
-        );
+        await factory
+            .connect(adminAcc1)
+            .createERC20Token(
+                "Slummy",
+                "SMM",
+                18,
+                true,
+                1_000_000_000,
+                adminToken.address
+            );
 
         // The address of `lastProducedToken` of factory gets changed here
         let distTokenAddress = await factory.lastProducedToken();
@@ -118,20 +119,21 @@ describe("Salary", () => {
             }
         );
         await salary.deployed();
-        
 
         let mockERC20Tx = await ethers.getContractFactory("MockERC20");
         let mockERC20 = await mockERC20Tx.deploy();
         await mockERC20.deployed();
 
-        await factory.connect(adminAcc2).createERC20Token(
-            "Brummy",
-            "BRM",
-            18,
-            true,
-            1_000_000_000,
-            adminToken.address
-        );
+        await factory
+            .connect(adminAcc2)
+            .createERC20Token(
+                "Brummy",
+                "BRM",
+                18,
+                true,
+                1_000_000_000,
+                adminToken.address
+            );
         let bummyAddress = await factory.lastProducedToken();
         let bummyToken = await ethers.getContractAt(
             "contracts/BentureProducedToken.sol:BentureProducedToken",
@@ -146,7 +148,7 @@ describe("Salary", () => {
             salary,
             rummy,
             mockERC20,
-            bummyToken
+            bummyToken,
         };
     }
 
@@ -168,9 +170,18 @@ describe("Salary", () => {
                     origToken.address
                 )
             ).to.be.true;
-            await expect(salary.addEmployeeToProject(clientAcc1.address, origToken.address))
-            .to.emit(salary, "EmployeeAdded")
-            .withArgs(clientAcc1.address, origToken.address, adminAcc1.address);
+            await expect(
+                salary.addEmployeeToProject(
+                    clientAcc1.address,
+                    origToken.address
+                )
+            )
+                .to.emit(salary, "EmployeeAdded")
+                .withArgs(
+                    clientAcc1.address,
+                    origToken.address,
+                    adminAcc1.address
+                );
             expect(
                 await salary.checkIfUserIsEmployeeOfAdmin(
                     adminAcc1.address,
@@ -201,7 +212,10 @@ describe("Salary", () => {
                 rummy,
                 mockERC20,
             } = await loadFixture(deploys);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             expect(
                 await salary.checkIfUserIsEmployeeOfAdmin(
                     adminAcc1.address,
@@ -214,7 +228,10 @@ describe("Salary", () => {
                     adminAcc1.address
                 )
             ).to.be.true;
-            await salary.removeEmployeeFromProject(clientAcc1.address, origToken.address);
+            await salary.removeEmployeeFromProject(
+                clientAcc1.address,
+                origToken.address
+            );
             expect(
                 await salary.checkIfUserIsEmployeeOfAdmin(
                     adminAcc1.address,
@@ -245,7 +262,10 @@ describe("Salary", () => {
                 rummy,
                 mockERC20,
             } = await loadFixture(deploys);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             await salary.setNameToEmployee(clientAcc1.address, "Alice");
             expect(
                 await salary.getNameOfEmployee(clientAcc1.address)
@@ -262,7 +282,10 @@ describe("Salary", () => {
                 rummy,
                 mockERC20,
             } = await loadFixture(deploys);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             await salary.setNameToEmployee(clientAcc1.address, "Alice");
             expect(
                 await salary.getNameOfEmployee(clientAcc1.address)
@@ -283,7 +306,10 @@ describe("Salary", () => {
                 rummy,
                 mockERC20,
             } = await loadFixture(deploys);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             await salary.setNameToEmployee(clientAcc1.address, "Alice");
             expect(
                 await salary.getNameOfEmployee(clientAcc1.address)
@@ -307,7 +333,10 @@ describe("Salary", () => {
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 600);
 
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
 
             let periodDuration = 60;
             let amountOfPeriods = 10;
@@ -367,7 +396,10 @@ describe("Salary", () => {
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 600);
 
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
 
             let periodDuration = 60;
             let amountOfPeriods = 10;
@@ -441,7 +473,10 @@ describe("Salary", () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -478,7 +513,10 @@ describe("Salary", () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -515,7 +553,10 @@ describe("Salary", () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -552,7 +593,10 @@ describe("Salary", () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -593,7 +637,10 @@ describe("Salary", () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -658,7 +705,10 @@ describe("Salary", () => {
                 .connect(adminAcc2)
                 .approve(salary.address, initOwnerBalance);
 
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             await salary
                 .connect(adminAcc2)
                 .addEmployeeToProject(clientAcc1.address, bummyToken.address);
@@ -712,7 +762,10 @@ describe("Salary", () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -733,7 +786,10 @@ describe("Salary", () => {
             //Already spent 1 sec
             await increaseTime(59);
 
-            await salary.removeEmployeeFromProject(clientAcc1.address, origToken.address);
+            await salary.removeEmployeeFromProject(
+                clientAcc1.address,
+                origToken.address
+            );
 
             let timeAfterWithdrawal = await getTimestump();
             expect(await mockERC20.balanceOf(clientAcc1.address)).to.be.equal(
@@ -764,7 +820,10 @@ describe("Salary", () => {
             } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 800);
             await mockERC20.approve(salary.address, 800);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -808,7 +867,10 @@ describe("Salary", () => {
             );
 
             await increaseTime(59);
-            await salary.removeEmployeeFromProject(clientAcc1.address, origToken.address);
+            await salary.removeEmployeeFromProject(
+                clientAcc1.address,
+                origToken.address
+            );
 
             let isAdmin = await salary.checkIfUserIsEmployeeOfAdmin(
                 clientAcc1.address,
@@ -833,7 +895,10 @@ describe("Salary", () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -880,7 +945,10 @@ describe("Salary", () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -901,7 +969,10 @@ describe("Salary", () => {
             //Already spent 1 sec
             await increaseTime(59);
             await salary.connect(clientAcc1).withdrawSalary("1");
-            await salary.removeEmployeeFromProject(clientAcc1.address, origToken.address);
+            await salary.removeEmployeeFromProject(
+                clientAcc1.address,
+                origToken.address
+            );
 
             let timeAfterWithdrawal = await getTimestump();
             expect(await mockERC20.balanceOf(clientAcc1.address)).to.be.equal(
@@ -933,7 +1004,10 @@ describe("Salary", () => {
             let initOwnerBalance = 600;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -952,7 +1026,10 @@ describe("Salary", () => {
             //Already spent 1 sec
             await increaseTime(periodDuration * amountOfPeriods * 100);
 
-            await salary.removeEmployeeFromProject(clientAcc1.address, origToken.address);
+            await salary.removeEmployeeFromProject(
+                clientAcc1.address,
+                origToken.address
+            );
 
             expect(await mockERC20.balanceOf(clientAcc1.address)).to.be.equal(
                 totalTokenAmount
@@ -973,7 +1050,10 @@ describe("Salary", () => {
             let initOwnerBalance = 600;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -1012,7 +1092,10 @@ describe("Salary", () => {
             } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 800);
             await mockERC20.approve(salary.address, 800);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -1092,7 +1175,10 @@ describe("Salary", () => {
             } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 800);
             await mockERC20.approve(salary.address, 800);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -1170,7 +1256,9 @@ describe("Salary", () => {
             } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 600);
-            await salary.connect(adminAcc1).addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary
+                .connect(adminAcc1)
+                .addEmployeeToProject(clientAcc1.address, origToken.address);
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -1261,7 +1349,10 @@ describe("Salary", () => {
             } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 600);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -1320,7 +1411,10 @@ describe("Salary", () => {
             } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 600);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -1355,7 +1449,10 @@ describe("Salary", () => {
             } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 600);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -1391,7 +1488,10 @@ describe("Salary", () => {
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 600);
 
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
 
             let periodDuration = 60;
             let amountOfPeriods = 10;
@@ -1447,7 +1547,10 @@ describe("Salary", () => {
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 600);
 
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
 
             let periodDuration = 60;
             let amountOfPeriods = 10;
@@ -1521,7 +1624,10 @@ describe("Salary", () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -1577,7 +1683,10 @@ describe("Salary", () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -1597,7 +1706,10 @@ describe("Salary", () => {
 
             //Already spent 1 sec
             await increaseTime(59);
-            await salary.removeEmployeeFromProject(clientAcc1.address, origToken.address);
+            await salary.removeEmployeeFromProject(
+                clientAcc1.address,
+                origToken.address
+            );
 
             let timeAfterWithdrawal = await getTimestump();
             expect(await mockERC20.balanceOf(clientAcc1.address)).to.be.equal(
@@ -1629,7 +1741,10 @@ describe("Salary", () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -1672,7 +1787,10 @@ describe("Salary", () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -1691,7 +1809,10 @@ describe("Salary", () => {
             //Already spent 1 sec
             await increaseTime(119);
             await salary.connect(clientAcc1).withdrawSalary("1");
-            await salary.removeEmployeeFromProject(clientAcc1.address, origToken.address);
+            await salary.removeEmployeeFromProject(
+                clientAcc1.address,
+                origToken.address
+            );
 
             expect(await mockERC20.balanceOf(clientAcc1.address)).to.be.equal(
                 30
@@ -1720,7 +1841,10 @@ describe("Salary", () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -1738,7 +1862,10 @@ describe("Salary", () => {
 
             //Already spent 1 sec
             await increaseTime(270);
-            await salary.removeEmployeeFromProject(clientAcc1.address, origToken.address);
+            await salary.removeEmployeeFromProject(
+                clientAcc1.address,
+                origToken.address
+            );
 
             expect(await mockERC20.balanceOf(clientAcc1.address)).to.be.equal(
                 125
@@ -1761,7 +1888,10 @@ describe("Salary", () => {
             } = await loadFixture(deploys);
             await mockERC20.mint(adminAcc1.address, 600);
             await mockERC20.approve(salary.address, 600);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -1819,7 +1949,10 @@ describe("Salary", () => {
             let initOwnerBalance = 910;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -1859,7 +1992,10 @@ describe("Salary", () => {
             let initOwnerBalance = 910;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -1904,7 +2040,10 @@ describe("Salary", () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -1947,7 +2086,10 @@ describe("Salary", () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -1993,7 +2135,10 @@ describe("Salary", () => {
             let initOwnerBalance = 909;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -2031,7 +2176,10 @@ describe("Salary", () => {
             let initOwnerBalance = 910;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -2069,7 +2217,10 @@ describe("Salary", () => {
             let initOwnerBalance = 910;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -2093,7 +2244,7 @@ describe("Salary", () => {
             ).to.be.revertedWithCustomError(salary, "NotAdminForEmployee");
             await increaseTime(30);
         });
-        
+
         // Reverts for addEmployeeToProject
         it("Should fail to add new employee if he is already in project", async () => {
             let {
@@ -2106,8 +2257,11 @@ describe("Salary", () => {
                 mockERC20,
             } = await loadFixture(deploys);
 
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
-            await expect (
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
+            await expect(
                 salary.addEmployeeToProject(
                     clientAcc1.address,
                     origToken.address
@@ -2127,10 +2281,9 @@ describe("Salary", () => {
             } = await loadFixture(deploys);
 
             await expect(
-                salary.connect(adminAcc2).addEmployeeToProject(
-                    clientAcc1.address,
-                    origToken.address
-                )
+                salary
+                    .connect(adminAcc2)
+                    .addEmployeeToProject(clientAcc1.address, origToken.address)
             ).to.be.revertedWithCustomError(salary, "NotAdminOfProject");
         });
 
@@ -2145,9 +2298,18 @@ describe("Salary", () => {
                 rummy,
                 mockERC20,
             } = await loadFixture(deploys);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
-            await expect(salary.connect(adminAcc2).removeEmployeeFromProject(clientAcc1.address, origToken.address))
-            .to.be.revertedWithCustomError(salary, "NotAdminOfProject");
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
+            await expect(
+                salary
+                    .connect(adminAcc2)
+                    .removeEmployeeFromProject(
+                        clientAcc1.address,
+                        origToken.address
+                    )
+            ).to.be.revertedWithCustomError(salary, "NotAdminOfProject");
         });
         it("Should fail to remove employee if he is not in project", async () => {
             let {
@@ -2159,9 +2321,16 @@ describe("Salary", () => {
                 rummy,
                 mockERC20,
             } = await loadFixture(deploys);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
-            await expect(salary.removeEmployeeFromProject(clientAcc2.address, origToken.address))
-            .to.be.revertedWithCustomError(salary, "EmployeeNotInProject");
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
+            await expect(
+                salary.removeEmployeeFromProject(
+                    clientAcc2.address,
+                    origToken.address
+                )
+            ).to.be.revertedWithCustomError(salary, "EmployeeNotInProject");
         });
 
         it("Should revert setNameToEmployee with UserDoesNotHaveAnAdminToken", async () => {
@@ -2174,7 +2343,10 @@ describe("Salary", () => {
                 rummy,
                 mockERC20,
             } = await loadFixture(deploys);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             await expect(
                 salary
                     .connect(clientAcc1)
@@ -2195,7 +2367,10 @@ describe("Salary", () => {
                 rummy,
                 mockERC20,
             } = await loadFixture(deploys);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             await expect(
                 salary.setNameToEmployee(clientAcc1.address, "")
             ).to.be.revertedWithCustomError(salary, "EmptyName");
@@ -2211,7 +2386,10 @@ describe("Salary", () => {
                 rummy,
                 mockERC20,
             } = await loadFixture(deploys);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             await expect(
                 salary
                     .connect(adminAcc2)
@@ -2229,7 +2407,10 @@ describe("Salary", () => {
                 rummy,
                 mockERC20,
             } = await loadFixture(deploys);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             await expect(
                 salary
                     .connect(clientAcc1)
@@ -2250,7 +2431,10 @@ describe("Salary", () => {
                 rummy,
                 mockERC20,
             } = await loadFixture(deploys);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             await expect(
                 salary
                     .connect(adminAcc2)
@@ -2268,8 +2452,14 @@ describe("Salary", () => {
                 rummy,
                 mockERC20,
             } = await loadFixture(deploys);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
-            await salary.addEmployeeToProject(clientAcc2.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
+            await salary.addEmployeeToProject(
+                clientAcc2.address,
+                origToken.address
+            );
             expect(
                 await salary.checkIfUserIsEmployeeOfAdmin(
                     adminAcc1.address,
@@ -2309,7 +2499,10 @@ describe("Salary", () => {
                 mockERC20,
             } = await loadFixture(deploys);
             await expect(
-                salary.removeEmployeeFromProject(clientAcc1.address, origToken.address)
+                salary.removeEmployeeFromProject(
+                    clientAcc1.address,
+                    origToken.address
+                )
             ).to.be.revertedWithCustomError(salary, "EmployeeNotInProject");
         });
 
@@ -2364,7 +2557,10 @@ describe("Salary", () => {
 
             await salary
                 .connect(adminAcc2)
-                .removeEmployeeFromProject(clientAcc1.address, bummyToken.address);
+                .removeEmployeeFromProject(
+                    clientAcc1.address,
+                    bummyToken.address
+                );
 
             admins = await salary.getAdminsByEmployee(clientAcc1.address);
             id = [];
@@ -2466,7 +2662,10 @@ describe("Salary", () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -2500,7 +2699,10 @@ describe("Salary", () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -2535,7 +2737,10 @@ describe("Salary", () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -2610,7 +2815,10 @@ describe("Salary", () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -2647,7 +2855,10 @@ describe("Salary", () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;
@@ -2684,7 +2895,10 @@ describe("Salary", () => {
             let initOwnerBalance = 1200;
             await mockERC20.mint(adminAcc1.address, initOwnerBalance);
             await mockERC20.approve(salary.address, initOwnerBalance);
-            await salary.addEmployeeToProject(clientAcc1.address, origToken.address);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
             let periodDuration = 60;
             let amountOfPeriods = 10;
             let tokenAddress = mockERC20.address;

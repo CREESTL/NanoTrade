@@ -206,6 +206,29 @@ Returns the list of IDs of all distributions the admin has ever started
 |---|---|---|
 | _0 | uint256[] | The list of IDs of all distributions the admin has ever started |
 
+### getLockChangesId
+
+```solidity
+function getLockChangesId(address token, address user) external view returns (uint256[])
+```
+
+Returns IDs of distributions before which         user&#39;s lock of the token has changed
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| token | address | The address of the token to get the lock of |
+| user | address | The address of the user to get the lock history of |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256[] | undefined |
+
 ### getLockers
 
 ```solidity

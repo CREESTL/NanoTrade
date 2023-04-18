@@ -13,10 +13,10 @@
 ### addEmployeeToProject
 
 ```solidity
-function addEmployeeToProject(address employeeAddress) external nonpayable
+function addEmployeeToProject(address employeeAddress, address projectToken) external nonpayable
 ```
 
-Adds new employee.
+Adds new employee to admin&#39;s project
 
 *Only admin can call this method.*
 
@@ -24,7 +24,8 @@ Adds new employee.
 
 | Name | Type | Description |
 |---|---|---|
-| employeeAddress | address | Address of employee. |
+| employeeAddress | address | Address of employee |
+| projectToken | address | The address of the project token |
 
 ### addPeriodsToSalary
 
@@ -62,6 +63,52 @@ Adds salary to employee.
 | amountOfPeriods | uint256 | Amount of periods. |
 | tokenAddress | address | undefined |
 | tokensAmountPerPeriod | uint256[] | Amount of tokens per period. |
+
+### checkIfAdminOfProject
+
+```solidity
+function checkIfAdminOfProject(address adminAddress, address projectTokenAddress) external view returns (bool)
+```
+
+Returns true if user is an admin of the given project token
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| adminAddress | address | The address of the user to check |
+| projectTokenAddress | address | The address of the project token to check |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | True if user is an admin of the given project token |
+
+### checkIfUserInProject
+
+```solidity
+function checkIfUserInProject(address employeeAddress, address projectTokenAddress) external view returns (bool)
+```
+
+Returns true if user is already working on the project
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| employeeAddress | address | The address of the user to check |
+| projectTokenAddress | address | The address of the project token to check |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | True if user is already working on the project |
 
 ### checkIfUserIsAdminOfEmployee
 
@@ -245,10 +292,10 @@ Returns salary by ID.
 ### removeEmployeeFromProject
 
 ```solidity
-function removeEmployeeFromProject(address employeeAddress) external nonpayable
+function removeEmployeeFromProject(address employeeAddress, address projectToken) external nonpayable
 ```
 
-Removes employee.
+Removes employee from admin&#39;s project
 
 *Only admin can call this method.*
 
@@ -257,6 +304,7 @@ Removes employee.
 | Name | Type | Description |
 |---|---|---|
 | employeeAddress | address | Address of employee. |
+| projectToken | address | The address of the project token |
 
 ### removeNameFromEmployee
 
@@ -358,10 +406,10 @@ Withdraws employee&#39;s salary.
 ### EmployeeAdded
 
 ```solidity
-event EmployeeAdded(address employeeAddress, address adminAddress)
+event EmployeeAdded(address indexed employeeAddress, address indexed projectToken, address indexed adminAddress)
 ```
 
-Emits when user was added to Employees of Admin
+Emits when user was added to Employees of Admin&#39;s project
 
 
 
@@ -369,8 +417,9 @@ Emits when user was added to Employees of Admin
 
 | Name | Type | Description |
 |---|---|---|
-| employeeAddress  | address | undefined |
-| adminAddress  | address | undefined |
+| employeeAddress `indexed` | address | undefined |
+| projectToken `indexed` | address | undefined |
+| adminAddress `indexed` | address | undefined |
 
 ### EmployeeNameChanged
 
@@ -408,7 +457,7 @@ Emits when name was removed from Employee
 ### EmployeeRemoved
 
 ```solidity
-event EmployeeRemoved(address employeeAddress, address adminAddress)
+event EmployeeRemoved(address indexed employeeAddress, address indexed projectToken, address indexed adminAddress)
 ```
 
 Emits when user was removed from Employees of Admin
@@ -419,8 +468,9 @@ Emits when user was removed from Employees of Admin
 
 | Name | Type | Description |
 |---|---|---|
-| employeeAddress  | address | undefined |
-| adminAddress  | address | undefined |
+| employeeAddress `indexed` | address | undefined |
+| projectToken `indexed` | address | undefined |
+| adminAddress `indexed` | address | undefined |
 
 ### EmployeeSalaryAdded
 
@@ -527,10 +577,21 @@ error AllreadyEmployee()
 
 
 
-### NotEmployeeOfAdmin
+### AlreadyInProject
 
 ```solidity
-error NotEmployeeOfAdmin()
+error AlreadyInProject()
+```
+
+
+
+
+
+
+### EmployeeNotInProject
+
+```solidity
+error EmployeeNotInProject()
 ```
 
 
@@ -582,6 +643,17 @@ error NotAdminForThisSalary()
 
 
 
+### NotAdminOfProject
+
+```solidity
+error NotAdminOfProject()
+```
+
+
+
+
+
+
 ### NotAllowedToRemoveName
 
 ```solidity
@@ -608,6 +680,17 @@ error NotAllowedToSetName()
 
 ```solidity
 error NotEmployeeForThisSalary()
+```
+
+
+
+
+
+
+### NotEmployeeOfAdmin
+
+```solidity
+error NotEmployeeOfAdmin()
 ```
 
 
