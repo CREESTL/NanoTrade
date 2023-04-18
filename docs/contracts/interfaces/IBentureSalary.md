@@ -10,10 +10,10 @@
 
 ## Methods
 
-### addEmployee
+### addEmployeeToProject
 
 ```solidity
-function addEmployee(address employeeAddress) external nonpayable
+function addEmployeeToProject(address employeeAddress) external nonpayable
 ```
 
 Adds new employee.
@@ -242,10 +242,10 @@ Returns salary by ID.
 |---|---|---|
 | salary | IBentureSalary.SalaryInfo | SalaryInfo by ID. |
 
-### removeEmployee
+### removeEmployeeFromProject
 
 ```solidity
-function removeEmployee(address employeeAddress) external nonpayable
+function removeEmployeeFromProject(address employeeAddress) external nonpayable
 ```
 
 Removes employee.
@@ -358,7 +358,7 @@ Withdraws employee&#39;s salary.
 ### EmployeeAdded
 
 ```solidity
-event EmployeeAdded(address indexed employeeAddress, address indexed adminAddress)
+event EmployeeAdded(address employeeAddress, address adminAddress)
 ```
 
 Emits when user was added to Employees of Admin
@@ -369,13 +369,13 @@ Emits when user was added to Employees of Admin
 
 | Name | Type | Description |
 |---|---|---|
-| employeeAddress `indexed` | address | undefined |
-| adminAddress `indexed` | address | undefined |
+| employeeAddress  | address | undefined |
+| adminAddress  | address | undefined |
 
 ### EmployeeNameChanged
 
 ```solidity
-event EmployeeNameChanged(address indexed employeeAddress, string indexed name)
+event EmployeeNameChanged(address employeeAddress, string name)
 ```
 
 Emits when Employee&#39;s name was added or changed
@@ -386,13 +386,13 @@ Emits when Employee&#39;s name was added or changed
 
 | Name | Type | Description |
 |---|---|---|
-| employeeAddress `indexed` | address | undefined |
-| name `indexed` | string | undefined |
+| employeeAddress  | address | undefined |
+| name  | string | undefined |
 
 ### EmployeeNameRemoved
 
 ```solidity
-event EmployeeNameRemoved(address indexed employeeAddress)
+event EmployeeNameRemoved(address employeeAddress)
 ```
 
 Emits when name was removed from Employee
@@ -403,12 +403,12 @@ Emits when name was removed from Employee
 
 | Name | Type | Description |
 |---|---|---|
-| employeeAddress `indexed` | address | undefined |
+| employeeAddress  | address | undefined |
 
 ### EmployeeRemoved
 
 ```solidity
-event EmployeeRemoved(address indexed employeeAddress, address indexed adminAddress)
+event EmployeeRemoved(address employeeAddress, address adminAddress)
 ```
 
 Emits when user was removed from Employees of Admin
@@ -419,13 +419,13 @@ Emits when user was removed from Employees of Admin
 
 | Name | Type | Description |
 |---|---|---|
-| employeeAddress `indexed` | address | undefined |
-| adminAddress `indexed` | address | undefined |
+| employeeAddress  | address | undefined |
+| adminAddress  | address | undefined |
 
 ### EmployeeSalaryAdded
 
 ```solidity
-event EmployeeSalaryAdded(address indexed employeeAddress, address indexed adminAddress, IBentureSalary.SalaryInfo indexed salary)
+event EmployeeSalaryAdded(uint256 id, address employeeAddress, address adminAddress)
 ```
 
 Emits when salary was added to Employee
@@ -436,14 +436,14 @@ Emits when salary was added to Employee
 
 | Name | Type | Description |
 |---|---|---|
-| employeeAddress `indexed` | address | undefined |
-| adminAddress `indexed` | address | undefined |
-| salary `indexed` | IBentureSalary.SalaryInfo | undefined |
+| id  | uint256 | undefined |
+| employeeAddress  | address | undefined |
+| adminAddress  | address | undefined |
 
 ### EmployeeSalaryClaimed
 
 ```solidity
-event EmployeeSalaryClaimed(address indexed employeeAddress, address indexed adminAddress, IBentureSalary.SalaryInfo indexed salary)
+event EmployeeSalaryClaimed(uint256 id, address employeeAddress, address adminAddress)
 ```
 
 Emits when Employee withdraws salary
@@ -454,14 +454,14 @@ Emits when Employee withdraws salary
 
 | Name | Type | Description |
 |---|---|---|
-| employeeAddress `indexed` | address | undefined |
-| adminAddress `indexed` | address | undefined |
-| salary `indexed` | IBentureSalary.SalaryInfo | undefined |
+| id  | uint256 | undefined |
+| employeeAddress  | address | undefined |
+| adminAddress  | address | undefined |
 
 ### EmployeeSalaryRemoved
 
 ```solidity
-event EmployeeSalaryRemoved(address indexed employeeAddress, address indexed adminAddress, IBentureSalary.SalaryInfo indexed salary)
+event EmployeeSalaryRemoved(uint256 id, address employeeAddress, address adminAddress)
 ```
 
 Emits when salary was removed from Employee
@@ -472,14 +472,14 @@ Emits when salary was removed from Employee
 
 | Name | Type | Description |
 |---|---|---|
-| employeeAddress `indexed` | address | undefined |
-| adminAddress `indexed` | address | undefined |
-| salary `indexed` | IBentureSalary.SalaryInfo | undefined |
+| id  | uint256 | undefined |
+| employeeAddress  | address | undefined |
+| adminAddress  | address | undefined |
 
 ### SalaryPeriodsAdded
 
 ```solidity
-event SalaryPeriodsAdded(address indexed employeeAddress, address indexed adminAddress, IBentureSalary.SalaryInfo indexed salary)
+event SalaryPeriodsAdded(uint256 id, address employeeAddress, address adminAddress)
 ```
 
 Emits when Admin adds periods to salary
@@ -490,14 +490,14 @@ Emits when Admin adds periods to salary
 
 | Name | Type | Description |
 |---|---|---|
-| employeeAddress `indexed` | address | undefined |
-| adminAddress `indexed` | address | undefined |
-| salary `indexed` | IBentureSalary.SalaryInfo | undefined |
+| id  | uint256 | undefined |
+| employeeAddress  | address | undefined |
+| adminAddress  | address | undefined |
 
 ### SalaryPeriodsRemoved
 
 ```solidity
-event SalaryPeriodsRemoved(address indexed employeeAddress, address indexed adminAddress, IBentureSalary.SalaryInfo indexed salary)
+event SalaryPeriodsRemoved(uint256 id, address employeeAddress, address adminAddress)
 ```
 
 Emits when Admin removes periods from salary
@@ -508,9 +508,9 @@ Emits when Admin removes periods from salary
 
 | Name | Type | Description |
 |---|---|---|
-| employeeAddress `indexed` | address | undefined |
-| adminAddress `indexed` | address | undefined |
-| salary `indexed` | IBentureSalary.SalaryInfo | undefined |
+| id  | uint256 | undefined |
+| employeeAddress  | address | undefined |
+| adminAddress  | address | undefined |
 
 
 
@@ -527,10 +527,10 @@ error AllreadyEmployee()
 
 
 
-### AlreadyNotAnEmployee
+### NotEmployeeOfAdmin
 
 ```solidity
-error AlreadyNotAnEmployee()
+error NotEmployeeOfAdmin()
 ```
 
 

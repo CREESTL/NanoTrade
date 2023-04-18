@@ -158,7 +158,7 @@ describe("Benture Produced Token", () => {
             let startBalance = await token.balanceOf(clientAcc1.address);
             let amount = 1000;
             await expect(token.mint(clientAcc1.address, amount))
-                .to.emit(token, "ControlledTokenCreated")
+                .to.emit(token, "ProjectTokenMinted")
                 .withArgs(anyValue, amount);
             let endBalance = await token.balanceOf(clientAcc1.address);
             expect(endBalance.sub(startBalance)).to.equal(amount);
@@ -287,7 +287,7 @@ describe("Benture Produced Token", () => {
             let startBalance = await token.balanceOf(clientAcc1.address);
             expect(await token.isHolder(clientAcc1.address)).to.equal(true);
             await expect(token.connect(clientAcc1).burn(amount / 2))
-                .to.emit(token, "ControlledTokenBurnt")
+                .to.emit(token, "ProjectTokenBurnt")
                 .withArgs(anyValue, amount / 2);
             let endBalance = await token.balanceOf(clientAcc1.address);
             expect(await token.isHolder(clientAcc1.address)).to.equal(true);
@@ -365,7 +365,7 @@ describe("Benture Produced Token", () => {
                     .connect(clientAcc1)
                     .transfer(clientAcc2.address, amount / 2)
             )
-                .to.emit(token, "ControlledTokenTransferred")
+                .to.emit(token, "ProjectTokenTransferred")
                 .withArgs(anyValue, anyValue, amount / 2);
             let endHolders = await token.holders();
             // Now both accounts should become holders and have half of tokens each

@@ -117,6 +117,15 @@ interface IBenture is IBentureErrors {
     /// @return True if user has claimed dividends. Otherwise - false
     function hasClaimed(uint256 id, address user) external view returns (bool);
 
+    /// @notice Returns IDs of distributions before which
+    ///         user's lock of the token has changed
+    /// @param token The address of the token to get the lock of
+    /// @param user The address of the user to get the lock history of
+    function getLockChangesId(
+        address token,
+        address user
+    ) external view returns (uint256[] memory);
+
     /// @notice Checks if the distribution with the given ID was started by the given admin
     /// @param id The ID of the distribution to check
     /// @param admin The address of the admin to check
@@ -132,52 +141,53 @@ interface IBenture is IBentureErrors {
     function getMyShare(uint256 id) external view returns (uint256);
 
     /// @dev Indicates that a new pool has been created
-    event PoolCreated(address indexed token);
+    event PoolCreated(address token);
 
     /// @dev Indicates that a pool has been deleted
-    event PoolDeleted(address indexed token);
+    event PoolDeleted(address token);
 
     /// @dev Indicated that tokens have been locked
-    event TokensLocked(
-        address indexed user,
-        address indexed token,
-        uint256 amount
-    );
+    event TokensLocked(uint256 id, address user, address token, uint256 amount);
 
     /// @dev Indicated that tokens have been locked
     event TokensUnlocked(
-        address indexed user,
-        address indexed token,
+        uint256 id,
+        address user,
+        address token,
         uint256 amount
     );
 
     /// @dev Indicates that new dividends distribution was started
+    /// @param id The id of the started distribution
     /// @param origToken The tokens to the holders of which the dividends will be paid
     /// @param distToken The token that will be paid
     /// @param amount The amount of tokens that will be paid
     /// @param isEqual Indicates whether distribution will be equal
     event DividendsStarted(
-        address indexed origToken,
-        address indexed distToken,
-        uint256 indexed amount,
+        uint256 id,
+        address origToken,
+        address distToken,
+        uint256 amount,
         bool isEqual
     );
 
     /// @dev Indicates that dividends were claimed by a user
     /// @param id The ID of the distribution that was claimed
     /// @param user The address of the user who claimed the distribution
-    event DividendsClaimed(uint256 indexed id, address user);
+    event DividendsClaimed(uint256 id, address user);
 
     /// @dev Indicates that multiple dividends were claimed by a user
+    /// @param ids The list of IDs of claimed dividends
     /// @param user The address of the user who claimed the distributions
     /// @param count The total number of claimed dividends
-    event MultipleDividendsClaimed(address user, uint256 count);
+    event MultipleDividendsClaimed(uint256[] ids, address user, uint256 count);
 
     /// @dev Indicates that custom dividends were sent to the list of users
+    /// @param id The ID of custom distribution
     /// @param token The token distributed
     /// @param count The total number of users who received their shares
     ///              Counting starts from the first user and does not skip any users
-    event CustomDividendsDistributed(address indexed token, uint256 count);
+    event CustomDividendsDistributed(uint256 id, address token, uint256 count);
 
     /// @dev Indicates that 2/3 of block gas limit was spent during the
     ///      iteration inside the contract method

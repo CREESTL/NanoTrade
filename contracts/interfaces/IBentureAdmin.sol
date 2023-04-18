@@ -13,7 +13,7 @@ interface IBentureAdmin is IBentureAdminErrors {
     /// @param user The address of the user that potentially controls ERC20 token
     /// @param ERC20Address The address of the potentially controlled ERC20 token
     /// @return True if user has admin token. Otherwise - false.
-    function verifyAdminToken(
+    function verifyAdminOfProject(
         address user,
         address ERC20Address
     ) external view returns (bool);
@@ -45,18 +45,11 @@ interface IBentureAdmin is IBentureAdminErrors {
     function burn(uint256 tokenId) external;
 
     /// @dev Indicates that a new ERC721 token got minted
-    event AdminTokenCreated(
-        uint256 indexed tokenId,
-        address indexed ERC20Address
-    );
+    event AdminTokenCreated(uint256 tokenId, address ERC20Address);
 
     /// @dev Indicates that an ERC721 token got burnt
-    event AdminTokenBurnt(uint256 indexed tokenId);
+    event AdminTokenBurnt(uint256 tokenId);
 
     /// @dev Indicates that an ERC721 token got transferred
-    event AdminTokenTransferred(
-        address indexed from,
-        address indexed to,
-        uint256 tokenId
-    );
+    event AdminTokenTransferred(address from, address to, uint256 tokenId);
 }

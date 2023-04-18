@@ -120,10 +120,10 @@ Mints a new ERC721 token with the address of the controlled ERC20 token
 | to | address | The address of the receiver of the token |
 | ERC20Address | address | The address of the controlled ERC20 token |
 
-### verifyAdminToken
+### verifyAdminOfProject
 
 ```solidity
-function verifyAdminToken(address user, address ERC20Address) external view returns (bool)
+function verifyAdminOfProject(address user, address ERC20Address) external view returns (bool)
 ```
 
 Checks if the provided user owns an admin token controlling the provided ERC20 token
@@ -150,7 +150,7 @@ Checks if the provided user owns an admin token controlling the provided ERC20 t
 ### AdminTokenBurnt
 
 ```solidity
-event AdminTokenBurnt(uint256 indexed tokenId)
+event AdminTokenBurnt(uint256 tokenId)
 ```
 
 
@@ -161,12 +161,12 @@ event AdminTokenBurnt(uint256 indexed tokenId)
 
 | Name | Type | Description |
 |---|---|---|
-| tokenId `indexed` | uint256 | undefined |
+| tokenId  | uint256 | undefined |
 
 ### AdminTokenCreated
 
 ```solidity
-event AdminTokenCreated(uint256 indexed tokenId, address indexed ERC20Address)
+event AdminTokenCreated(uint256 tokenId, address ERC20Address)
 ```
 
 
@@ -177,13 +177,13 @@ event AdminTokenCreated(uint256 indexed tokenId, address indexed ERC20Address)
 
 | Name | Type | Description |
 |---|---|---|
-| tokenId `indexed` | uint256 | undefined |
-| ERC20Address `indexed` | address | undefined |
+| tokenId  | uint256 | undefined |
+| ERC20Address  | address | undefined |
 
 ### AdminTokenTransferred
 
 ```solidity
-event AdminTokenTransferred(address indexed from, address indexed to, uint256 tokenId)
+event AdminTokenTransferred(address from, address to, uint256 tokenId)
 ```
 
 
@@ -194,8 +194,8 @@ event AdminTokenTransferred(address indexed from, address indexed to, uint256 to
 
 | Name | Type | Description |
 |---|---|---|
-| from `indexed` | address | undefined |
-| to `indexed` | address | undefined |
+| from  | address | undefined |
+| to  | address | undefined |
 | tokenId  | uint256 | undefined |
 
 

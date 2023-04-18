@@ -160,7 +160,7 @@ describe("Benture Dividend Distributing Contract", () => {
             ).to.equal(false);
             await expect(benture.lockTokens(origToken.address, lockAmount))
                 .to.emit(benture, "TokensLocked")
-                .withArgs(anyValue, anyValue, anyValue);
+                .withArgs(anyValue, anyValue, anyValue, anyValue);
             let userEndBalance = await origToken.balanceOf(ownerAcc.address);
             let bentureEndBalance = await origToken.balanceOf(benture.address);
             expect(
@@ -206,7 +206,7 @@ describe("Benture Dividend Distributing Contract", () => {
             ).to.equal(false);
             await expect(benture.lockAllTokens(origToken.address))
                 .to.emit(benture, "TokensLocked")
-                .withArgs(anyValue, anyValue, anyValue);
+                .withArgs(anyValue, anyValue, anyValue, anyValue);
             let userEndBalance = await origToken.balanceOf(ownerAcc.address);
             let bentureEndBalance = await origToken.balanceOf(benture.address);
             expect(
@@ -313,7 +313,7 @@ describe("Benture Dividend Distributing Contract", () => {
                 benture.unlockTokens(origToken.address, lockAmount / 2)
             )
                 .to.emit(benture, "TokensUnlocked")
-                .withArgs(anyValue, anyValue, anyValue);
+                .withArgs(anyValue, anyValue, anyValue, anyValue);
             let userEndBalance = await origToken.balanceOf(ownerAcc.address);
             let bentureEndBalance = await origToken.balanceOf(benture.address);
             expect(
@@ -363,7 +363,7 @@ describe("Benture Dividend Distributing Contract", () => {
             );
             await expect(benture.unlockAllTokens(origToken.address))
                 .to.emit(benture, "TokensUnlocked")
-                .withArgs(anyValue, anyValue, anyValue);
+                .withArgs(anyValue, anyValue, anyValue, anyValue);
             let userEndBalance = await origToken.balanceOf(ownerAcc.address);
             let bentureEndBalance = await origToken.balanceOf(benture.address);
             expect(
@@ -488,7 +488,7 @@ describe("Benture Dividend Distributing Contract", () => {
             );
             await expect(benture.unlockAllTokens(origToken.address))
                 .to.emit(benture, "TokensUnlocked")
-                .withArgs(anyValue, anyValue, anyValue);
+                .withArgs(anyValue, anyValue, anyValue, anyValue);
             let userEndBalance = await origToken.balanceOf(ownerAcc.address);
             let bentureEndBalance = await origToken.balanceOf(benture.address);
             expect(
@@ -599,7 +599,7 @@ describe("Benture Dividend Distributing Contract", () => {
                         )
                     )
                         .to.emit(benture, "DividendsStarted")
-                        .withArgs(anyValue, anyValue, anyValue, true);
+                        .withArgs(anyValue, anyValue, anyValue, anyValue, true);
 
                     let ownerEndBalance = await distToken.balanceOf(
                         ownerAcc.address
@@ -752,7 +752,7 @@ describe("Benture Dividend Distributing Contract", () => {
                         )
                     )
                         .to.emit(benture, "DividendsStarted")
-                        .withArgs(anyValue, anyValue, anyValue, true);
+                        .withArgs(anyValue, anyValue, anyValue, anyValue, true);
 
                     let ownerEndBalance = await ethers.provider.getBalance(
                         ownerAcc.address
@@ -907,7 +907,13 @@ describe("Benture Dividend Distributing Contract", () => {
                         )
                     )
                         .to.emit(benture, "DividendsStarted")
-                        .withArgs(anyValue, anyValue, anyValue, false);
+                        .withArgs(
+                            anyValue,
+                            anyValue,
+                            anyValue,
+                            anyValue,
+                            false
+                        );
 
                     let ownerEndBalance = await distToken.balanceOf(
                         ownerAcc.address
@@ -1060,7 +1066,13 @@ describe("Benture Dividend Distributing Contract", () => {
                         )
                     )
                         .to.emit(benture, "DividendsStarted")
-                        .withArgs(anyValue, anyValue, anyValue, false);
+                        .withArgs(
+                            anyValue,
+                            anyValue,
+                            anyValue,
+                            anyValue,
+                            false
+                        );
 
                     let ownerEndBalance = await ethers.provider.getBalance(
                         ownerAcc.address
@@ -2862,7 +2874,7 @@ describe("Benture Dividend Distributing Contract", () => {
                     )
                 )
                     .to.emit(benture, "CustomDividendsDistributed")
-                    .withArgs(anyValue, anyValue);
+                    .withArgs(anyValue, anyValue, anyValue);
 
                 let endBalance1 = await distToken.balanceOf(clientAcc1.address);
                 let endBalance2 = await distToken.balanceOf(clientAcc2.address);
@@ -2894,7 +2906,7 @@ describe("Benture Dividend Distributing Contract", () => {
                     )
                 )
                     .to.emit(benture, "CustomDividendsDistributed")
-                    .withArgs(anyValue, anyValue);
+                    .withArgs(anyValue, anyValue, anyValue);
 
                 let endBalance1 = await distToken.balanceOf(clientAcc1.address);
                 let endBalance2 = await distToken.balanceOf(clientAcc2.address);
@@ -2931,7 +2943,7 @@ describe("Benture Dividend Distributing Contract", () => {
                     )
                 )
                     .to.emit(benture, "CustomDividendsDistributed")
-                    .withArgs(anyValue, anyValue);
+                    .withArgs(anyValue, anyValue, anyValue);
 
                 let endBalance1 = await ethers.provider.getBalance(
                     clientAcc1.address
@@ -3061,7 +3073,65 @@ describe("Benture Dividend Distributing Contract", () => {
     });
 
     // #G
-    describe("Getters", () => {});
+    describe("Getters", () => {
+        it("Should get ID before which lock was changed", async () => {
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
+            let mintAmount = parseUnits("1000000", 6);
+            let lockAmount = parseUnits("1000", 6);
+            let claimAmount = parseEther("1");
+
+            await origToken.mint(clientAcc1.address, mintAmount);
+            await origToken
+                .connect(clientAcc1)
+                .approve(benture.address, lockAmount);
+            await benture
+                .connect(clientAcc1)
+                .lockTokens(origToken.address, lockAmount);
+
+            await benture
+                .connect(clientAcc1)
+                .unlockTokens(origToken.address, lockAmount.div(10));
+
+            // ID1
+            await benture.distributeDividends(
+                origToken.address,
+                zeroAddress,
+                claimAmount,
+                true,
+                { value: claimAmount }
+            );
+
+            await benture
+                .connect(clientAcc1)
+                .unlockTokens(origToken.address, lockAmount.div(10));
+
+            // ID2
+            await benture.distributeDividends(
+                origToken.address,
+                zeroAddress,
+                claimAmount,
+                true,
+                { value: claimAmount }
+            );
+
+            // ID2
+            await benture.distributeDividends(
+                origToken.address,
+                zeroAddress,
+                claimAmount,
+                true,
+                { value: claimAmount }
+            );
+
+            let ids = await benture
+                .connect(clientAcc1)
+                .getLockChangesId(origToken.address, clientAcc1.address);
+            expect(ids[0]).to.equal(1);
+            expect(ids[1]).to.equal(2);
+            expect(ids.length).to.equal(2);
+        });
+    });
 
     // #FG
     describe("Fails for getters", () => {

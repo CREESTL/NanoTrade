@@ -55,7 +55,7 @@ Returns the address of the produced ERC20 token
 ### CreateERC20Token
 
 ```solidity
-event CreateERC20Token(string indexed name, string indexed symbol, address indexed tokenAddress, uint8 decimals, bool mintable)
+event CreateERC20Token(string name, string symbol, address tokenAddress, uint8 decimals, bool mintable)
 ```
 
 
@@ -66,9 +66,9 @@ event CreateERC20Token(string indexed name, string indexed symbol, address index
 
 | Name | Type | Description |
 |---|---|---|
-| name `indexed` | string | undefined |
-| symbol `indexed` | string | undefined |
-| tokenAddress `indexed` | address | undefined |
+| name  | string | undefined |
+| symbol  | string | undefined |
+| tokenAddress  | address | undefined |
 | decimals  | uint8 | undefined |
 | mintable  | bool | undefined |
 

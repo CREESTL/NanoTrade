@@ -48,6 +48,16 @@ contract BentureSalary is
     mapping(address => mapping(address => EnumerableSetUpgradeable.UintSet))
         private employeeToAdminToSalaryId;
 
+    /// @dev Mapping from employee address to the project tokens addresses
+    ///      of the projects he works on
+    // One employee can work on multiple projects
+    mapping(address => EnumerableSetUpgradeable.AddressSet)
+        private employeeToProjectTokens;
+    /// @dev Inverse mapping for `employeeToProjectToken`
+    // One project can have multiple employees
+    mapping(address => EnumerableSetUpgradeable.AddressSet)
+        private projectTokenToEmployees;
+
     /// @dev Uses to check if user is BentureAdmin tokens holder
     modifier onlyAdmin() {
         IBentureAdmin(bentureAdminToken).checkOwner(msg.sender);
@@ -145,44 +155,76 @@ contract BentureSalary is
         emit EmployeeNameRemoved(employeeAddress);
     }
 
-    /// @notice Adds new employee.
-    /// @param employeeAddress Address of employee.
+    /// @notice Adds new employee to admin's project
+    /// @param employeeAddress Address of employee
+    /// @param projectToken The address of the project token
     /// @dev Only admin can call this method.
-    function addEmployee(address employeeAddress) external onlyAdmin {
-        if (checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender)) {
-            revert AllreadyEmployee();
+    function addEmployeeToProject(
+        address employeeAddress,
+        address projectToken
+    ) external onlyAdmin {
+
+        // Same employee cannot be added to one project more than once
+        if (checkIfUserInProject(employeeAddress, projectToken)) {
+            revert AlreadyInProject();
         }
+
+        // Admin should be the admin of the project he wants to add employee to
+        if (!checkIfAdminOfProject(msg.sender, projectToken)) {
+            revert NotAdminOfProject();
+        }
+
+        employeeToProjectTokens[employeeAddress].add(projectToken);
+        projectTokenToEmployees[projectToken].add(employeeAddress);
+
         adminToEmployees[msg.sender].add(employeeAddress);
         employeeToAdmins[employeeAddress].add(msg.sender);
-        emit EmployeeAdded(employeeAddress, msg.sender);
+        emit EmployeeAdded(employeeAddress, projectToken, msg.sender);
     }
 
-    /// @notice Removes employee.
+    /// @notice Removes employee from admin's project
     /// @param employeeAddress Address of employee.
+    /// @param projectToken The address of the project token
     /// @dev Only admin can call this method.
-    function removeEmployee(address employeeAddress) external onlyAdmin {
-        if (!checkIfUserIsEmployeeOfAdmin(msg.sender, employeeAddress)) {
-            revert AlreadyNotAnEmployee();
+    function removeEmployeeFromProject(
+        address employeeAddress,
+        address projectToken
+    ) external onlyAdmin {
+        // Admin should be the admin of the project he wants to add employee to
+        if (!checkIfAdminOfProject(msg.sender, projectToken)) {
+            revert NotAdminOfProject();
         }
-
+        // User must be on the project
+        if (!checkIfUserInProject(employeeAddress, projectToken)) {
+            revert EmployeeNotInProject();
+        }
+        // User must be an employee of the admin
+        if (!checkIfUserIsEmployeeOfAdmin(msg.sender, employeeAddress)) {
+            revert NotEmployeeOfAdmin();
+        }
         if (
             employeeToAdminToSalaryId[employeeAddress][msg.sender].length() > 0
         ) {
-            uint256[] memory id = employeeToAdminToSalaryId[employeeAddress][
+            uint256[] memory ids = employeeToAdminToSalaryId[employeeAddress][
                 msg.sender
             ].values();
             uint256 arrayLength = employeeToAdminToSalaryId[employeeAddress][
                 msg.sender
             ].length();
             for (uint256 i = 0; i < arrayLength; i++) {
-                if (salaryById[id[i]].employer == msg.sender) {
-                    removeSalaryFromEmployee(id[i]);
+                if (salaryById[ids[i]].employer == msg.sender) {
+                    removeSalaryFromEmployee(ids[i]);
                 }
             }
         }
 
+        employeeToProjectTokens[employeeAddress].remove(projectToken);
+        projectTokenToEmployees[projectToken].remove(employeeAddress);
+
         adminToEmployees[msg.sender].remove(employeeAddress);
         employeeToAdmins[employeeAddress].remove(msg.sender);
+
+        emit EmployeeRemoved(employeeAddress, projectToken, msg.sender);
     }
 
     /// @notice Withdraws all of employee's salary.
@@ -243,7 +285,7 @@ contract BentureSalary is
                 _salary.amountOfPeriods -
                 amountOfPeriodsToDelete;
         }
-        emit SalaryPeriodsRemoved(_salary.employee, msg.sender, _salary);
+        emit SalaryPeriodsRemoved(salaryId, _salary.employee, msg.sender);
     }
 
     /// @notice Adds periods to salary
@@ -297,7 +339,7 @@ contract BentureSalary is
         _salary.amountOfPeriods =
             _salary.amountOfPeriods +
             tokensAmountPerPeriod.length;
-        emit SalaryPeriodsAdded(_salary.employee, msg.sender, _salary);
+        emit SalaryPeriodsAdded(_salary.id, _salary.employee, msg.sender);
     }
 
     /// @notice Adds salary to employee.
@@ -347,7 +389,7 @@ contract BentureSalary is
         _salary.employee = employeeAddress;
         employeeToAdminToSalaryId[employeeAddress][msg.sender].add(_salary.id);
         salaryById[_salary.id] = _salary;
-        emit EmployeeSalaryAdded(employeeAddress, msg.sender, _salary);
+        emit EmployeeSalaryAdded(_salary.id, employeeAddress, msg.sender);
     }
 
     /// @notice Returns true if user is employee for admin and False if not.
@@ -370,6 +412,35 @@ contract BentureSalary is
         address adminAddress
     ) public view returns (bool isAdmin) {
         return employeeToAdmins[employeeAddress].contains(adminAddress);
+    }
+
+    /// @notice Returns true if user is already working on the project
+    /// @param employeeAddress The address of the user to check
+    /// @param projectTokenAddress The address of the project token to check
+    /// @return True if user is already working on the project
+    function checkIfUserInProject(
+        address employeeAddress,
+        address projectTokenAddress
+    ) public view returns (bool) {
+        return
+            projectTokenToEmployees[projectTokenAddress].contains(
+                employeeAddress
+            );
+    }
+
+    /// @notice Returns true if user is an admin of the given project token
+    /// @param adminAddress The address of the user to check
+    /// @param projectTokenAddress The address of the project token to check
+    /// @return True if user is an admin of the given project token
+    function checkIfAdminOfProject(
+        address adminAddress,
+        address projectTokenAddress
+    ) public view returns (bool) {
+        return
+            IBentureAdmin(bentureAdminToken).verifyAdminOfProject(
+                adminAddress,
+                projectTokenAddress
+            );
     }
 
     /// @notice Returns amount of pending salary.
@@ -444,6 +515,8 @@ contract BentureSalary is
         );
         delete salaryById[_salary.id];
 
+        emit EmployeeSalaryRemoved(salaryId, _salary.employee, msg.sender);
+
         /// @dev Transfer tokens from the employer's wallet to the employee's wallet
         IERC20Upgradeable(_salary.tokenAddress).safeTransferFrom(
             msg.sender,
@@ -494,9 +567,9 @@ contract BentureSalary is
             );
 
             emit EmployeeSalaryClaimed(
+                salaryId,
                 _salary.employee,
-                _salary.employer,
-                salaryById[salaryId]
+                _salary.employer
             );
         }
     }

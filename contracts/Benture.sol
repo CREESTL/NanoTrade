@@ -197,7 +197,12 @@ contract Benture is
         // Mark that current ID is in the array now
         pool.changedBeforeId[msg.sender][distributionIds.current() + 1] = true;
 
-        emit TokensLocked(msg.sender, origToken, amount);
+        emit TokensLocked(
+            distributionIds.current() + 1,
+            msg.sender,
+            origToken,
+            amount
+        );
 
         // NOTE: User must approve transfer of at least `amount` of tokens
         //       before calling this function
@@ -488,7 +493,12 @@ contract Benture is
             pool.lockers.remove(msg.sender);
         }
 
-        emit TokensUnlocked(msg.sender, origToken, amount);
+        emit TokensUnlocked(
+            distributionIds.current() + 1,
+            msg.sender,
+            origToken,
+            amount
+        );
 
         // Transfer unlocked tokens from contract to the user
         IERC20Upgradeable(origToken).safeTransfer(msg.sender, amount);
@@ -539,11 +549,18 @@ contract Benture is
             }
         }
 
-        emit DividendsStarted(origToken, distToken, amount, isEqual);
-
         distributionIds.increment();
         // NOTE The lowest distribution ID is 1
         uint256 distributionId = distributionIds.current();
+
+        emit DividendsStarted(
+            distributionId,
+            origToken,
+            distToken,
+            amount,
+            isEqual
+        );
+
         // Mark that this admin started a distribution with the new ID
         distributionsToAdmins[distributionId] = msg.sender;
         adminsToDistributions[msg.sender].push(distributionId);
@@ -626,7 +643,11 @@ contract Benture is
             }
         }
 
-        emit CustomDividendsDistributed(token, count);
+        distributionIds.increment();
+        // NOTE The lowest distribution ID is 1
+        uint256 distributionId = distributionIds.current();
+
+        emit CustomDividendsDistributed(distributionId, token, count);
     }
 
     /// @notice Allows a user to claim dividends from a single distribution
@@ -842,7 +863,7 @@ contract Benture is
             }
         }
 
-        emit MultipleDividendsClaimed(msg.sender, count);
+        emit MultipleDividendsClaimed(ids, msg.sender, count);
     }
 
     // ===== SETTERS =====
@@ -1011,6 +1032,17 @@ contract Benture is
             revert InvalidUserAddress();
         }
         return distributions[id].hasClaimed[user];
+    }
+
+    /// @notice Returns IDs of distributions before which
+    ///         user's lock of the token has changed
+    /// @param token The address of the token to get the lock of
+    /// @param user The address of the user to get the lock history of
+    function getLockChangesId(
+        address token,
+        address user
+    ) public view returns (uint256[] memory) {
+        return pools[token].lockChangesIds[user];
     }
 
     function _authorizeUpgrade(

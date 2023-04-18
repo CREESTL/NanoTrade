@@ -38,7 +38,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
     /// @dev Checks if caller is an admin token holder
     modifier hasAdminToken() {
         if (
-            !IBentureAdmin(_adminToken).verifyAdminToken(
+            !IBentureAdmin(_adminToken).verifyAdminOfProject(
                 msg.sender,
                 address(this)
             )
@@ -123,7 +123,10 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
     function checkAdmin(address account) external view returns (bool) {
         // This reverts. Does not return boolean.
         return
-            IBentureAdmin(_adminToken).verifyAdminToken(account, address(this));
+            IBentureAdmin(_adminToken).verifyAdminOfProject(
+                account,
+                address(this)
+            );
     }
 
     /// @notice Creates tokens and assigns them to account, increasing the total supply.
@@ -141,7 +144,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         if (totalSupply() + amount > _maxTotalSupply) {
             revert SupplyExceedsMaximumSupply();
         }
-        emit ControlledTokenCreated(to, amount);
+        emit ProjectTokenMinted(to, amount);
         // Add receiver of tokens to holders list if he isn't there already
         _holders.add(to);
         // Mint tokens to the receiver anyways
@@ -158,7 +161,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         if (balanceOf(caller) == 0) {
             revert NoTokensToBurn();
         }
-        emit ControlledTokenBurnt(caller, amount);
+        emit ProjectTokenBurnt(caller, amount);
         _burn(caller, amount);
         // If caller does not have any tokens - remove the address from holders
         if (balanceOf(msg.sender) == 0) {
@@ -232,7 +235,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         if (!isHolder(from)) {
             revert NoTokensToTransfer();
         }
-        emit ControlledTokenTransferred(from, to, amount);
+        emit ProjectTokenTransferred(from, to, amount);
         // If the receiver is not yet a holder, he becomes a holder
         _holders.add(to);
         // If all tokens of the holder get transferred - he is no longer a holder

@@ -392,24 +392,25 @@ Unlocks the provided amount of user&#39;s tokens from the pool
 ### CustomDividendsDistributed
 
 ```solidity
-event CustomDividendsDistributed(address indexed token, uint256 count)
+event CustomDividendsDistributed(uint256 id, address token, uint256 count)
 ```
 
 
 
-*Indicates that custom dividends were sent to the list of users*
+
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| token `indexed` | address | The token distributed |
+| id  | uint256 | The ID of custom distribution |
+| token  | address | The token distributed |
 | count  | uint256 | The total number of users who received their shares              Counting starts from the first user and does not skip any users |
 
 ### DividendsClaimed
 
 ```solidity
-event DividendsClaimed(uint256 indexed id, address user)
+event DividendsClaimed(uint256 id, address user)
 ```
 
 
@@ -420,13 +421,13 @@ event DividendsClaimed(uint256 indexed id, address user)
 
 | Name | Type | Description |
 |---|---|---|
-| id `indexed` | uint256 | The ID of the distribution that was claimed |
+| id  | uint256 | The ID of the distribution that was claimed |
 | user  | address | The address of the user who claimed the distribution |
 
 ### DividendsStarted
 
 ```solidity
-event DividendsStarted(address indexed origToken, address indexed distToken, uint256 indexed amount, bool isEqual)
+event DividendsStarted(uint256 id, address origToken, address distToken, uint256 amount, bool isEqual)
 ```
 
 
@@ -437,9 +438,10 @@ event DividendsStarted(address indexed origToken, address indexed distToken, uin
 
 | Name | Type | Description |
 |---|---|---|
-| origToken `indexed` | address | The tokens to the holders of which the dividends will be paid |
-| distToken `indexed` | address | The token that will be paid |
-| amount `indexed` | uint256 | The amount of tokens that will be paid |
+| id  | uint256 | The id of the started distribution |
+| origToken  | address | The tokens to the holders of which the dividends will be paid |
+| distToken  | address | The token that will be paid |
+| amount  | uint256 | The amount of tokens that will be paid |
 | isEqual  | bool | Indicates whether distribution will be equal |
 
 ### GasLimitReached
@@ -462,7 +464,7 @@ event GasLimitReached(uint256 gasLeft, uint256 gasLimit)
 ### MultipleDividendsClaimed
 
 ```solidity
-event MultipleDividendsClaimed(address user, uint256 count)
+event MultipleDividendsClaimed(uint256[] ids, address user, uint256 count)
 ```
 
 
@@ -473,13 +475,14 @@ event MultipleDividendsClaimed(address user, uint256 count)
 
 | Name | Type | Description |
 |---|---|---|
+| ids  | uint256[] | The list of IDs of claimed dividends |
 | user  | address | The address of the user who claimed the distributions |
 | count  | uint256 | The total number of claimed dividends |
 
 ### PoolCreated
 
 ```solidity
-event PoolCreated(address indexed token)
+event PoolCreated(address token)
 ```
 
 
@@ -490,12 +493,12 @@ event PoolCreated(address indexed token)
 
 | Name | Type | Description |
 |---|---|---|
-| token `indexed` | address | undefined |
+| token  | address | undefined |
 
 ### PoolDeleted
 
 ```solidity
-event PoolDeleted(address indexed token)
+event PoolDeleted(address token)
 ```
 
 
@@ -506,12 +509,12 @@ event PoolDeleted(address indexed token)
 
 | Name | Type | Description |
 |---|---|---|
-| token `indexed` | address | undefined |
+| token  | address | undefined |
 
 ### TokensLocked
 
 ```solidity
-event TokensLocked(address indexed user, address indexed token, uint256 amount)
+event TokensLocked(uint256 id, address user, address token, uint256 amount)
 ```
 
 
@@ -522,14 +525,15 @@ event TokensLocked(address indexed user, address indexed token, uint256 amount)
 
 | Name | Type | Description |
 |---|---|---|
-| user `indexed` | address | undefined |
-| token `indexed` | address | undefined |
+| id  | uint256 | undefined |
+| user  | address | undefined |
+| token  | address | undefined |
 | amount  | uint256 | undefined |
 
 ### TokensUnlocked
 
 ```solidity
-event TokensUnlocked(address indexed user, address indexed token, uint256 amount)
+event TokensUnlocked(uint256 id, address user, address token, uint256 amount)
 ```
 
 
@@ -540,8 +544,9 @@ event TokensUnlocked(address indexed user, address indexed token, uint256 amount
 
 | Name | Type | Description |
 |---|---|---|
-| user `indexed` | address | undefined |
-| token `indexed` | address | undefined |
+| id  | uint256 | undefined |
+| user  | address | undefined |
+| token  | address | undefined |
 | amount  | uint256 | undefined |
 
 

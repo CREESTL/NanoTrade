@@ -389,13 +389,13 @@ event Approval(address indexed owner, address indexed spender, uint256 value)
 | spender `indexed` | address | undefined |
 | value  | uint256 | undefined |
 
-### ControlledTokenBurnt
+### ProjectTokenBurnt
 
 ```solidity
-event ControlledTokenBurnt(address indexed account, uint256 amount)
+event ProjectTokenBurnt(address account, uint256 amount)
 ```
 
-Indicates that a new ERC20 was burnt
+Indicates that ERC20 of new project were burnt
 
 
 
@@ -403,16 +403,16 @@ Indicates that a new ERC20 was burnt
 
 | Name | Type | Description |
 |---|---|---|
-| account `indexed` | address | undefined |
+| account  | address | undefined |
 | amount  | uint256 | undefined |
 
-### ControlledTokenCreated
+### ProjectTokenMinted
 
 ```solidity
-event ControlledTokenCreated(address indexed account, uint256 amount)
+event ProjectTokenMinted(address account, uint256 amount)
 ```
 
-Indicates that a new ERC20 was created
+Indicates that ERC20 tokens of new prokect were minted
 
 
 
@@ -420,13 +420,13 @@ Indicates that a new ERC20 was created
 
 | Name | Type | Description |
 |---|---|---|
-| account `indexed` | address | undefined |
+| account  | address | undefined |
 | amount  | uint256 | undefined |
 
-### ControlledTokenTransferred
+### ProjectTokenTransferred
 
 ```solidity
-event ControlledTokenTransferred(address indexed from, address indexed to, uint256 amount)
+event ProjectTokenTransferred(address from, address to, uint256 amount)
 ```
 
 Indicates that a new ERC20 was transferred
@@ -437,8 +437,8 @@ Indicates that a new ERC20 was transferred
 
 | Name | Type | Description |
 |---|---|---|
-| from `indexed` | address | undefined |
-| to `indexed` | address | undefined |
+| from  | address | undefined |
+| to  | address | undefined |
 | amount  | uint256 | undefined |
 
 ### Transfer
