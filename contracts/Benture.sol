@@ -130,7 +130,129 @@ contract Benture is
         __ReentrancyGuard_init();
     }
 
-    // ===== POOLS =====
+    /// @notice See {IBenture-getPool}
+    function getPool(
+        address token
+    ) external view returns (address, uint256, uint256) {
+        if (token == address(0)) {
+            revert InvalidTokenAddress();
+        }
+
+        Pool storage pool = pools[token];
+        return (pool.token, pool.lockers.length(), pool.totalLocked);
+    }
+
+    /// @notice See {IBenture-getLockers}
+    function getLockers(
+        address token
+    ) external view returns (address[] memory) {
+        if (token == address(0)) {
+            revert InvalidTokenAddress();
+        }
+
+        return pools[token].lockers.values();
+    }
+
+    /// @notice See {IBenture-getCurrentLock}
+    function getCurrentLock(
+        address token,
+        address user
+    ) external view returns (uint256) {
+        if (token == address(0)) {
+            revert InvalidTokenAddress();
+        }
+        if (user == address(0)) {
+            revert InvalidUserAddress();
+        }
+        return pools[token].lockedByUser[user];
+    }
+
+    /// @notice See {IBenture-getDistributions}
+    function getDistributions(
+        address admin
+    ) external view returns (uint256[] memory) {
+        // Do not check wheter the given address is actually an admin
+        if (admin == address(0)) {
+            revert InvalidAdminAddress();
+        }
+        return adminsToDistributions[admin];
+    }
+
+    /// @notice See {IBenture-getDistribution}
+    function getDistribution(
+        uint256 id
+    ) external view returns (uint256, address, address, uint256, bool) {
+        if (id < 1) {
+            revert InvalidDistributionId();
+        }
+        if (distributionsToAdmins[id] == address(0)) {
+            revert DistributionNotStarted();
+        }
+        Distribution storage distribution = distributions[id];
+        return (
+            distribution.id,
+            distribution.origToken,
+            distribution.distToken,
+            distribution.amount,
+            distribution.isEqual
+        );
+    }
+
+    /// @notice See {IBenture-checkStartedByAdmin}
+    function checkStartedByAdmin(
+        uint256 id,
+        address admin
+    ) external view returns (bool) {
+        if (id < 1) {
+            revert InvalidDistributionId();
+        }
+        if (distributionsToAdmins[id] == address(0)) {
+            revert DistributionNotStarted();
+        }
+        if (admin == address(0)) {
+            revert InvalidAdminAddress();
+        }
+        if (distributionsToAdmins[id] == admin) {
+            return true;
+        }
+        return false;
+    }
+
+    /// @notice See {IBenture-getMyShare}
+    function getMyShare(uint256 id) external view returns (uint256) {
+        if (id > distributionIds.current()) {
+            revert InvalidDistribution();
+        }
+        // Only lockers might have shares
+        if (!isLocker(distributions[id].origToken, msg.sender)) {
+            revert CallerIsNotLocker();
+        }
+        return calculateShare(id, msg.sender);
+    }
+
+    /// @notice See {IBenture-lockAllTokens}
+    function lockAllTokens(address origToken) external {
+        uint256 wholeBalance = IERC20Upgradeable(origToken).balanceOf(
+            msg.sender
+        );
+        lockTokens(origToken, wholeBalance);
+    }
+
+    /// @notice See {IBenture-unlockTokens}
+    function unlockTokens(
+        address origToken,
+        uint256 amount
+    ) external nonReentrant {
+        _unlockTokens(origToken, amount);
+    }
+
+    /// @notice See {IBenture-unlockAllTokens}
+    function unlockAllTokens(address origToken) external {
+        // Get the last lock of the user
+        uint256 wholeBalance = pools[origToken].lockedByUser[msg.sender];
+        // Unlock that amount (could be 0)
+        _unlockTokens(origToken, wholeBalance);
+    }
 
     /// @notice See {IBenture-createPool}
     function createPool(address token) external onlyAdminOrFactory(token) {
@@ -148,6 +270,128 @@ contract Benture is
         }
         newPool.token = token;
         // Other fields are initialized with default values
+    }
+
+    /// @notice See {IBenture-distributeDividends}
+    function distributeDividends(
+        address origToken,
+        address distToken,
+        uint256 amount,
+        bool isEqual
+    ) external payable nonReentrant {
+        if (origToken == address(0)) {
+            revert InvalidTokenAddress();
+        }
+        // Check that caller is an admin of `origToken`
+        if (!IBentureProducedToken(origToken).checkAdmin(msg.sender)) {
+            revert UserDoesNotHaveAnAdminToken();
+        }
+        // Amount can not be zero
+        if (amount == 0) {
+            revert InvalidDividendsAmount();
+        }
+        // No dividends can be distributed if there are no lockers in the pool
+        if (pools[origToken].lockers.length() == 0) {
+            revert NoLockersInThePool();
+        }
+        if (distToken != address(0)) {
+            // NOTE: Caller should approve transfer of at least `amount` of tokens with `ERC20.approve()`
+            // before calling this function
+            // Transfer tokens from admin to the contract
+            IERC20Upgradeable(distToken).safeTransferFrom(
+                msg.sender,
+                address(this),
+                amount
+            );
+        } else {
+            // Check that enough native tokens were provided
+            if (msg.value < amount) {
+                revert NotEnoughNativeTokens();
+            }
+        }
+
+        distributionIds.increment();
+        // NOTE The lowest distribution ID is 1
+        uint256 distributionId = distributionIds.current();
+
+        emit DividendsStarted(
+            distributionId,
+            origToken,
+            distToken,
+            amount,
+            isEqual
+        );
+
+        // Mark that this admin started a distribution with the new ID
+        distributionsToAdmins[distributionId] = msg.sender;
+        adminsToDistributions[msg.sender].push(distributionId);
+        // Create a new distribution
+        Distribution storage newDistribution = distributions[distributionId];
+        newDistribution.id = distributionId;
+        newDistribution.origToken = origToken;
+        newDistribution.distToken = distToken;
+        newDistribution.amount = amount;
+        newDistribution.isEqual = isEqual;
+        // `hasClaimed` is initialized with default value
+        newDistribution.formulaLockers = pools[origToken].lockers.length();
+        newDistribution.formulaLocked = pools[origToken].totalLocked;
+    }
+
+    /// @notice See {IBenture-claimDividends}
+    function claimDividends(uint256 id) external nonReentrant {
+        _claimDividends(id);
+    }
+
+    /// @notice See {IBenture-claimMultipleDividends}
+    function claimMultipleDividends(
+        uint256[] memory ids
+    ) external nonReentrant {
+        _claimMultipleDividends(ids);
+    }
+
+    /// @notice See {IBenture-setFactoryAddress}
+    function setFactoryAddress(address factoryAddress) external onlyOwner {
+        if (factoryAddress == address(0)) {
+            revert InvalidFactoryAddress();
+        }
+        factory = factoryAddress;
+    }
+
+    /// @notice See {IBenture-isLocker}
+    function isLocker(address token, address user) public view returns (bool) {
+        if (token == address(0)) {
+            revert InvalidTokenAddress();
+        }
+
+        if (user == address(0)) {
+            revert InvalidUserAddress();
+        }
+        // User is a locker if his lock is not a zero and he is in the lockers list
+        return
+            (pools[token].lockedByUser[user] != 0) &&
+            (pools[token].lockers.contains(user));
+    }
+
+    /// @notice See {IBenture-hasClaimed}
+    function hasClaimed(uint256 id, address user) public view returns (bool) {
+        if (id < 1) {
+            revert InvalidDistributionId();
+        }
+        if (distributionsToAdmins[id] == address(0)) {
+            revert DistributionNotStarted();
+        }
+        if (user == address(0)) {
+            revert InvalidUserAddress();
+        }
+        return distributions[id].hasClaimed[user];
+    }
+
+    /// @notice See {IBenture-getLockChangesId}
+    function getLockChangesId(
+        address token,
+        address user
+    ) public view returns (uint256[] memory) {
+        return pools[token].lockChangesIds[user];
     }
 
     /// @notice See {IBenture-lockTokens}
@@ -211,28 +455,76 @@ contract Benture is
         );
     }
 
-    /// @notice See {IBenture-lockAllTokens}
-    function lockAllTokens(address origToken) external {
-        uint256 wholeBalance = IERC20Upgradeable(origToken).balanceOf(
-            msg.sender
-        );
-        lockTokens(origToken, wholeBalance);
-    }
 
-    /// @notice See {IBenture-unlockTokens}
-    function unlockTokens(
-        address origToken,
-        uint256 amount
-    ) external nonReentrant {
-        _unlockTokens(origToken, amount);
-    }
+    /// @notice See {IBenture-distributeDividendsCustom}
+    function distributeDividendsCustom(
+        address token,
+        address[] calldata users,
+        uint256[] calldata amounts
+    ) public payable nonReentrant {
+        // The amount of gas spent for all operations below
+        uint256 gasSpent = 0;
+        // Only 2/3 of block gas limit could be spent.
+        uint256 gasThreshold = (block.gaslimit * 2) / 3;
 
-    /// @notice See {IBenture-unlockAllTokens}
-    function unlockAllTokens(address origToken) external {
-        // Get the last lock of the user
-        uint256 wholeBalance = pools[origToken].lockedByUser[msg.sender];
-        // Unlock that amount (could be 0)
-        _unlockTokens(origToken, wholeBalance);
+        // Lists can't be empty
+        if ((users.length == 0) || (amounts.length == 0)) {
+            revert EmptyList();
+        }
+        // Lists length should be the same
+        if (users.length != amounts.length) {
+            revert ListsLengthDiffers();
+        }
+
+        uint256 lastGasLeft = gasleft();
+        uint256 count;
+
+        // Distribute dividends to each of the holders
+        for (uint256 i = 0; i < users.length; i++) {
+            // Users cannot have zero addresses
+            if (users[i] == address(0)) {
+                revert InvalidUserAddress();
+            }
+            // Amount for any user cannot be 0
+            if (amounts[i] == 0) {
+                revert InvalidDividendsAmount();
+            }
+            if (token == address(0)) {
+                // Native tokens (wei)
+                (bool success, ) = users[i].call{value: amounts[i]}("");
+                if (!success) {
+                    revert NativeTokenTransferFailed();
+                }
+            } else {
+                // NOTE: Admin has to approve transfer of at least (sum of `amounts`) tokens
+                //       for this contract address
+                // Other ERC20 tokens
+                IERC20Upgradeable(token).safeTransferFrom(
+                    msg.sender,
+                    users[i],
+                    amounts[i]
+                );
+            }
+            // Increase the number of users who received their shares
+            count++;
+
+            // Calculate the amount of gas spent for one iteration
+            uint256 gasSpentPerIteration = lastGasLeft - gasleft();
+            lastGasLeft = gasleft();
+            // Increase the total amount of gas spent
+            gasSpent += gasSpentPerIteration;
+            // Check that no more than 2/3 of block gas limit was spent
+            if (gasSpent >= gasThreshold) {
+                emit GasLimitReached(gasSpent, block.gaslimit);
+                break;
+            }
+        }
+
+        distributionIds.increment();
+        // NOTE The lowest distribution ID is 1
+        uint256 distributionId = distributionIds.current();
+
+        emit CustomDividendsDistributed(distributionId, token, count);
     }
 
     /// @notice Shows which distributions the user took part in and hasn't claimed them
@@ -497,155 +789,8 @@ contract Benture is
         IERC20Upgradeable(origToken).safeTransfer(msg.sender, amount);
     }
 
-    // ===== DISTRIBUTIONS =====
 
-    /// @notice See {IBenture-distributeDividends}
-    function distributeDividends(
-        address origToken,
-        address distToken,
-        uint256 amount,
-        bool isEqual
-    ) external payable nonReentrant {
-        if (origToken == address(0)) {
-            revert InvalidTokenAddress();
-        }
-        // Check that caller is an admin of `origToken`
-        if (!IBentureProducedToken(origToken).checkAdmin(msg.sender)) {
-            revert UserDoesNotHaveAnAdminToken();
-        }
-        // Amount can not be zero
-        if (amount == 0) {
-            revert InvalidDividendsAmount();
-        }
-        // No dividends can be distributed if there are no lockers in the pool
-        if (pools[origToken].lockers.length() == 0) {
-            revert NoLockersInThePool();
-        }
-        if (distToken != address(0)) {
-            // NOTE: Caller should approve transfer of at least `amount` of tokens with `ERC20.approve()`
-            // before calling this function
-            // Transfer tokens from admin to the contract
-            IERC20Upgradeable(distToken).safeTransferFrom(
-                msg.sender,
-                address(this),
-                amount
-            );
-        } else {
-            // Check that enough native tokens were provided
-            if (msg.value < amount) {
-                revert NotEnoughNativeTokens();
-            }
-        }
 
-        distributionIds.increment();
-        // NOTE The lowest distribution ID is 1
-        uint256 distributionId = distributionIds.current();
-
-        emit DividendsStarted(
-            distributionId,
-            origToken,
-            distToken,
-            amount,
-            isEqual
-        );
-
-        // Mark that this admin started a distribution with the new ID
-        distributionsToAdmins[distributionId] = msg.sender;
-        adminsToDistributions[msg.sender].push(distributionId);
-        // Create a new distribution
-        Distribution storage newDistribution = distributions[distributionId];
-        newDistribution.id = distributionId;
-        newDistribution.origToken = origToken;
-        newDistribution.distToken = distToken;
-        newDistribution.amount = amount;
-        newDistribution.isEqual = isEqual;
-        // `hasClaimed` is initialized with default value
-        newDistribution.formulaLockers = pools[origToken].lockers.length();
-        newDistribution.formulaLocked = pools[origToken].totalLocked;
-    }
-
-    /// @notice See {IBenture-distributeDividendsCustom}
-    function distributeDividendsCustom(
-        address token,
-        address[] calldata users,
-        uint256[] calldata amounts
-    ) public payable nonReentrant {
-        // The amount of gas spent for all operations below
-        uint256 gasSpent = 0;
-        // Only 2/3 of block gas limit could be spent.
-        uint256 gasThreshold = (block.gaslimit * 2) / 3;
-
-        // Lists can't be empty
-        if ((users.length == 0) || (amounts.length == 0)) {
-            revert EmptyList();
-        }
-        // Lists length should be the same
-        if (users.length != amounts.length) {
-            revert ListsLengthDiffers();
-        }
-
-        uint256 lastGasLeft = gasleft();
-        uint256 count;
-
-        // Distribute dividends to each of the holders
-        for (uint256 i = 0; i < users.length; i++) {
-            // Users cannot have zero addresses
-            if (users[i] == address(0)) {
-                revert InvalidUserAddress();
-            }
-            // Amount for any user cannot be 0
-            if (amounts[i] == 0) {
-                revert InvalidDividendsAmount();
-            }
-            if (token == address(0)) {
-                // Native tokens (wei)
-                (bool success, ) = users[i].call{value: amounts[i]}("");
-                if (!success) {
-                    revert NativeTokenTransferFailed();
-                }
-            } else {
-                // NOTE: Admin has to approve transfer of at least (sum of `amounts`) tokens
-                //       for this contract address
-                // Other ERC20 tokens
-                IERC20Upgradeable(token).safeTransferFrom(
-                    msg.sender,
-                    users[i],
-                    amounts[i]
-                );
-            }
-            // Increase the number of users who received their shares
-            count++;
-
-            // Calculate the amount of gas spent for one iteration
-            uint256 gasSpentPerIteration = lastGasLeft - gasleft();
-            lastGasLeft = gasleft();
-            // Increase the total amount of gas spent
-            gasSpent += gasSpentPerIteration;
-            // Check that no more than 2/3 of block gas limit was spent
-            if (gasSpent >= gasThreshold) {
-                emit GasLimitReached(gasSpent, block.gaslimit);
-                break;
-            }
-        }
-
-        distributionIds.increment();
-        // NOTE The lowest distribution ID is 1
-        uint256 distributionId = distributionIds.current();
-
-        emit CustomDividendsDistributed(distributionId, token, count);
-    }
-
-    /// @notice See {IBenture-claimDividends}
-    function claimDividends(uint256 id) external nonReentrant {
-        _claimDividends(id);
-    }
-
-    /// @notice See {IBenture-claimMultipleDividends}
-    function claimMultipleDividends(
-        uint256[] memory ids
-    ) external nonReentrant {
-        _claimMultipleDividends(ids);
-    }
 
     /// @dev Searches for the distribution that has an ID less than the `id`
     ///      but greater than all other IDs less than `id` and before which user's
@@ -846,155 +991,6 @@ contract Benture is
         }
 
         emit MultipleDividendsClaimed(ids, msg.sender, count);
-    }
-
-    // ===== SETTERS =====
-
-    /// @notice See {IBenture-setFactoryAddress}
-    function setFactoryAddress(address factoryAddress) external onlyOwner {
-        if (factoryAddress == address(0)) {
-            revert InvalidFactoryAddress();
-        }
-        factory = factoryAddress;
-    }
-
-    // ===== GETTERS =====
-
-    /// @notice See {IBenture-getPool}
-    function getPool(
-        address token
-    ) external view returns (address, uint256, uint256) {
-        if (token == address(0)) {
-            revert InvalidTokenAddress();
-        }
-
-        Pool storage pool = pools[token];
-        return (pool.token, pool.lockers.length(), pool.totalLocked);
-    }
-
-    /// @notice See {IBenture-getLockers}
-    function getLockers(
-        address token
-    ) external view returns (address[] memory) {
-        if (token == address(0)) {
-            revert InvalidTokenAddress();
-        }
-
-        return pools[token].lockers.values();
-    }
-
-    /// @notice See {IBenture-getCurrentLock}
-    function getCurrentLock(
-        address token,
-        address user
-    ) external view returns (uint256) {
-        if (token == address(0)) {
-            revert InvalidTokenAddress();
-        }
-        if (user == address(0)) {
-            revert InvalidUserAddress();
-        }
-        return pools[token].lockedByUser[user];
-    }
-
-    /// @notice See {IBenture-getDistributions}
-    function getDistributions(
-        address admin
-    ) external view returns (uint256[] memory) {
-        // Do not check wheter the given address is actually an admin
-        if (admin == address(0)) {
-            revert InvalidAdminAddress();
-        }
-        return adminsToDistributions[admin];
-    }
-
-    /// @notice See {IBenture-getDistribution}
-    function getDistribution(
-        uint256 id
-    ) external view returns (uint256, address, address, uint256, bool) {
-        if (id < 1) {
-            revert InvalidDistributionId();
-        }
-        if (distributionsToAdmins[id] == address(0)) {
-            revert DistributionNotStarted();
-        }
-        Distribution storage distribution = distributions[id];
-        return (
-            distribution.id,
-            distribution.origToken,
-            distribution.distToken,
-            distribution.amount,
-            distribution.isEqual
-        );
-    }
-
-    /// @notice See {IBenture-checkStartedByAdmin}
-    function checkStartedByAdmin(
-        uint256 id,
-        address admin
-    ) external view returns (bool) {
-        if (id < 1) {
-            revert InvalidDistributionId();
-        }
-        if (distributionsToAdmins[id] == address(0)) {
-            revert DistributionNotStarted();
-        }
-        if (admin == address(0)) {
-            revert InvalidAdminAddress();
-        }
-        if (distributionsToAdmins[id] == admin) {
-            return true;
-        }
-        return false;
-    }
-
-    /// @notice See {IBenture-getMyShare}
-    function getMyShare(uint256 id) external view returns (uint256) {
-        if (id > distributionIds.current()) {
-            revert InvalidDistribution();
-        }
-        // Only lockers might have shares
-        if (!isLocker(distributions[id].origToken, msg.sender)) {
-            revert CallerIsNotLocker();
-        }
-        return calculateShare(id, msg.sender);
-    }
-
-    /// @notice See {IBenture-isLocker}
-    function isLocker(address token, address user) public view returns (bool) {
-        if (token == address(0)) {
-            revert InvalidTokenAddress();
-        }
-
-        if (user == address(0)) {
-            revert InvalidUserAddress();
-        }
-        // User is a locker if his lock is not a zero and he is in the lockers list
-        return
-            (pools[token].lockedByUser[user] != 0) &&
-            (pools[token].lockers.contains(user));
-    }
-
-    /// @notice See {IBenture-hasClaimed}
-    function hasClaimed(uint256 id, address user) public view returns (bool) {
-        if (id < 1) {
-            revert InvalidDistributionId();
-        }
-        if (distributionsToAdmins[id] == address(0)) {
-            revert DistributionNotStarted();
-        }
-        if (user == address(0)) {
-            revert InvalidUserAddress();
-        }
-        return distributions[id].hasClaimed[user];
-    }
-
-    /// @notice See {IBenture-getLockChangesId}
-    function getLockChangesId(
-        address token,
-        address user
-    ) public view returns (uint256[] memory) {
-        return pools[token].lockChangesIds[user];
     }
 
     function _authorizeUpgrade(
