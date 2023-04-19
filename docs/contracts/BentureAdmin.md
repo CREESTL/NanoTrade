@@ -55,7 +55,7 @@ function balanceOf(address owner) external view returns (uint256)
 function burn(uint256 tokenId) external nonpayable
 ```
 
-Burns the token with the provided ID
+See {IBentureAdmin-burn}
 
 
 
@@ -63,7 +63,7 @@ Burns the token with the provided ID
 
 | Name | Type | Description |
 |---|---|---|
-| tokenId | uint256 | The ID of the token to burn |
+| tokenId | uint256 | undefined |
 
 ### checkOwner
 
@@ -71,7 +71,7 @@ Burns the token with the provided ID
 function checkOwner(address user) external view
 ```
 
-Checks it the provided address owns any admin token
+See {IBentureAdmin-checkOwner}
 
 
 
@@ -87,7 +87,7 @@ Checks it the provided address owns any admin token
 function getAdminTokenIds(address admin) external view returns (uint256[])
 ```
 
-Returns the list of all admin tokens of the user
+See {IBentureAdmin-getAdminTokenIds}
 
 
 
@@ -95,7 +95,7 @@ Returns the list of all admin tokens of the user
 
 | Name | Type | Description |
 |---|---|---|
-| admin | address | The address of the admin |
+| admin | address | undefined |
 
 #### Returns
 
@@ -131,7 +131,7 @@ function getApproved(uint256 tokenId) external view returns (address)
 function getControlledAddressById(uint256 tokenId) external view returns (address)
 ```
 
-Returns the address of the controlled ERC20 token
+See {IBentureAdmin-getControlledAddressById}
 
 
 
@@ -139,13 +139,13 @@ Returns the address of the controlled ERC20 token
 
 | Name | Type | Description |
 |---|---|---|
-| tokenId | uint256 | The ID of ERC721 token to check |
+| tokenId | uint256 | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | address | The address of the controlled ERC20 token |
+| _0 | address | undefined |
 
 ### getFactory
 
@@ -153,7 +153,7 @@ Returns the address of the controlled ERC20 token
 function getFactory() external view returns (address)
 ```
 
-Returns the address of the factory that mints admin tokens
+See {IBentureAdmin-getFactory}
 
 
 
@@ -162,7 +162,7 @@ Returns the address of the factory that mints admin tokens
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | address | The address of the factory |
+| _0 | address | undefined |
 
 ### initialize
 
@@ -209,7 +209,7 @@ function isApprovedForAll(address owner, address operator) external view returns
 function mintWithERC20Address(address to, address ERC20Address) external nonpayable
 ```
 
-Mints a new ERC721 token with the address of the controlled ERC20 token
+See {IBentureAdmin-mintWithERC20Address}
 
 
 
@@ -217,8 +217,8 @@ Mints a new ERC721 token with the address of the controlled ERC20 token
 
 | Name | Type | Description |
 |---|---|---|
-| to | address | The address of the receiver of the token |
-| ERC20Address | address | The address of the controlled ERC20 token |
+| to | address | undefined |
+| ERC20Address | address | undefined |
 
 ### name
 
@@ -492,7 +492,7 @@ function upgradeToAndCall(address newImplementation, bytes data) external payabl
 function verifyAdminOfProject(address user, address ERC20Address) external view returns (bool)
 ```
 
-Checks if the provided user owns an admin token controlling the provided ERC20 token
+See {IBentureAdmin-verifyAdminOfProject}
 
 
 
@@ -500,14 +500,14 @@ Checks if the provided user owns an admin token controlling the provided ERC20 t
 
 | Name | Type | Description |
 |---|---|---|
-| user | address | The address of the user that potentially controls ERC20 token |
-| ERC20Address | address | The address of the potentially controlled ERC20 token |
+| user | address | undefined |
+| ERC20Address | address | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bool | True if user has admin token. Otherwise - false. |
+| _0 | bool | undefined |
 
 
 

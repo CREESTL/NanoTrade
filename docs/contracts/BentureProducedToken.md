@@ -84,7 +84,7 @@ function balanceOf(address account) external view returns (uint256)
 function burn(uint256 amount) external nonpayable
 ```
 
-Burns user&#39;s tokens
+See {IBentureProducedToken-burn}
 
 
 
@@ -92,7 +92,7 @@ Burns user&#39;s tokens
 
 | Name | Type | Description |
 |---|---|---|
-| amount | uint256 | The amount of tokens to burn |
+| amount | uint256 | undefined |
 
 ### checkAdmin
 
@@ -100,7 +100,7 @@ Burns user&#39;s tokens
 function checkAdmin(address account) external view returns (bool)
 ```
 
-Checks if user is an admin of this token
+See {IBentureProducedToken-checkAdmin}
 
 
 
@@ -108,13 +108,13 @@ Checks if user is an admin of this token
 
 | Name | Type | Description |
 |---|---|---|
-| account | address | The address to check |
+| account | address | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bool | True if user has admin token. Otherwise - false. |
+| _0 | bool | undefined |
 
 ### decimals
 
@@ -122,7 +122,7 @@ Checks if user is an admin of this token
 function decimals() external view returns (uint8)
 ```
 
-Returns number of decimals of the token
+See {IBentureProducedToken-decimals}
 
 
 
@@ -131,7 +131,7 @@ Returns number of decimals of the token
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint8 | The number of decimals of the token |
+| _0 | uint8 | undefined |
 
 ### decreaseAllowance
 
@@ -162,7 +162,7 @@ function decreaseAllowance(address spender, uint256 subtractedValue) external no
 function holders() external view returns (address[])
 ```
 
-Returns the array of addresses of all token holders
+See {IBentureProducedToken-holders}
 
 
 
@@ -171,7 +171,7 @@ Returns the array of addresses of all token holders
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | address[] | The array of addresses of all token holders |
+| _0 | address[] | undefined |
 
 ### increaseAllowance
 
@@ -202,7 +202,7 @@ function increaseAllowance(address spender, uint256 addedValue) external nonpaya
 function isHolder(address account) external view returns (bool)
 ```
 
-Checks if the address is a holder
+See {IBentureProducedToken-isHolder}
 
 
 
@@ -210,13 +210,13 @@ Checks if the address is a holder
 
 | Name | Type | Description |
 |---|---|---|
-| account | address | The address to check |
+| account | address | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bool | True if address is a holder. False if it is not |
+| _0 | bool | undefined |
 
 ### maxTotalSupply
 
@@ -224,7 +224,7 @@ Checks if the address is a holder
 function maxTotalSupply() external view returns (uint256)
 ```
 
-Returns the max total supply of the token
+See {IBentureProducedToken-maxTotalSupply}
 
 
 
@@ -233,7 +233,7 @@ Returns the max total supply of the token
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256 | The max total supply of the token |
+| _0 | uint256 | undefined |
 
 ### mint
 
@@ -241,16 +241,16 @@ Returns the max total supply of the token
 function mint(address to, uint256 amount) external nonpayable
 ```
 
-Creates tokens and assigns them to account, increasing the total supply.
+See {IBentureProducedToken-mint}
 
-*Can only be called by the owner of the admin NFTCan only be called when token is mintable*
+
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| to | address | The receiver of tokens |
-| amount | uint256 | The amount of tokens to mint |
+| to | address | undefined |
+| amount | uint256 | undefined |
 
 ### mintable
 
@@ -258,7 +258,7 @@ Creates tokens and assigns them to account, increasing the total supply.
 function mintable() external view returns (bool)
 ```
 
-Indicates whether the token is mintable or not
+See {IBentureProducedToken-mintable}
 
 
 
@@ -267,7 +267,7 @@ Indicates whether the token is mintable or not
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bool | True if the token is mintable. False - if it is not |
+| _0 | bool | undefined |
 
 ### name
 
@@ -275,7 +275,7 @@ Indicates whether the token is mintable or not
 function name() external view returns (string)
 ```
 
-Returns the name of the token
+See {IBentureProducedToken-name}
 
 
 
@@ -284,7 +284,7 @@ Returns the name of the token
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | string | The name of the token |
+| _0 | string | undefined |
 
 ### symbol
 
@@ -292,7 +292,7 @@ Returns the name of the token
 function symbol() external view returns (string)
 ```
 
-Returns the symbol of the token
+See {IBentureProducedToken-symbol}
 
 
 
@@ -301,7 +301,7 @@ Returns the symbol of the token
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | string | The symbol of the token |
+| _0 | string | undefined |
 
 ### totalSupply
 

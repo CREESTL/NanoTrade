@@ -16,7 +16,7 @@
 function checkStartedByAdmin(uint256 id, address admin) external view returns (bool)
 ```
 
-Checks if the distribution with the given ID was started by the given admin
+See {IBenture-checkStartedByAdmin}
 
 
 
@@ -24,14 +24,14 @@ Checks if the distribution with the given ID was started by the given admin
 
 | Name | Type | Description |
 |---|---|---|
-| id | uint256 | The ID of the distribution to check |
-| admin | address | The address of the admin to check |
+| id | uint256 | undefined |
+| admin | address | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bool | True if admin has started the distribution with the given ID. Otherwise - false. |
+| _0 | bool | undefined |
 
 ### claimDividends
 
@@ -39,7 +39,7 @@ Checks if the distribution with the given ID was started by the given admin
 function claimDividends(uint256 id) external nonpayable
 ```
 
-Allows a user to claim dividends from a single distribution
+See {IBenture-claimDividends}
 
 
 
@@ -47,7 +47,7 @@ Allows a user to claim dividends from a single distribution
 
 | Name | Type | Description |
 |---|---|---|
-| id | uint256 | The ID of the distribution to claim |
+| id | uint256 | undefined |
 
 ### claimMultipleDividends
 
@@ -55,7 +55,7 @@ Allows a user to claim dividends from a single distribution
 function claimMultipleDividends(uint256[] ids) external nonpayable
 ```
 
-Allows user to claim dividends from multiple distributions         WARNING: Potentially can exceed block gas limit!
+See {IBenture-claimMultipleDividends}
 
 
 
@@ -63,7 +63,7 @@ Allows user to claim dividends from multiple distributions         WARNING: Pote
 
 | Name | Type | Description |
 |---|---|---|
-| ids | uint256[] | The array of IDs of distributions to claim |
+| ids | uint256[] | undefined |
 
 ### createPool
 
@@ -71,7 +71,7 @@ Allows user to claim dividends from multiple distributions         WARNING: Pote
 function createPool(address token) external nonpayable
 ```
 
-Creates a new pool
+See {IBenture-createPool}
 
 
 
@@ -79,7 +79,7 @@ Creates a new pool
 
 | Name | Type | Description |
 |---|---|---|
-| token | address | The token that will be locked in the pool |
+| token | address | undefined |
 
 ### distributeDividends
 
@@ -87,7 +87,7 @@ Creates a new pool
 function distributeDividends(address origToken, address distToken, uint256 amount, bool isEqual) external payable
 ```
 
-Allows admin to distribute dividends among lockers
+See {IBenture-distributeDividends}
 
 
 
@@ -95,10 +95,10 @@ Allows admin to distribute dividends among lockers
 
 | Name | Type | Description |
 |---|---|---|
-| origToken | address | The tokens to the holders of which the dividends will be paid |
-| distToken | address | The token that will be paid        Use zero address for native tokens |
-| amount | uint256 | The amount of ERC20 tokens that will be paid |
-| isEqual | bool | Indicates whether distribution will be equal |
+| origToken | address | undefined |
+| distToken | address | undefined |
+| amount | uint256 | undefined |
+| isEqual | bool | undefined |
 
 ### distributeDividendsCustom
 
@@ -106,7 +106,7 @@ Allows admin to distribute dividends among lockers
 function distributeDividendsCustom(address token, address[] users, uint256[] amounts) external payable
 ```
 
-Allows admin to distribute provided amounts of tokens to the provided list of users
+See {IBenture-distributeDividendsCustom}
 
 
 
@@ -114,9 +114,9 @@ Allows admin to distribute provided amounts of tokens to the provided list of us
 
 | Name | Type | Description |
 |---|---|---|
-| token | address | The address of the token to be distributed |
-| users | address[] | The list of addresses of users to receive tokens |
-| amounts | uint256[] | The list of amounts each user has to receive |
+| token | address | undefined |
+| users | address[] | undefined |
+| amounts | uint256[] | undefined |
 
 ### factory
 
@@ -141,7 +141,7 @@ Address of the factory used for projects creation
 function getCurrentLock(address token, address user) external view returns (uint256)
 ```
 
-Returns the current lock amount of the user
+See {IBenture-getCurrentLock}
 
 
 
@@ -149,14 +149,14 @@ Returns the current lock amount of the user
 
 | Name | Type | Description |
 |---|---|---|
-| token | address | The address of the token of the pool |
-| user | address | The address of the user to check |
+| token | address | undefined |
+| user | address | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256 | The current lock amount |
+| _0 | uint256 | undefined |
 
 ### getDistribution
 
@@ -164,7 +164,7 @@ Returns the current lock amount of the user
 function getDistribution(uint256 id) external view returns (uint256, address, address, uint256, bool)
 ```
 
-Returns the distribution with the given ID
+See {IBenture-getDistribution}
 
 
 
@@ -172,13 +172,13 @@ Returns the distribution with the given ID
 
 | Name | Type | Description |
 |---|---|---|
-| id | uint256 | The ID of the distribution to search for |
+| id | uint256 | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256 | All information about the distribution |
+| _0 | uint256 | undefined |
 | _1 | address | undefined |
 | _2 | address | undefined |
 | _3 | uint256 | undefined |
@@ -190,7 +190,7 @@ Returns the distribution with the given ID
 function getDistributions(address admin) external view returns (uint256[])
 ```
 
-Returns the list of IDs of all distributions the admin has ever started
+See {IBenture-getDistributions}
 
 
 
@@ -198,13 +198,13 @@ Returns the list of IDs of all distributions the admin has ever started
 
 | Name | Type | Description |
 |---|---|---|
-| admin | address | The address of the admin |
+| admin | address | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256[] | The list of IDs of all distributions the admin has ever started |
+| _0 | uint256[] | undefined |
 
 ### getLockChangesId
 
@@ -212,7 +212,7 @@ Returns the list of IDs of all distributions the admin has ever started
 function getLockChangesId(address token, address user) external view returns (uint256[])
 ```
 
-Returns IDs of distributions before which         user&#39;s lock of the token has changed
+See {IBenture-getLockChangesId}
 
 
 
@@ -220,8 +220,8 @@ Returns IDs of distributions before which         user&#39;s lock of the token h
 
 | Name | Type | Description |
 |---|---|---|
-| token | address | The address of the token to get the lock of |
-| user | address | The address of the user to get the lock history of |
+| token | address | undefined |
+| user | address | undefined |
 
 #### Returns
 
@@ -235,7 +235,7 @@ Returns IDs of distributions before which         user&#39;s lock of the token h
 function getLockers(address token) external view returns (address[])
 ```
 
-Returns the array of lockers of the pool
+See {IBenture-getLockers}
 
 
 
@@ -243,13 +243,13 @@ Returns the array of lockers of the pool
 
 | Name | Type | Description |
 |---|---|---|
-| token | address | The address of the token of the pool |
+| token | address | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | address[] | The array of lockers of the pool |
+| _0 | address[] | undefined |
 
 ### getMyShare
 
@@ -257,7 +257,7 @@ Returns the array of lockers of the pool
 function getMyShare(uint256 id) external view returns (uint256)
 ```
 
-Returns the share of the user in one of the previously         started distributions.
+See {IBenture-getMyShare}
 
 
 
@@ -265,7 +265,7 @@ Returns the share of the user in one of the previously         started distribut
 
 | Name | Type | Description |
 |---|---|---|
-| id | uint256 | The ID of the distribution to calculate share in |
+| id | uint256 | undefined |
 
 #### Returns
 
@@ -279,7 +279,7 @@ Returns the share of the user in one of the previously         started distribut
 function getPool(address token) external view returns (address, uint256, uint256)
 ```
 
-Returns info about the pool of a given token
+See {IBenture-getPool}
 
 
 
@@ -287,15 +287,15 @@ Returns info about the pool of a given token
 
 | Name | Type | Description |
 |---|---|---|
-| token | address | The address of the token of the pool |
+| token | address | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | address | The address of the tokens in the pool. |
-| _1 | uint256 | The number of users who locked their tokens in the pool |
-| _2 | uint256 | The amount of locked tokens |
+| _0 | address | undefined |
+| _1 | uint256 | undefined |
+| _2 | uint256 | undefined |
 
 ### hasClaimed
 
@@ -303,7 +303,7 @@ Returns info about the pool of a given token
 function hasClaimed(uint256 id, address user) external view returns (bool)
 ```
 
-Checks if user has claimed dividends of the provided distribution
+See {IBenture-hasClaimed}
 
 
 
@@ -311,14 +311,14 @@ Checks if user has claimed dividends of the provided distribution
 
 | Name | Type | Description |
 |---|---|---|
-| id | uint256 | The ID of the distribution to check |
-| user | address | The address of the user to check |
+| id | uint256 | undefined |
+| user | address | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bool | True if user has claimed dividends. Otherwise - false |
+| _0 | bool | undefined |
 
 ### initialize
 
@@ -337,7 +337,7 @@ Initialize all parent contracts
 function isLocker(address token, address user) external view returns (bool)
 ```
 
-Checks if user is a locker of the provided token pool
+See {IBenture-isLocker}
 
 
 
@@ -345,14 +345,14 @@ Checks if user is a locker of the provided token pool
 
 | Name | Type | Description |
 |---|---|---|
-| token | address | The address of the token of the pool |
-| user | address | The address of the user to check |
+| token | address | undefined |
+| user | address | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bool | True if user is a locker in the pool. Otherwise - false. |
+| _0 | bool | undefined |
 
 ### lockAllTokens
 
@@ -360,7 +360,7 @@ Checks if user is a locker of the provided token pool
 function lockAllTokens(address origToken) external nonpayable
 ```
 
-Locks all user&#39;s tokens in the pool
+See {IBenture-lockAllTokens}
 
 
 
@@ -368,7 +368,7 @@ Locks all user&#39;s tokens in the pool
 
 | Name | Type | Description |
 |---|---|---|
-| origToken | address | The address of the token to lock |
+| origToken | address | undefined |
 
 ### lockTokens
 
@@ -376,7 +376,7 @@ Locks all user&#39;s tokens in the pool
 function lockTokens(address origToken, uint256 amount) external nonpayable
 ```
 
-Locks the provided amount of user&#39;s tokens in the pool
+See {IBenture-lockTokens}
 
 
 
@@ -384,8 +384,8 @@ Locks the provided amount of user&#39;s tokens in the pool
 
 | Name | Type | Description |
 |---|---|---|
-| origToken | address | The address of the token to lock |
-| amount | uint256 | The amount of tokens to lock |
+| origToken | address | undefined |
+| amount | uint256 | undefined |
 
 ### owner
 
@@ -438,15 +438,15 @@ function renounceOwnership() external nonpayable
 function setFactoryAddress(address factoryAddress) external nonpayable
 ```
 
-Sets the token factory contract address
+See {IBenture-setFactoryAddress}
 
-*NOTICE: This address can&#39;t be set the constructor because      `Benture` is deployed *before* factory contract.*
+
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| factoryAddress | address | The address of the factory |
+| factoryAddress | address | undefined |
 
 ### transferOwnership
 
@@ -470,7 +470,7 @@ function transferOwnership(address newOwner) external nonpayable
 function unlockAllTokens(address origToken) external nonpayable
 ```
 
-Unlocks all locked tokens of the user in the pool
+See {IBenture-unlockAllTokens}
 
 
 
@@ -478,7 +478,7 @@ Unlocks all locked tokens of the user in the pool
 
 | Name | Type | Description |
 |---|---|---|
-| origToken | address | The address of the token to unlock |
+| origToken | address | undefined |
 
 ### unlockTokens
 
@@ -486,7 +486,7 @@ Unlocks all locked tokens of the user in the pool
 function unlockTokens(address origToken, uint256 amount) external nonpayable
 ```
 
-Unlocks the provided amount of user&#39;s tokens from the pool
+See {IBenture-unlockTokens}
 
 
 
@@ -494,8 +494,8 @@ Unlocks the provided amount of user&#39;s tokens from the pool
 
 | Name | Type | Description |
 |---|---|---|
-| origToken | address | The address of the token to unlock |
-| amount | uint256 | The amount of tokens to unlock |
+| origToken | address | undefined |
+| amount | uint256 | undefined |
 
 ### upgradeTo
 

@@ -455,7 +455,6 @@ contract Benture is
         );
     }
 
-
     /// @notice See {IBenture-distributeDividendsCustom}
     function distributeDividendsCustom(
         address token,
@@ -788,9 +787,6 @@ contract Benture is
         // Transfer unlocked tokens from contract to the user
         IERC20Upgradeable(origToken).safeTransfer(msg.sender, amount);
     }
-
-
-
 
     /// @dev Searches for the distribution that has an ID less than the `id`
     ///      but greater than all other IDs less than `id` and before which user's
