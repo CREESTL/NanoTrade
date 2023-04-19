@@ -132,8 +132,7 @@ contract Benture is
 
     // ===== POOLS =====
 
-    /// @notice Creates a new pool
-    /// @param token The token that will be locked in the pool
+    /// @notice See {IBenture-createPool}
     function createPool(address token) external onlyAdminOrFactory(token) {
         if (token == address(0)) {
             revert InvalidTokenAddress();
@@ -151,9 +150,7 @@ contract Benture is
         // Other fields are initialized with default values
     }
 
-    /// @notice Locks the provided amount of user's tokens in the pool
-    /// @param origToken The address of the token to lock
-    /// @param amount The amount of tokens to lock
+    /// @notice See {IBenture-lockTokens}
     function lockTokens(address origToken, uint256 amount) public {
         if (amount == 0) {
             revert InvalidLockAmount();
@@ -214,8 +211,7 @@ contract Benture is
         );
     }
 
-    /// @notice Locks all user's tokens in the pool
-    /// @param origToken The address of the token to lock
+    /// @notice See {IBenture-lockAllTokens}
     function lockAllTokens(address origToken) external {
         uint256 wholeBalance = IERC20Upgradeable(origToken).balanceOf(
             msg.sender
@@ -223,9 +219,7 @@ contract Benture is
         lockTokens(origToken, wholeBalance);
     }
 
-    /// @notice Unlocks the provided amount of user's tokens from the pool
-    /// @param origToken The address of the token to unlock
-    /// @param amount The amount of tokens to unlock
+    /// @notice See {IBenture-unlockTokens}
     function unlockTokens(
         address origToken,
         uint256 amount
@@ -233,8 +227,7 @@ contract Benture is
         _unlockTokens(origToken, amount);
     }
 
-    /// @notice Unlocks all locked tokens of the user in the pool
-    /// @param origToken The address of the token to unlock
+    /// @notice See {IBenture-unlockAllTokens}
     function unlockAllTokens(address origToken) external {
         // Get the last lock of the user
         uint256 wholeBalance = pools[origToken].lockedByUser[msg.sender];
@@ -506,12 +499,7 @@ contract Benture is
 
     // ===== DISTRIBUTIONS =====
 
-    /// @notice Allows admin to distribute dividends among lockers
-    /// @param origToken The tokens to the holders of which the dividends will be paid
-    /// @param distToken The token that will be paid
-    ///        Use zero address for native tokens
-    /// @param amount The amount of ERC20 tokens that will be paid
-    /// @param isEqual Indicates whether distribution will be equal
+    /// @notice See {IBenture-distributeDividends}
     function distributeDividends(
         address origToken,
         address distToken,
@@ -576,10 +564,7 @@ contract Benture is
         newDistribution.formulaLocked = pools[origToken].totalLocked;
     }
 
-    /// @notice Allows admin to distribute provided amounts of tokens to the provided list of users
-    /// @param token The address of the token to be distributed
-    /// @param users The list of addresses of users to receive tokens
-    /// @param amounts The list of amounts each user has to receive
+    /// @notice See {IBenture-distributeDividendsCustom}
     function distributeDividendsCustom(
         address token,
         address[] calldata users,
@@ -650,15 +635,12 @@ contract Benture is
         emit CustomDividendsDistributed(distributionId, token, count);
     }
 
-    /// @notice Allows a user to claim dividends from a single distribution
-    /// @param id The ID of the distribution to claim
+    /// @notice See {IBenture-claimDividends}
     function claimDividends(uint256 id) external nonReentrant {
         _claimDividends(id);
     }
 
-    /// @notice Allows user to claim dividends from multiple distributions
-    ///         WARNING: Potentially can exceed block gas limit!
-    /// @param ids The array of IDs of distributions to claim
+    /// @notice See {IBenture-claimMultipleDividends}
     function claimMultipleDividends(
         uint256[] memory ids
     ) external nonReentrant {
@@ -868,10 +850,7 @@ contract Benture is
 
     // ===== SETTERS =====
 
-    /// @notice Sets the token factory contract address
-    /// @param factoryAddress The address of the factory
-    /// @dev NOTICE: This address can't be set the constructor because
-    ///      `Benture` is deployed *before* factory contract.
+    /// @notice See {IBenture-setFactoryAddress}
     function setFactoryAddress(address factoryAddress) external onlyOwner {
         if (factoryAddress == address(0)) {
             revert InvalidFactoryAddress();
@@ -881,11 +860,7 @@ contract Benture is
 
     // ===== GETTERS =====
 
-    /// @notice Returns info about the pool of a given token
-    /// @param token The address of the token of the pool
-    /// @return The address of the tokens in the pool.
-    /// @return The number of users who locked their tokens in the pool
-    /// @return The amount of locked tokens
+    /// @notice See {IBenture-getPool}
     function getPool(
         address token
     ) external view returns (address, uint256, uint256) {
@@ -897,9 +872,7 @@ contract Benture is
         return (pool.token, pool.lockers.length(), pool.totalLocked);
     }
 
-    /// @notice Returns the array of lockers of the pool
-    /// @param token The address of the token of the pool
-    /// @return The array of lockers of the pool
+    /// @notice See {IBenture-getLockers}
     function getLockers(
         address token
     ) external view returns (address[] memory) {
@@ -910,10 +883,7 @@ contract Benture is
         return pools[token].lockers.values();
     }
 
-    /// @notice Returns the current lock amount of the user
-    /// @param token The address of the token of the pool
-    /// @param user The address of the user to check
-    /// @return The current lock amount
+    /// @notice See {IBenture-getCurrentLock}
     function getCurrentLock(
         address token,
         address user
@@ -927,9 +897,7 @@ contract Benture is
         return pools[token].lockedByUser[user];
     }
 
-    /// @notice Returns the list of IDs of all distributions the admin has ever started
-    /// @param admin The address of the admin
-    /// @return The list of IDs of all distributions the admin has ever started
+    /// @notice See {IBenture-getDistributions}
     function getDistributions(
         address admin
     ) external view returns (uint256[] memory) {
@@ -940,9 +908,7 @@ contract Benture is
         return adminsToDistributions[admin];
     }
 
-    /// @notice Returns the distribution with the given ID
-    /// @param id The ID of the distribution to search for
-    /// @return All information about the distribution
+    /// @notice See {IBenture-getDistribution}
     function getDistribution(
         uint256 id
     ) external view returns (uint256, address, address, uint256, bool) {
@@ -962,10 +928,7 @@ contract Benture is
         );
     }
 
-    /// @notice Checks if the distribution with the given ID was started by the given admin
-    /// @param id The ID of the distribution to check
-    /// @param admin The address of the admin to check
-    /// @return True if admin has started the distribution with the given ID. Otherwise - false.
+    /// @notice See {IBenture-checkStartedByAdmin}
     function checkStartedByAdmin(
         uint256 id,
         address admin
@@ -985,9 +948,7 @@ contract Benture is
         return false;
     }
 
-    /// @notice Returns the share of the user in one of the previously
-    ///         started distributions.
-    /// @param id The ID of the distribution to calculate share in
+    /// @notice See {IBenture-getMyShare}
     function getMyShare(uint256 id) external view returns (uint256) {
         if (id > distributionIds.current()) {
             revert InvalidDistribution();
@@ -999,10 +960,7 @@ contract Benture is
         return calculateShare(id, msg.sender);
     }
 
-    /// @notice Checks if user is a locker of the provided token pool
-    /// @param token The address of the token of the pool
-    /// @param user The address of the user to check
-    /// @return True if user is a locker in the pool. Otherwise - false.
+    /// @notice See {IBenture-isLocker}
     function isLocker(address token, address user) public view returns (bool) {
         if (token == address(0)) {
             revert InvalidTokenAddress();
@@ -1017,10 +975,7 @@ contract Benture is
             (pools[token].lockers.contains(user));
     }
 
-    /// @notice Checks if user has claimed dividends of the provided distribution
-    /// @param id The ID of the distribution to check
-    /// @param user The address of the user to check
-    /// @return True if user has claimed dividends. Otherwise - false
+    /// @notice See {IBenture-hasClaimed}
     function hasClaimed(uint256 id, address user) public view returns (bool) {
         if (id < 1) {
             revert InvalidDistributionId();
@@ -1034,10 +989,7 @@ contract Benture is
         return distributions[id].hasClaimed[user];
     }
 
-    /// @notice Returns IDs of distributions before which
-    ///         user's lock of the token has changed
-    /// @param token The address of the token to get the lock of
-    /// @param user The address of the user to get the lock history of
+    /// @notice See {IBenture-getLockChangesId}
     function getLockChangesId(
         address token,
         address user
