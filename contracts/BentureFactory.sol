@@ -25,6 +25,11 @@ contract BentureFactory is
 
     receive() external payable {}
 
+    /// @notice See {IBentureFactory-lastProducedToken}
+    function lastProducedToken() external view returns (address) {
+        return _lastProducedToken;
+    }
+
     /// @notice Set a `Benture` contract address
     /// @param bentureAddress_ The address of `Benture` contract
     function initialize(address bentureAddress_) public initializer {
@@ -35,11 +40,6 @@ contract BentureFactory is
             revert BentureAddressIsZero();
         }
         bentureAddress = bentureAddress_;
-    }
-
-    /// @notice See {IBentureFactory-lastProducedToken}
-    function lastProducedToken() external view returns (address) {
-        return _lastProducedToken;
     }
 
     /// @notice See {IBentureFactory-createERC20Token}
