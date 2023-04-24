@@ -652,7 +652,7 @@ Emits when salary was added to Employee
 ### EmployeeSalaryClaimed
 
 ```solidity
-event EmployeeSalaryClaimed(uint256 id, address employeeAddress, address adminAddress)
+event EmployeeSalaryClaimed(uint256 id, address employeeAddress, address adminAddress, uint256 amount)
 ```
 
 Emits when Employee withdraws salary
@@ -666,11 +666,12 @@ Emits when Employee withdraws salary
 | id  | uint256 | undefined |
 | employeeAddress  | address | undefined |
 | adminAddress  | address | undefined |
+| amount  | uint256 | undefined |
 
 ### EmployeeSalaryRemoved
 
 ```solidity
-event EmployeeSalaryRemoved(uint256 id, address employeeAddress, address adminAddress)
+event EmployeeSalaryRemoved(uint256 id, address employeeAddress, address adminAddress, uint256 amount)
 ```
 
 Emits when salary was removed from Employee
@@ -684,6 +685,7 @@ Emits when salary was removed from Employee
 | id  | uint256 | undefined |
 | employeeAddress  | address | undefined |
 | adminAddress  | address | undefined |
+| amount  | uint256 | undefined |
 
 ### Initialized
 

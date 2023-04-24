@@ -2,11 +2,11 @@
 
 
 
+> Dividend-Paying Token Interface
 
 
 
 
-*An interface for dividends distributing contract*
 
 ## Methods
 
@@ -118,6 +118,29 @@ Allows admin to distribute provided amounts of tokens to the provided list of us
 | users | address[] | The list of addresses of users to receive tokens |
 | amounts | uint256[] | The list of amounts each user has to receive |
 
+### getClaimedAmount
+
+```solidity
+function getClaimedAmount(uint256 id, address user) external view returns (uint256)
+```
+
+Returns the amount of dividends claimed by the user in particular distribution
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| id | uint256 | The ID of the distribution to check |
+| user | address | The address of the user |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | The amount of dividends claimed by the user in the particular distribution |
+
 ### getCurrentLock
 
 ```solidity
@@ -144,7 +167,7 @@ Returns the current lock amount of the user
 ### getDistribution
 
 ```solidity
-function getDistribution(uint256 id) external view returns (uint256, address, address, uint256, bool)
+function getDistribution(uint256 id) external view returns (uint256, address, address, uint256, bool, uint256, uint256)
 ```
 
 Returns the distribution with the given ID
@@ -166,6 +189,8 @@ Returns the distribution with the given ID
 | _2 | address | undefined |
 | _3 | uint256 | undefined |
 | _4 | bool | undefined |
+| _5 | uint256 | undefined |
+| _6 | uint256 | undefined |
 
 ### getDistributions
 
@@ -433,7 +458,7 @@ event CustomDividendsDistributed(uint256 id, address token, uint256 count)
 ### DividendsClaimed
 
 ```solidity
-event DividendsClaimed(uint256 id, address user)
+event DividendsClaimed(uint256 id, address user, uint256 share)
 ```
 
 
@@ -446,6 +471,7 @@ event DividendsClaimed(uint256 id, address user)
 |---|---|---|
 | id  | uint256 | The ID of the distribution that was claimed |
 | user  | address | The address of the user who claimed the distribution |
+| share  | uint256 | The amount of tokens claimed |
 
 ### DividendsStarted
 

@@ -456,7 +456,7 @@ describe("Salary", () => {
 
             salaryInfo = await salary.getSalaryById("1");
             expect(salaryInfo.toString()).to.be.equal(
-                "0,0,0,0,0x0000000000000000000000000000000000000000,,0,0,0x0000000000000000000000000000000000000000,0x0000000000000000000000000000000000000000"
+                "0,0,0,0,0,0x0000000000000000000000000000000000000000,,0,0,0x0000000000000000000000000000000000000000,0x0000000000000000000000000000000000000000"
             );
         });
 
@@ -616,7 +616,7 @@ describe("Salary", () => {
 
             await expect(salary.connect(clientAcc1).withdrawSalary(1))
                 .to.emit(salary, "EmployeeSalaryClaimed")
-                .withArgs(1, clientAcc1.address, adminAcc1.address);
+                .withArgs(1, clientAcc1.address, adminAcc1.address, 550);
 
             let amount = await salary.getSalaryAmount("1");
             expect((await salary.getSalaryAmount("1")).toString()).to.be.equal(
@@ -922,7 +922,7 @@ describe("Salary", () => {
                 salary.connect(adminAcc1).removeSalaryFromEmployee("1")
             )
                 .to.emit(salary, "EmployeeSalaryRemoved")
-                .withArgs(1, clientAcc1.address, adminAcc1.address);
+                .withArgs(1, clientAcc1.address, adminAcc1.address, 0);
 
             expect(await mockERC20.balanceOf(clientAcc1.address)).to.be.equal(
                 totalTokenAmount
@@ -1226,7 +1226,7 @@ describe("Salary", () => {
 
             salaryInfo = await salary.getSalaryById("1");
             expect(salaryInfo.toString()).to.be.equal(
-                "0,0,0,0,0x0000000000000000000000000000000000000000,,0,0,0x0000000000000000000000000000000000000000,0x0000000000000000000000000000000000000000"
+                "0,0,0,0,0,0x0000000000000000000000000000000000000000,,0,0,0x0000000000000000000000000000000000000000,0x0000000000000000000000000000000000000000"
             );
 
             salaryInfo = await salary.getSalaryById("2");
@@ -1607,7 +1607,7 @@ describe("Salary", () => {
 
             salaryInfo = await salary.getSalaryById("1");
             expect(salaryInfo.toString()).to.be.equal(
-                "0,0,0,0,0x0000000000000000000000000000000000000000,,0,0,0x0000000000000000000000000000000000000000,0x0000000000000000000000000000000000000000"
+                "0,0,0,0,0,0x0000000000000000000000000000000000000000,,0,0,0x0000000000000000000000000000000000000000,0x0000000000000000000000000000000000000000"
             );
         });
 

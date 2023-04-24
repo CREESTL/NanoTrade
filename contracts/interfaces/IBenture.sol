@@ -7,7 +7,6 @@ import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeab
 
 /// @title Dividend-Paying Token Interface
 interface IBenture is IBentureErrors {
-
     /// @dev Pool to lock tokens
     /// @dev `lockers` and `lockersArray` basically store the same list of addresses
     ///       but they are used for different purposes
@@ -64,6 +63,7 @@ interface IBenture is IBentureErrors {
         // Copies the value of Pool.totalLocked when creating a distribution
         uint256 formulaLocked;
     }
+
     /// @notice Creates a new pool
     /// @param token The token that will be locked in the pool
     function createPool(address token) external;
@@ -165,7 +165,10 @@ interface IBenture is IBentureErrors {
     /// @return All information about the distribution
     function getDistribution(
         uint256 id
-    ) external view returns (uint256, address, address, uint256, bool);
+    )
+        external
+        view
+        returns (uint256, address, address, uint256, bool, uint256, uint256);
 
     /// @notice Checks if user has claimed dividends of the provided distribution
     /// @param id The ID of the distribution to check
@@ -177,7 +180,10 @@ interface IBenture is IBentureErrors {
     /// @param id The ID of the distribution to check
     /// @param user The address of the user
     /// @return The amount of dividends claimed by the user in the particular distribution
-    function getClaimedAmount(uint256 id, address user) external view returns (uint256);
+    function getClaimedAmount(
+        uint256 id,
+        address user
+    ) external view returns (uint256);
 
     /// @notice Returns IDs of distributions before which
     ///         user's lock of the token has changed

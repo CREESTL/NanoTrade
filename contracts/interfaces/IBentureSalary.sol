@@ -11,6 +11,7 @@ interface IBentureSalary is IBentureSalaryErrors {
         uint256 periodDuration;
         uint256 amountOfPeriods;
         uint256 amountOfWithdrawals;
+        uint256 amountWithdrawn;
         address tokenAddress;
         uint256[] tokensAmountPerPeriod;
         uint256 lastWithdrawalTime;
@@ -207,14 +208,16 @@ interface IBentureSalary is IBentureSalaryErrors {
     event EmployeeSalaryRemoved(
         uint256 id,
         address employeeAddress,
-        address adminAddress
+        address adminAddress,
+        uint256 amount
     );
 
     /// @notice Emits when Employee withdraws salary
     event EmployeeSalaryClaimed(
         uint256 id,
         address employeeAddress,
-        address adminAddress
+        address adminAddress,
+        uint256 amount
     );
 
     /// @notice Emits when Admin adds periods to salary

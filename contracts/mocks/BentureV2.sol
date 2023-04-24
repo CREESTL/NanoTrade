@@ -26,7 +26,6 @@ contract BentureV2 is
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
-
     /// @notice Address of the factory used for projects creation
     address public factory;
 
@@ -64,7 +63,6 @@ contract BentureV2 is
         }
         _;
     }
-    
 
     /// @dev The contract must be able to receive ether to pay dividends with it
     receive() external payable {}
@@ -131,7 +129,11 @@ contract BentureV2 is
     /// @notice See {IBenture-getDistribution}
     function getDistribution(
         uint256 id
-    ) external view returns (uint256, address, address, uint256, bool) {
+    )
+        external
+        view
+        returns (uint256, address, address, uint256, bool, uint256, uint256)
+    {
         if (id < 1) {
             revert InvalidDistributionId();
         }
@@ -144,7 +146,9 @@ contract BentureV2 is
             distribution.origToken,
             distribution.distToken,
             distribution.amount,
-            distribution.isEqual
+            distribution.isEqual,
+            distribution.formulaLockers,
+            distribution.formulaLocked
         );
     }
 
@@ -335,9 +339,12 @@ contract BentureV2 is
         }
         return distributions[id].hasClaimed[user];
     }
-    
+
     /// @notice See {IBenture-getClaimedAmount}
-    function getClaimedAmount(uint256 id, address user) external view returns (uint256) {
+    function getClaimedAmount(
+        uint256 id,
+        address user
+    ) external view returns (uint256) {
         if (id < 1) {
             revert InvalidDistributionId();
         }

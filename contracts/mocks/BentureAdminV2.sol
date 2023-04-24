@@ -64,7 +64,6 @@ contract BentureAdminV2 is
         _factoryAddress = factoryAddress_;
     }
 
-
     function agent() public pure returns (uint256) {
         return 47;
     }

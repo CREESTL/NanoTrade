@@ -622,12 +622,16 @@ describe("Benture Dividend Distributing Contract", () => {
                         2: token2,
                         3: amount,
                         4: isEqual,
+                        5: formulaLockers,
+                        6: formulaLocked,
                     } = dist;
                     expect(id).to.equal(1);
                     expect(token1).to.equal(origToken.address);
                     expect(token2).to.equal(distToken.address);
                     expect(amount).to.equal(claimAmount);
                     expect(isEqual).to.equal(true);
+                    expect(formulaLockers).to.equal(1);
+                    expect(formulaLocked).to.equal(lockAmount);
 
                     expect(
                         await benture.connect(clientAcc1).getMyShare(1)
@@ -774,12 +778,16 @@ describe("Benture Dividend Distributing Contract", () => {
                         2: token2,
                         3: amount,
                         4: isEqual,
+                        5: formulaLockers,
+                        6: formulaLocked,
                     } = dist;
                     expect(id).to.equal(1);
                     expect(token1).to.equal(origToken.address);
                     expect(token2).to.equal(zeroAddress);
                     expect(amount).to.equal(claimAmount);
                     expect(isEqual).to.equal(true);
+                    expect(formulaLockers).to.equal(1);
+                    expect(formulaLocked).to.equal(lockAmount);
 
                     expect(
                         await benture.connect(clientAcc1).getMyShare(1)
@@ -934,12 +942,16 @@ describe("Benture Dividend Distributing Contract", () => {
                         2: token2,
                         3: amount,
                         4: isEqual,
+                        5: formulaLockers,
+                        6: formulaLocked,
                     } = dist;
                     expect(id).to.equal(1);
                     expect(token1).to.equal(origToken.address);
                     expect(token2).to.equal(distToken.address);
                     expect(amount).to.equal(claimAmount);
                     expect(isEqual).to.equal(false);
+                    expect(formulaLockers).to.equal(1);
+                    expect(formulaLocked).to.equal(lockAmount);
 
                     expect(
                         await benture.connect(clientAcc1).getMyShare(1)
@@ -1094,12 +1106,16 @@ describe("Benture Dividend Distributing Contract", () => {
                         2: token2,
                         3: amount,
                         4: isEqual,
+                        5: formulaLockers,
+                        6: formulaLocked,
                     } = dist;
                     expect(id).to.equal(1);
                     expect(token1).to.equal(origToken.address);
                     expect(token2).to.equal(zeroAddress);
                     expect(amount).to.equal(claimAmount);
                     expect(isEqual).to.equal(false);
+                    expect(formulaLockers).to.equal(1);
+                    expect(formulaLocked).to.equal(lockAmount);
 
                     expect(
                         await benture.connect(clientAcc1).getMyShare(1)
@@ -1342,10 +1358,10 @@ describe("Benture Dividend Distributing Contract", () => {
                     expect(
                         await benture.checkStartedByAdmin(1, ownerAcc.address)
                     ).to.equal(true);
-                        
+
                     expect(
                         await benture.getClaimedAmount(1, clientAcc1.address)
-                    ).to.equal(0)
+                    ).to.equal(0);
 
                     expect(
                         await distToken.balanceOf(clientAcc1.address)
@@ -1362,7 +1378,7 @@ describe("Benture Dividend Distributing Contract", () => {
                     ).to.equal(true);
                     expect(
                         await benture.getClaimedAmount(1, clientAcc1.address)
-                    ).to.equal(claimAmount)
+                    ).to.equal(claimAmount);
                 });
             });
             // #CLSWE

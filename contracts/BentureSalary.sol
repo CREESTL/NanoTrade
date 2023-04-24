@@ -458,12 +458,19 @@ contract BentureSalary is
 
         uint256 amountToPay = getSalaryAmount(salaryId);
 
+        _salary.amountWithdrawn += amountToPay;
+
         employeeToAdminToSalaryId[_salary.employee][msg.sender].remove(
             salaryId
         );
         delete salaryById[_salary.id];
 
-        emit EmployeeSalaryRemoved(salaryId, _salary.employee, msg.sender);
+        emit EmployeeSalaryRemoved(
+            salaryId,
+            _salary.employee,
+            msg.sender,
+            amountToPay
+        );
 
         /// @dev Transfer tokens from the employer's wallet to the employee's wallet
         IERC20Upgradeable(_salary.tokenAddress).safeTransferFrom(
@@ -507,6 +514,8 @@ contract BentureSalary is
                 _salary.amountOfWithdrawals +
                 periodsToPay;
 
+            _salary.amountWithdrawn += toPay;
+
             /// @dev Transfer tokens from the employer's wallet to the employee's wallet
             IERC20Upgradeable(_salary.tokenAddress).safeTransferFrom(
                 _salary.employer,
@@ -517,7 +526,8 @@ contract BentureSalary is
             emit EmployeeSalaryClaimed(
                 salaryId,
                 _salary.employee,
-                _salary.employer
+                _salary.employer,
+                toPay
             );
         }
     }

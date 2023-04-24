@@ -135,6 +135,29 @@ Address of the factory used for projects creation
 |---|---|---|
 | _0 | address | undefined |
 
+### getClaimedAmount
+
+```solidity
+function getClaimedAmount(uint256 id, address user) external view returns (uint256)
+```
+
+See {IBenture-getClaimedAmount}
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| id | uint256 | undefined |
+| user | address | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
+
 ### getCurrentLock
 
 ```solidity
@@ -161,7 +184,7 @@ See {IBenture-getCurrentLock}
 ### getDistribution
 
 ```solidity
-function getDistribution(uint256 id) external view returns (uint256, address, address, uint256, bool)
+function getDistribution(uint256 id) external view returns (uint256, address, address, uint256, bool, uint256, uint256)
 ```
 
 See {IBenture-getDistribution}
@@ -183,6 +206,8 @@ See {IBenture-getDistribution}
 | _2 | address | undefined |
 | _3 | uint256 | undefined |
 | _4 | bool | undefined |
+| _5 | uint256 | undefined |
+| _6 | uint256 | undefined |
 
 ### getDistributions
 
@@ -588,7 +613,7 @@ event CustomDividendsDistributed(uint256 id, address token, uint256 count)
 ### DividendsClaimed
 
 ```solidity
-event DividendsClaimed(uint256 id, address user)
+event DividendsClaimed(uint256 id, address user, uint256 share)
 ```
 
 
@@ -601,6 +626,7 @@ event DividendsClaimed(uint256 id, address user)
 |---|---|---|
 | id  | uint256 | undefined |
 | user  | address | undefined |
+| share  | uint256 | undefined |
 
 ### DividendsStarted
 

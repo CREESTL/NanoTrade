@@ -452,7 +452,7 @@ contract BentureSalaryV2 is
 
     /// @notice See {IBentureSalary-removeSalaryFromEmployee}
     function removeSalaryFromEmployee(uint256 salaryId) public onlyAdmin {
-        SalaryInfo memory _salary = salaryById[salaryId];
+        SalaryInfo storage _salary = salaryById[salaryId];
         if (!checkIfUserIsAdminOfEmployee(_salary.employee, msg.sender)) {
             revert NotAdminForEmployee();
         }
@@ -462,12 +462,19 @@ contract BentureSalaryV2 is
 
         uint256 amountToPay = getSalaryAmount(salaryId);
 
+        _salary.amountWithdrawn += amountToPay;
+
         employeeToAdminToSalaryId[_salary.employee][msg.sender].remove(
             salaryId
         );
         delete salaryById[_salary.id];
 
-        emit EmployeeSalaryRemoved(salaryId, _salary.employee, msg.sender);
+        emit EmployeeSalaryRemoved(
+            salaryId,
+            _salary.employee,
+            msg.sender,
+            amountToPay
+        );
 
         /// @dev Transfer tokens from the employer's wallet to the employee's wallet
         IERC20Upgradeable(_salary.tokenAddress).safeTransferFrom(
@@ -511,17 +518,20 @@ contract BentureSalaryV2 is
                 _salary.amountOfWithdrawals +
                 periodsToPay;
 
+            _salary.amountWithdrawn += toPay;
+
+            emit EmployeeSalaryClaimed(
+                salaryId,
+                _salary.employee,
+                _salary.employer,
+                toPay
+            );
+
             /// @dev Transfer tokens from the employer's wallet to the employee's wallet
             IERC20Upgradeable(_salary.tokenAddress).safeTransferFrom(
                 _salary.employer,
                 _salary.employee,
                 toPay
-            );
-
-            emit EmployeeSalaryClaimed(
-                salaryId,
-                _salary.employee,
-                _salary.employer
             );
         }
     }
