@@ -1342,13 +1342,17 @@ describe("Benture Dividend Distributing Contract", () => {
                     expect(
                         await benture.checkStartedByAdmin(1, ownerAcc.address)
                     ).to.equal(true);
+                        
+                    expect(
+                        await benture.getClaimedAmount(1, clientAcc1.address)
+                    ).to.equal(0)
 
                     expect(
                         await distToken.balanceOf(clientAcc1.address)
                     ).to.equal(0);
                     await expect(benture.connect(clientAcc1).claimDividends(1))
                         .to.emit(benture, "DividendsClaimed")
-                        .withArgs(anyValue, anyValue);
+                        .withArgs(anyValue, anyValue, anyValue);
 
                     expect(
                         await distToken.balanceOf(clientAcc1.address)
@@ -1356,6 +1360,9 @@ describe("Benture Dividend Distributing Contract", () => {
                     expect(
                         await benture.hasClaimed(1, clientAcc1.address)
                     ).to.equal(true);
+                    expect(
+                        await benture.getClaimedAmount(1, clientAcc1.address)
+                    ).to.equal(claimAmount)
                 });
             });
             // #CLSWE
@@ -1453,7 +1460,7 @@ describe("Benture Dividend Distributing Contract", () => {
                     );
                     await expect(benture.connect(clientAcc1).claimDividends(1))
                         .to.emit(benture, "DividendsClaimed")
-                        .withArgs(anyValue, anyValue);
+                        .withArgs(anyValue, anyValue, anyValue);
 
                     let endBalance = await ethers.provider.getBalance(
                         clientAcc1.address
@@ -1849,7 +1856,7 @@ describe("Benture Dividend Distributing Contract", () => {
                     await benture.hasClaimed(8, clientAcc2.address)
                 ).to.equal(true);
             });
-            // These are tests for `calculateShare` and `findMaxPrev` functions
+            // These are tests for `_calculateShare` and `_findMaxPrev` functions
             describe("Calculate shares for a single distribution", () => {
                 it("Should result in a correct share if user hasn't change his lock amount before the distribution for a long time", async () => {
                     let { benture, factory, adminToken, origToken, distToken } =
@@ -2396,7 +2403,7 @@ describe("Benture Dividend Distributing Contract", () => {
                 ).to.equal(true);
             });
 
-            // These are tests for `getParticipatedNotClaimed` function, basically
+            // These are tests for `_getParticipatedNotClaimed` function, basically
             describe("Correctly find participated distributions", () => {
                 it("Should not include the last (not started) distribution", async () => {
                     let { benture, factory, adminToken, origToken, distToken } =
@@ -3216,6 +3223,38 @@ describe("Benture Dividend Distributing Contract", () => {
 
             await expect(
                 benture.hasClaimed(1, zeroAddress)
+            ).to.be.revertedWithCustomError(benture, "InvalidUserAddress");
+        });
+        it("Should fail to get the claimed amount of user", async () => {
+            let { benture, factory, adminToken, origToken, distToken } =
+                await loadFixture(deploys);
+            await expect(
+                benture.getClaimedAmount(0, clientAcc1.address)
+            ).to.be.revertedWithCustomError(benture, "InvalidDistributionId");
+            await expect(
+                benture.getClaimedAmount(1, clientAcc1.address)
+            ).to.be.revertedWithCustomError(benture, "DistributionNotStarted");
+
+            let claimAmount = parseUnits("1000", 6);
+
+            // One user has to lock tokens in the pool so that admin would be able
+            // to distribute dividends
+            let initialLock = parseUnits("1000", 6);
+            await origToken.mint(clientAcc3.address, initialLock);
+            await origToken
+                .connect(clientAcc3)
+                .approve(benture.address, initialLock);
+            await benture.connect(clientAcc3).lockAllTokens(origToken.address);
+
+            await benture.distributeDividends(
+                origToken.address,
+                distToken.address,
+                claimAmount,
+                true
+            );
+
+            await expect(
+                benture.getClaimedAmount(1, zeroAddress)
             ).to.be.revertedWithCustomError(benture, "InvalidUserAddress");
         });
         it("Should fail to check if distribution started by admin", async () => {

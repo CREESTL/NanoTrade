@@ -3,11 +3,67 @@
 pragma solidity ^0.8.9;
 
 import "./errors/IBentureErrors.sol";
+import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 
 /// @title Dividend-Paying Token Interface
-
-/// @dev An interface for dividends distributing contract
 interface IBenture is IBentureErrors {
+
+    /// @dev Pool to lock tokens
+    /// @dev `lockers` and `lockersArray` basically store the same list of addresses
+    ///       but they are used for different purposes
+    struct Pool {
+        // The address of the token inside the pool
+        address token;
+        // The list of all lockers of the pool
+        EnumerableSetUpgradeable.AddressSet lockers;
+        // The amount of locked tokens
+        uint256 totalLocked;
+        // Mapping from user address to the amount of tokens currently locked by the user in the pool
+        // Could be 0 if user has unlocked all his tokens
+        mapping(address => uint256) lockedByUser;
+        // Mapping from user address to distribution ID to locked tokens amount
+        // Shows "to what amount was the user's locked changed before the distribution with the given ID"
+        // If the value for ID10 is 0, that means that user's lock amount did not change before that distribution
+        // If the value for ID10 is 500, that means that user's lock amount changed to 500 before that distibution.
+        // Amounts locked for N-th distribution (used to calculate user's dividends) can only
+        // be updated since the start of (N-1)-th distribution and till the start of the N-th
+        // distribution. `distributionIds.current()` is the (N-1)-th distribution in our case.
+        // So we have to increase it by one to get the ID of the upcoming distribution and
+        // the amount locked for that distribution.
+        // For example, if distribution ID476 has started and Bob adds 100 tokens to his 500 locked tokens
+        // the pool, then his lock for the distribution ID477 should be 600.
+        mapping(address => mapping(uint256 => uint256)) lockHistory;
+        // Mapping from user address to a list of IDs of distributions *before which* user's lock amount was changed
+        // For example an array of [1, 2] means that user's lock amount changed before 1st and 2nd distributions
+        // `EnumerableSetUpgradeable` can't be used here because it does not *preserve* the order of IDs and we need that
+        mapping(address => uint256[]) lockChangesIds;
+        // Mapping indicating that before the distribution with the given ID, user's lock amount was changed
+        // Basically, a `true` value for `[user][ID]` here means that this ID is *in* the `lockChangesIds[user]` array
+        // So it's used to check if a given ID is in the array.
+        mapping(address => mapping(uint256 => bool)) changedBeforeId;
+    }
+
+    /// @dev Stores information about a specific dividends distribution
+    struct Distribution {
+        // ID of distributiion
+        uint256 id;
+        // The token owned by holders
+        address origToken;
+        // The token distributed to holders
+        address distToken;
+        // The amount of `distTokens` or native tokens paid to holders
+        uint256 amount;
+        // True if distribution is equal, false if it's weighted
+        bool isEqual;
+        // Mapping showing that holder has withdrawn his dividends
+        mapping(address => bool) hasClaimed;
+        // Mapping showing how much tokens has each user claimed
+        mapping(address => uint256) claimedAmount;
+        // Copies the length of `lockers` set from the pool
+        uint256 formulaLockers;
+        // Copies the value of Pool.totalLocked when creating a distribution
+        uint256 formulaLocked;
+    }
     /// @notice Creates a new pool
     /// @param token The token that will be locked in the pool
     function createPool(address token) external;
@@ -117,6 +173,12 @@ interface IBenture is IBentureErrors {
     /// @return True if user has claimed dividends. Otherwise - false
     function hasClaimed(uint256 id, address user) external view returns (bool);
 
+    /// @notice Returns the amount of dividends claimed by the user in particular distribution
+    /// @param id The ID of the distribution to check
+    /// @param user The address of the user
+    /// @return The amount of dividends claimed by the user in the particular distribution
+    function getClaimedAmount(uint256 id, address user) external view returns (uint256);
+
     /// @notice Returns IDs of distributions before which
     ///         user's lock of the token has changed
     /// @param token The address of the token to get the lock of
@@ -174,7 +236,8 @@ interface IBenture is IBentureErrors {
     /// @dev Indicates that dividends were claimed by a user
     /// @param id The ID of the distribution that was claimed
     /// @param user The address of the user who claimed the distribution
-    event DividendsClaimed(uint256 id, address user);
+    /// @param share The amount of tokens claimed
+    event DividendsClaimed(uint256 id, address user, uint256 share);
 
     /// @dev Indicates that multiple dividends were claimed by a user
     /// @param ids The list of IDs of claimed dividends

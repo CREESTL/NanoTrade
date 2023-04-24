@@ -27,7 +27,7 @@ contract BentureAdminV2 is
     using StringsUpgradeable for uint256;
 
     /// @dev Incrementing IDs of admin tokens
-    CountersUpgradeable.Counter internal _tokenIds;
+    CountersUpgradeable.Counter private _tokenIds;
     /// @dev Mapping from ERC721 token IDs to controlled ERC20 token addresses
     mapping(uint256 => address) private _adminToControlled;
     /// @dev Reverse mapping for `_adminToControlled`
@@ -56,6 +56,7 @@ contract BentureAdminV2 is
         __ERC721_init("Benture Manager Token", "BMNG");
         __Ownable_init();
         __UUPSUpgradeable_init();
+        __ReentrancyGuard_init();
 
         if (factoryAddress_ == address(0)) {
             revert InvalidFactoryAddress();
@@ -63,11 +64,12 @@ contract BentureAdminV2 is
         _factoryAddress = factoryAddress_;
     }
 
+
     function agent() public pure returns (uint256) {
         return 47;
     }
 
-    /// @notice Checks it the provided address owns any admin token
+    /// @notice See {IBentureAdmin-checkOwner}
     function checkOwner(address user) external view {
         if (user == address(0)) {
             revert InvalidUserAddress();
@@ -77,10 +79,7 @@ contract BentureAdminV2 is
         }
     }
 
-    /// @notice Checks if the provided user owns an admin token controlling the provided ERC20 token
-    /// @param user The address of the user that potentially controls ERC20 token
-    /// @param ERC20Address The address of the potentially controlled ERC20 token
-    /// @return True if user has admin token. Otherwise - false.
+    /// @notice See {IBentureAdmin-verifyAdminOfProject}
     function verifyAdminOfProject(
         address user,
         address ERC20Address
@@ -101,9 +100,7 @@ contract BentureAdminV2 is
         return true;
     }
 
-    /// @notice Returns the address of the controlled ERC20 token
-    /// @param tokenId The ID of ERC721 token to check
-    /// @return The address of the controlled ERC20 token
+    /// @notice See {IBentureAdmin-getControlledAddressById}
     function getControlledAddressById(
         uint256 tokenId
     ) external view returns (address) {
@@ -115,8 +112,7 @@ contract BentureAdminV2 is
         return _adminToControlled[tokenId];
     }
 
-    /// @notice Returns the list of all admin tokens of the user
-    /// @param admin The address of the admin
+    /// @notice See {IBentureAdmin-getAdminTokenIds}
     function getAdminTokenIds(
         address admin
     ) external view returns (uint256[] memory) {
@@ -126,40 +122,12 @@ contract BentureAdminV2 is
         return _holderToIds[admin].values();
     }
 
-    /// @notice Returns the address of the factory that mints admin tokens
-    /// @return The address of the factory
+    /// @notice See {IBentureAdmin-getFactory}
     function getFactory() external view returns (address) {
         return _factoryAddress;
     }
 
-    /// @notice Creates a relatioship between controlled ERC20 token address and an admin ERC721 token ID
-    /// @param tokenId The ID of the admin ERC721 token
-    /// @param ERC20Address The address of the controlled ERC20 token
-    function setControlledAddress(
-        uint256 tokenId,
-        address ERC20Address
-    ) internal onlyFactory {
-        if (ERC20Address == address(0)) {
-            revert InvalidTokenAddress();
-        }
-        _requireMinted(tokenId);
-        _adminToControlled[tokenId] = ERC20Address;
-        _controlledToAdmin[ERC20Address] = tokenId;
-    }
-
-    /// @notice Deletes one admin token from the list of all project tokens owned by the admin
-    /// @param admin The address of the admin of several projects
-    /// @param tokenId The ID of the admin token to delete
-    function deleteOneId(address admin, uint256 tokenId) internal {
-        bool removed = _holderToIds[admin].remove(tokenId);
-        if (!removed) {
-            revert FailedToDeleteTokenID();
-        }
-    }
-
-    /// @notice Mints a new ERC721 token with the address of the controlled ERC20 token
-    /// @param to The address of the receiver of the token
-    /// @param ERC20Address The address of the controlled ERC20 token
+    /// @notice See {IBentureAdmin-mintWithERC20Address}
     function mintWithERC20Address(
         address to,
         address ERC20Address
@@ -187,11 +155,10 @@ contract BentureAdminV2 is
         // Mint the token
         super._safeMint(to, tokenId);
         // Connect admin token ID to controlled ERC20 address
-        setControlledAddress(tokenId, ERC20Address);
+        _setControlledAddress(tokenId, ERC20Address);
     }
 
-    /// @notice Burns the token with the provided ID
-    /// @param tokenId The ID of the token to burn
+    /// @notice See {IBentureAdmin-burn}
     function burn(uint256 tokenId) external {
         if (ownerOf(tokenId) != msg.sender) {
             revert NotAnOwner();
@@ -203,11 +170,34 @@ contract BentureAdminV2 is
         delete _controlledToAdmin[_adminToControlled[tokenId]];
         delete _adminToControlled[tokenId];
         // This deletes `tokenId` from the list of all IDs owned by the admin
-        deleteOneId(_idToHolder[tokenId], tokenId);
+        _deleteOneId(_idToHolder[tokenId], tokenId);
         delete _idToHolder[tokenId];
 
         super._burn(tokenId);
         emit AdminTokenBurnt(tokenId);
+    }
+
+    /// @notice See {IBentureAdmin-_setControlledAddress}
+    function _setControlledAddress(
+        uint256 tokenId,
+        address ERC20Address
+    ) internal onlyFactory {
+        if (ERC20Address == address(0)) {
+            revert InvalidTokenAddress();
+        }
+        _requireMinted(tokenId);
+        _adminToControlled[tokenId] = ERC20Address;
+        _controlledToAdmin[ERC20Address] = tokenId;
+    }
+
+    /// @notice Deletes one admin token from the list of all project tokens owned by the admin
+    /// @param admin The address of the admin of several projects
+    /// @param tokenId The ID of the admin token to delete
+    function _deleteOneId(address admin, uint256 tokenId) internal {
+        bool removed = _holderToIds[admin].remove(tokenId);
+        if (!removed) {
+            revert FailedToDeleteTokenID();
+        }
     }
 
     /// @notice Transfers admin token with the provided ID from one address to another address
@@ -232,7 +222,7 @@ contract BentureAdminV2 is
         _idToHolder[tokenId] = to;
         _holderToIds[to].add(tokenId);
         // Current holder loses one token
-        deleteOneId(from, tokenId);
+        _deleteOneId(from, tokenId);
 
         super._transfer(from, to, tokenId);
 

@@ -23,35 +23,30 @@ contract BentureFactoryV2 is
     /// @dev The address of the last token that was produced by the factory
     address private _lastProducedToken;
 
+    receive() external payable {}
+
+    /// @notice See {IBentureFactory-lastProducedToken}
+    function lastProducedToken() external view returns (address) {
+        return _lastProducedToken;
+    }
+
+    /// @notice Set a `Benture` contract address
+    /// @param bentureAddress_ The address of `Benture` contract
     function initialize(address bentureAddress_) public initializer {
         __Ownable_init();
         __UUPSUpgradeable_init();
+
         if (bentureAddress_ == address(0)) {
             revert BentureAddressIsZero();
         }
         bentureAddress = bentureAddress_;
     }
 
-    receive() external payable {}
-
     function agent() public pure returns (uint256) {
         return 47;
     }
 
-    /// @notice Returns the address of the produced ERC20 token
-    /// @return The address of the produced ERC20 token
-    function lastProducedToken() external view returns (address) {
-        return _lastProducedToken;
-    }
-
-    /// @notice Creates a new ERC20 token and mints an admin token proving ownership
-    /// @param name The name of the token
-    /// @param symbol The symbol of the token
-    /// @param decimals Number of decimals of the token
-    /// @param mintable Token may be either mintable or not. Can be changed later.
-    /// @param maxTotalSupply Maximum amount of tokens to be minted
-    /// @param adminToken_ Address of the admin token for controlled token
-    /// @dev Anyone can call this method. No restrictions.
+    /// @notice See {IBentureFactory-createERC20Token}
     function createERC20Token(
         string memory name,
         string memory symbol,

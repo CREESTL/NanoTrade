@@ -10,7 +10,6 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "./BentureProducedToken.sol";
 import "./interfaces/IBenture.sol";
@@ -27,60 +26,6 @@ contract Benture is
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
-    /// @dev Pool to lock tokens
-    /// @dev `lockers` and `lockersArray` basically store the same list of addresses
-    ///       but they are used for different purposes
-    struct Pool {
-        // The address of the token inside the pool
-        address token;
-        // The list of all lockers of the pool
-        EnumerableSetUpgradeable.AddressSet lockers;
-        // The amount of locked tokens
-        uint256 totalLocked;
-        // Mapping from user address to the amount of tokens currently locked by the user in the pool
-        // Could be 0 if user has unlocked all his tokens
-        mapping(address => uint256) lockedByUser;
-        // Mapping from user address to distribution ID to locked tokens amount
-        // Shows "to what amount was the user's locked changed before the distribution with the given ID"
-        // If the value for ID10 is 0, that means that user's lock amount did not change before that distribution
-        // If the value for ID10 is 500, that means that user's lock amount changed to 500 before that distibution.
-        // Amounts locked for N-th distribution (used to calculate user's dividends) can only
-        // be updated since the start of (N-1)-th distribution and till the start of the N-th
-        // distribution. `distributionIds.current()` is the (N-1)-th distribution in our case.
-        // So we have to increase it by one to get the ID of the upcoming distribution and
-        // the amount locked for that distribution.
-        // For example, if distribution ID476 has started and Bob adds 100 tokens to his 500 locked tokens
-        // the pool, then his lock for the distribution ID477 should be 600.
-        mapping(address => mapping(uint256 => uint256)) lockHistory;
-        // Mapping from user address to a list of IDs of distributions *before which* user's lock amount was changed
-        // For example an array of [1, 2] means that user's lock amount changed before 1st and 2nd distributions
-        // `EnumerableSetUpgradeable` can't be used here because it does not *preserve* the order of IDs and we need that
-        mapping(address => uint256[]) lockChangesIds;
-        // Mapping indicating that before the distribution with the given ID, user's lock amount was changed
-        // Basically, a `true` value for `[user][ID]` here means that this ID is *in* the `lockChangesIds[user]` array
-        // So it's used to check if a given ID is in the array.
-        mapping(address => mapping(uint256 => bool)) changedBeforeId;
-    }
-
-    /// @dev Stores information about a specific dividends distribution
-    struct Distribution {
-        // ID of distributiion
-        uint256 id;
-        // The token owned by holders
-        address origToken;
-        // The token distributed to holders
-        address distToken;
-        // The amount of `distTokens` or native tokens paid to holders
-        uint256 amount;
-        // True if distribution is equal, false if it's weighted
-        bool isEqual;
-        // Mapping showing that holder has withdrawn his dividends
-        mapping(address => bool) hasClaimed;
-        // Copies the length of `lockers` set from the pool
-        uint256 formulaLockers;
-        // Copies the value of Pool.totalLocked when creating a distribution
-        uint256 formulaLocked;
-    }
 
     /// @notice Address of the factory used for projects creation
     address public factory;
@@ -227,7 +172,7 @@ contract Benture is
         if (!isLocker(distributions[id].origToken, msg.sender)) {
             revert CallerIsNotLocker();
         }
-        return calculateShare(id, msg.sender);
+        return _calculateShare(id, msg.sender);
     }
 
     /// @notice See {IBenture-lockAllTokens}
@@ -385,6 +330,20 @@ contract Benture is
         }
         return distributions[id].hasClaimed[user];
     }
+    
+    /// @notice See {IBenture-getClaimedAmount}
+    function getClaimedAmount(uint256 id, address user) external view returns (uint256) {
+        if (id < 1) {
+            revert InvalidDistributionId();
+        }
+        if (distributionsToAdmins[id] == address(0)) {
+            revert DistributionNotStarted();
+        }
+        if (user == address(0)) {
+            revert InvalidUserAddress();
+        }
+        return distributions[id].claimedAmount[user];
+    }
 
     /// @notice See {IBenture-getLockChangesId}
     function getLockChangesId(
@@ -530,7 +489,7 @@ contract Benture is
     /// @param user The address of the user to get distributions for
     /// @param token The address of the token that was distributed
     /// @return The list of IDs of distributions the user took part in
-    function getParticipatedNotClaimed(
+    function _getParticipatedNotClaimed(
         address user,
         address token
     ) private view returns (uint256[] memory) {
@@ -747,7 +706,7 @@ contract Benture is
         // Any unlock triggers claim of all dividends inside the pool for that user
 
         // Get the list of distributions the user took part in and hasn't claimed them
-        uint256[] memory notClaimedIds = getParticipatedNotClaimed(
+        uint256[] memory notClaimedIds = _getParticipatedNotClaimed(
             msg.sender,
             origToken
         );
@@ -796,7 +755,7 @@ contract Benture is
     /// @param user The user to find a previous distribution for
     /// @param id The ID of the distribution to find a previous distribution for
     /// @return The ID of the found distribution. Or (-1) if no such distribution exists
-    function findMaxPrev(
+    function _findMaxPrev(
         address user,
         uint256 id
     ) private view returns (int256) {
@@ -856,7 +815,7 @@ contract Benture is
     /// @notice Calculates locker's share in the distribution
     /// @param id The ID of the distribution to calculates shares in
     /// @param user The address of the user whos share has to be calculated
-    function calculateShare(
+    function _calculateShare(
         uint256 id,
         address user
     ) private view returns (uint256) {
@@ -898,7 +857,7 @@ contract Benture is
                     // If he didn't, that means that *we have to use his lock from the closest distribution from the past*
                     // We have to find a distribution that has an ID that is less than `id` but greater than all other
                     // IDs less than `id`
-                    int256 prevMaxId = findMaxPrev(user, id);
+                    int256 prevMaxId = _findMaxPrev(user, id);
                     if (prevMaxId != -1) {
                         lock = pool.lockHistory[user][uint256(prevMaxId)];
                     } else {
@@ -934,16 +893,17 @@ contract Benture is
         }
 
         // Calculate the share of the user
-        uint256 share = calculateShare(id, msg.sender);
+        uint256 share = _calculateShare(id, msg.sender);
 
         // If user's share is 0, that means he doesn't have any locked tokens
         if (share == 0) {
             revert UserDoesNotHaveLockedTokens();
         }
 
-        emit DividendsClaimed(id, msg.sender);
+        emit DividendsClaimed(id, msg.sender, share);
 
         distribution.hasClaimed[msg.sender] = true;
+        distribution.claimedAmount[msg.sender] += share;
 
         // Send the share to the user
         if (distribution.distToken == address(0)) {

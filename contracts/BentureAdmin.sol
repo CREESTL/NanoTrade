@@ -150,7 +150,7 @@ contract BentureAdmin is
         // Mint the token
         super._safeMint(to, tokenId);
         // Connect admin token ID to controlled ERC20 address
-        setControlledAddress(tokenId, ERC20Address);
+        _setControlledAddress(tokenId, ERC20Address);
     }
 
     /// @notice See {IBentureAdmin-burn}
@@ -165,15 +165,15 @@ contract BentureAdmin is
         delete _controlledToAdmin[_adminToControlled[tokenId]];
         delete _adminToControlled[tokenId];
         // This deletes `tokenId` from the list of all IDs owned by the admin
-        deleteOneId(_idToHolder[tokenId], tokenId);
+        _deleteOneId(_idToHolder[tokenId], tokenId);
         delete _idToHolder[tokenId];
 
         super._burn(tokenId);
         emit AdminTokenBurnt(tokenId);
     }
 
-    /// @notice See {IBentureAdmin-setControlledAddress}
-    function setControlledAddress(
+    /// @notice See {IBentureAdmin-_setControlledAddress}
+    function _setControlledAddress(
         uint256 tokenId,
         address ERC20Address
     ) internal onlyFactory {
@@ -188,7 +188,7 @@ contract BentureAdmin is
     /// @notice Deletes one admin token from the list of all project tokens owned by the admin
     /// @param admin The address of the admin of several projects
     /// @param tokenId The ID of the admin token to delete
-    function deleteOneId(address admin, uint256 tokenId) internal {
+    function _deleteOneId(address admin, uint256 tokenId) internal {
         bool removed = _holderToIds[admin].remove(tokenId);
         if (!removed) {
             revert FailedToDeleteTokenID();
@@ -217,7 +217,7 @@ contract BentureAdmin is
         _idToHolder[tokenId] = to;
         _holderToIds[to].add(tokenId);
         // Current holder loses one token
-        deleteOneId(from, tokenId);
+        _deleteOneId(from, tokenId);
 
         super._transfer(from, to, tokenId);
 
