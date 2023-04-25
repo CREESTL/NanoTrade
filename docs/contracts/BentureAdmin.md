@@ -65,6 +65,51 @@ See {IBentureAdmin-burn}
 |---|---|---|
 | tokenId | uint256 | undefined |
 
+### checkAdminOfAny
+
+```solidity
+function checkAdminOfAny(address user) external view returns (bool)
+```
+
+See {IBentureAdmin-checkAdminOfAny}
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| user | address | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | undefined |
+
+### checkAdminOfProject
+
+```solidity
+function checkAdminOfProject(address user, address ERC20Address) external view returns (bool)
+```
+
+See {IBentureAdmin-checkAdminOfProject}
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| user | address | undefined |
+| ERC20Address | address | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | undefined |
+
 ### checkOwner
 
 ```solidity
@@ -485,29 +530,6 @@ function upgradeToAndCall(address newImplementation, bytes data) external payabl
 |---|---|---|
 | newImplementation | address | undefined |
 | data | bytes | undefined |
-
-### verifyAdminOfProject
-
-```solidity
-function verifyAdminOfProject(address user, address ERC20Address) external view returns (bool)
-```
-
-See {IBentureAdmin-verifyAdminOfProject}
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| user | address | undefined |
-| ERC20Address | address | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
 
 
 

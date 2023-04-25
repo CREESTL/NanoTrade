@@ -38,7 +38,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
     /// @dev Checks if caller is an admin token holder
     modifier hasAdminToken() {
         if (
-            !IBentureAdmin(_adminToken).verifyAdminOfProject(
+            !IBentureAdmin(_adminToken).checkAdminOfProject(
                 msg.sender,
                 address(this)
             )
@@ -118,7 +118,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
     function checkAdmin(address account) external view returns (bool) {
         // This reverts. Does not return boolean.
         return
-            IBentureAdmin(_adminToken).verifyAdminOfProject(
+            IBentureAdmin(_adminToken).checkAdminOfProject(
                 account,
                 address(this)
             );

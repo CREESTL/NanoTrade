@@ -78,8 +78,8 @@ contract BentureAdminV2 is
         }
     }
 
-    /// @notice See {IBentureAdmin-verifyAdminOfProject}
-    function verifyAdminOfProject(
+    /// @notice See {IBentureAdmin-checkAdminOfProject}
+    function checkAdminOfProject(
         address user,
         address ERC20Address
     ) external view returns (bool) {
@@ -97,6 +97,15 @@ contract BentureAdminV2 is
             return false;
         }
         return true;
+    }
+
+    /// @notice See {IBentureAdmin-checkAdminOfAny}
+    function checkAdminOfAny(address user) external view returns (bool) {
+        // If user owns any admin token, he is admin of some project
+        if (_holderToIds[user].length() > 0) {
+            return true;
+        }
+        return false;
     }
 
     /// @notice See {IBentureAdmin-getControlledAddressById}

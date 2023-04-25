@@ -393,7 +393,7 @@ contract BentureSalaryV2 is
         address projectTokenAddress
     ) public view returns (bool) {
         return
-            IBentureAdmin(bentureAdminToken).verifyAdminOfProject(
+            IBentureAdmin(bentureAdminToken).checkAdminOfProject(
                 adminAddress,
                 projectTokenAddress
             );

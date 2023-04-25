@@ -26,6 +26,51 @@ Burns the token with the provided ID
 |---|---|---|
 | tokenId | uint256 | The ID of the token to burn |
 
+### checkAdminOfAny
+
+```solidity
+function checkAdminOfAny(address user) external view returns (bool)
+```
+
+Checks if the provided user is an admin of any project
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| user | address | The address of the user to check |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | True if user is admin of any project. Otherwise - false |
+
+### checkAdminOfProject
+
+```solidity
+function checkAdminOfProject(address user, address ERC20Address) external view returns (bool)
+```
+
+Checks if the provided user owns an admin token controlling the provided ERC20 token
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| user | address | The address of the user that potentially controls ERC20 token |
+| ERC20Address | address | The address of the potentially controlled ERC20 token |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | True if user has admin token. Otherwise - false. |
+
 ### checkOwner
 
 ```solidity
@@ -119,29 +164,6 @@ Mints a new ERC721 token with the address of the controlled ERC20 token
 |---|---|---|
 | to | address | The address of the receiver of the token |
 | ERC20Address | address | The address of the controlled ERC20 token |
-
-### verifyAdminOfProject
-
-```solidity
-function verifyAdminOfProject(address user, address ERC20Address) external view returns (bool)
-```
-
-Checks if the provided user owns an admin token controlling the provided ERC20 token
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| user | address | The address of the user that potentially controls ERC20 token |
-| ERC20Address | address | The address of the potentially controlled ERC20 token |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | True if user has admin token. Otherwise - false. |
 
 
 

@@ -181,13 +181,13 @@ describe("Benture Admin Token", () => {
                 factorySigner,
             } = await loadFixture(deploys);
             expect(
-                await adminToken.verifyAdminOfProject(
+                await adminToken.checkAdminOfProject(
                     ownerAcc.address,
                     token.address
                 )
             ).to.equal(true);
             expect(
-                await adminToken.verifyAdminOfProject(
+                await adminToken.checkAdminOfProject(
                     clientAcc1.address,
                     token.address
                 )
@@ -207,7 +207,7 @@ describe("Benture Admin Token", () => {
                 factorySigner,
             } = await loadFixture(deploys);
             await expect(
-                adminToken.verifyAdminOfProject(zeroAddress, token.address)
+                adminToken.checkAdminOfProject(zeroAddress, token.address)
             ).to.be.revertedWithCustomError(adminToken, "InvalidUserAddress");
         });
 
@@ -224,7 +224,7 @@ describe("Benture Admin Token", () => {
                 factorySigner,
             } = await loadFixture(deploys);
             await expect(
-                adminToken.verifyAdminOfProject(clientAcc1.address, zeroAddress)
+                adminToken.checkAdminOfProject(clientAcc1.address, zeroAddress)
             ).to.be.revertedWithCustomError(adminToken, "InvalidTokenAddress");
         });
 
@@ -348,25 +348,44 @@ describe("Benture Admin Token", () => {
                 newTokenAddress
             );
             expect(
-                await adminToken.verifyAdminOfProject(
+                await adminToken.checkAdminOfProject(
                     ownerAcc.address,
                     token.address
                 )
             ).to.equal(true);
             expect(
-                await adminToken.verifyAdminOfProject(
+                await adminToken.checkAdminOfProject(
                     ownerAcc.address,
                     newToken.address
                 )
             ).to.equal(true);
             expect(
-                await adminToken.verifyAdminOfProject(
+                await adminToken.checkAdminOfProject(
                     ownerAcc.address,
                     newToken.address
                 )
             ).to.equal(true);
             await expect(adminToken.checkOwner(ownerAcc.address)).not.to.be
                 .reverted;
+        });
+        it("Should check that user is admin of some project", async () => {
+            let {
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+                token,
+                rummy,
+                factorySigner,
+            } = await loadFixture(deploys);
+            expect(await adminToken.checkAdminOfAny(ownerAcc.address)).to.equal(
+                true
+            );
+            expect(
+                await adminToken.checkAdminOfAny(clientAcc1.address)
+            ).to.equal(false);
         });
     });
 
@@ -517,7 +536,7 @@ describe("Benture Admin Token", () => {
                 "UserDoesNotHaveAnAdminToken"
             );
             expect(
-                await adminToken.verifyAdminOfProject(
+                await adminToken.checkAdminOfProject(
                     clientAcc1.address,
                     rummy.address
                 )
@@ -604,7 +623,7 @@ describe("Benture Admin Token", () => {
             expect(endBalance).to.eq(1);
             // Check that user is still an admin
             expect(
-                await adminToken.verifyAdminOfProject(
+                await adminToken.checkAdminOfProject(
                     ownerAcc.address,
                     token.address
                 )
@@ -651,7 +670,7 @@ describe("Benture Admin Token", () => {
                 "UserDoesNotHaveAnAdminToken"
             );
             expect(
-                await adminToken.verifyAdminOfProject(
+                await adminToken.checkAdminOfProject(
                     clientAcc1.address,
                     rummy.address
                 )
@@ -659,7 +678,7 @@ describe("Benture Admin Token", () => {
             // Check that the second user received the token and now has the control
             await adminToken.checkOwner(clientAcc2.address);
             expect(
-                await adminToken.verifyAdminOfProject(
+                await adminToken.checkAdminOfProject(
                     clientAcc2.address,
                     rummy.address
                 )
