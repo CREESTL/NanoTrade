@@ -595,7 +595,7 @@ event BeaconUpgraded(address indexed beacon)
 ### CustomDividendsDistributed
 
 ```solidity
-event CustomDividendsDistributed(uint256 id, address token, uint256 count)
+event CustomDividendsDistributed(uint256 id, address token, address[] users, uint256[] amounts, uint256 count)
 ```
 
 
@@ -608,6 +608,8 @@ event CustomDividendsDistributed(uint256 id, address token, uint256 count)
 |---|---|---|
 | id  | uint256 | undefined |
 | token  | address | undefined |
+| users  | address[] | undefined |
+| amounts  | uint256[] | undefined |
 | count  | uint256 | undefined |
 
 ### DividendsClaimed

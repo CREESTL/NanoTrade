@@ -2897,7 +2897,7 @@ describe("Benture Dividend Distributing Contract", () => {
                     )
                 )
                     .to.emit(benture, "CustomDividendsDistributed")
-                    .withArgs(anyValue, anyValue, anyValue);
+                    .withArgs(anyValue, anyValue, anyValue, anyValue, anyValue);
 
                 let endBalance1 = await distToken.balanceOf(clientAcc1.address);
                 let endBalance2 = await distToken.balanceOf(clientAcc2.address);
@@ -2929,7 +2929,7 @@ describe("Benture Dividend Distributing Contract", () => {
                     )
                 )
                     .to.emit(benture, "CustomDividendsDistributed")
-                    .withArgs(anyValue, anyValue, anyValue);
+                    .withArgs(anyValue, anyValue, anyValue, anyValue, anyValue);
 
                 let endBalance1 = await distToken.balanceOf(clientAcc1.address);
                 let endBalance2 = await distToken.balanceOf(clientAcc2.address);
@@ -2966,7 +2966,7 @@ describe("Benture Dividend Distributing Contract", () => {
                     )
                 )
                     .to.emit(benture, "CustomDividendsDistributed")
-                    .withArgs(anyValue, anyValue, anyValue);
+                    .withArgs(anyValue, anyValue, anyValue, anyValue, anyValue);
 
                 let endBalance1 = await ethers.provider.getBalance(
                     clientAcc1.address

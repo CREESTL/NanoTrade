@@ -440,7 +440,7 @@ Unlocks the provided amount of user&#39;s tokens from the pool
 ### CustomDividendsDistributed
 
 ```solidity
-event CustomDividendsDistributed(uint256 id, address token, uint256 count)
+event CustomDividendsDistributed(uint256 id, address token, address[] users, uint256[] amounts, uint256 count)
 ```
 
 
@@ -453,6 +453,8 @@ event CustomDividendsDistributed(uint256 id, address token, uint256 count)
 |---|---|---|
 | id  | uint256 | The ID of custom distribution |
 | token  | address | The token distributed |
+| users  | address[] | The list of address of dividends receivers |
+| amounts  | uint256[] | The list of amounts each user receives |
 | count  | uint256 | The total number of users who received their shares              Counting starts from the first user and does not skip any users |
 
 ### DividendsClaimed
