@@ -50,6 +50,7 @@ contract BentureFactoryV2 is
     function createERC20Token(
         string memory name,
         string memory symbol,
+        string memory ipfsUrl,
         uint8 decimals,
         bool mintable,
         uint256 maxTotalSupply,
@@ -58,6 +59,7 @@ contract BentureFactoryV2 is
         BentureProducedToken newToken = new BentureProducedToken(
             name,
             symbol,
+            ipfsUrl,
             decimals,
             mintable,
             maxTotalSupply,
@@ -67,6 +69,7 @@ contract BentureFactoryV2 is
         emit CreateERC20Token(
             name,
             symbol,
+            ipfsUrl,
             address(newToken),
             decimals,
             mintable

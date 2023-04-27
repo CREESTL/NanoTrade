@@ -3,6 +3,8 @@ const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expect } = require("chai");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 
+const ipfsUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+
 describe("Benture Factory", () => {
     let zeroAddress = ethers.constants.AddressZero;
     let parseEther = ethers.utils.parseEther;
@@ -74,6 +76,7 @@ describe("Benture Factory", () => {
                 factory.createERC20Token(
                     "Dummy",
                     "DMM",
+                    ipfsUrl,
                     18,
                     true,
                     1_000_000,
@@ -84,6 +87,7 @@ describe("Benture Factory", () => {
                 .withArgs(
                     "Dummy",
                     "DMM",
+                    ipfsUrl,
                     await factory.lastProducedToken(),
                     18,
                     true
@@ -110,6 +114,7 @@ describe("Benture Factory", () => {
             await factory.createERC20Token(
                 name,
                 symbol,
+                ipfsUrl,
                 decimals,
                 mintable,
                 maxTotalSupply,

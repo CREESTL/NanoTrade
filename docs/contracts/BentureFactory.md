@@ -13,7 +13,7 @@
 ### createERC20Token
 
 ```solidity
-function createERC20Token(string name, string symbol, uint8 decimals, bool mintable, uint256 maxTotalSupply, address adminToken_) external nonpayable
+function createERC20Token(string name, string symbol, string ipfsUrl, uint8 decimals, bool mintable, uint256 maxTotalSupply, address adminToken_) external nonpayable
 ```
 
 See {IBentureFactory-createERC20Token}
@@ -26,6 +26,7 @@ See {IBentureFactory-createERC20Token}
 |---|---|---|
 | name | string | undefined |
 | symbol | string | undefined |
+| ipfsUrl | string | undefined |
 | decimals | uint8 | undefined |
 | mintable | bool | undefined |
 | maxTotalSupply | uint256 | undefined |
@@ -198,7 +199,7 @@ event BeaconUpgraded(address indexed beacon)
 ### CreateERC20Token
 
 ```solidity
-event CreateERC20Token(string name, string symbol, address tokenAddress, uint8 decimals, bool mintable)
+event CreateERC20Token(string name, string symbol, string ipfsUrl, address tokenAddress, uint8 decimals, bool mintable)
 ```
 
 
@@ -211,6 +212,7 @@ event CreateERC20Token(string name, string symbol, address tokenAddress, uint8 d
 |---|---|---|
 | name  | string | undefined |
 | symbol  | string | undefined |
+| ipfsUrl  | string | undefined |
 | tokenAddress  | address | undefined |
 | decimals  | uint8 | undefined |
 | mintable  | bool | undefined |

@@ -3,6 +3,8 @@ const { expect } = require("chai");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
+const ipfsUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+
 describe("Benture Produced Token", () => {
     let zeroAddress = ethers.constants.AddressZero;
     let parseEther = ethers.utils.parseEther;
@@ -47,6 +49,7 @@ describe("Benture Produced Token", () => {
         await factory.createERC20Token(
             "Dummy",
             "DMM",
+            ipfsUrl,
             18,
             true,
             1_000_000,
@@ -98,6 +101,13 @@ describe("Benture Produced Token", () => {
             expect(await token.mintable()).to.equal(true);
         });
 
+        it("Should have a correct IPFS URL", async () => {
+            let { token, adminToken, factory, benture } = await loadFixture(
+                deploys
+            );
+            expect(await token.ipfsUrl()).to.equal(ipfsUrl);
+        });
+
         it("Initially should have no holders", async () => {
             let { token, adminToken, factory, benture } = await loadFixture(
                 deploys
@@ -120,6 +130,7 @@ describe("Benture Produced Token", () => {
             await factory.createERC20Token(
                 "AAA",
                 "BBB",
+                ipfsUrl,
                 18,
                 true,
                 // Zero for "infinite" max total supply
@@ -240,6 +251,7 @@ describe("Benture Produced Token", () => {
             await factory.createERC20Token(
                 "Dummy",
                 "DMM",
+                ipfsUrl,
                 18,
                 false,
                 0,
@@ -477,6 +489,7 @@ describe("Benture Produced Token", () => {
                 factory.createERC20Token(
                     "",
                     "DMM",
+                    ipfsUrl,
                     18,
                     true,
                     1_000_000,
@@ -493,6 +506,7 @@ describe("Benture Produced Token", () => {
                 factory.createERC20Token(
                     "Dummy",
                     "",
+                    ipfsUrl,
                     18,
                     true,
                     1_000_000,
@@ -509,6 +523,7 @@ describe("Benture Produced Token", () => {
                 factory.createERC20Token(
                     "Dummy",
                     "DMM",
+                    ipfsUrl,
                     0,
                     true,
                     1_000_000,
@@ -525,6 +540,7 @@ describe("Benture Produced Token", () => {
                 factory.createERC20Token(
                     "Dummy",
                     "DMM",
+                    ipfsUrl,
                     18,
                     true,
                     1_000_000,
@@ -541,6 +557,7 @@ describe("Benture Produced Token", () => {
                 factory.createERC20Token(
                     "Dummy",
                     "DMM",
+                    ipfsUrl,
                     18,
                     false,
                     1_000_000,

@@ -5,6 +5,8 @@ const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { parseUnits, parseEther } = ethers.utils;
 
+const ipfsUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+
 describe("Benture Dividend Distributing Contract", () => {
     let zeroAddress = ethers.constants.AddressZero;
     let randomAddress = "0xEd24551e059304BE771ac6CF8B654271ec156Ba0";
@@ -51,6 +53,7 @@ describe("Benture Dividend Distributing Contract", () => {
         await factory.createERC20Token(
             "Dummy",
             "DMM",
+            ipfsUrl,
             18,
             true,
             parseUnits("1000000000", 18),
@@ -69,6 +72,7 @@ describe("Benture Dividend Distributing Contract", () => {
         await factory.createERC20Token(
             "Slummy",
             "SMM",
+            ipfsUrl,
             18,
             true,
             parseUnits("1000000000", 18),
@@ -110,6 +114,7 @@ describe("Benture Dividend Distributing Contract", () => {
                 factory.createERC20Token(
                     "Grummy",
                     "GRM",
+                    ipfsUrl,
                     18,
                     true,
                     parseUnits("1000000000", 18),

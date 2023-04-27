@@ -4,6 +4,8 @@ const { expect } = require("chai");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { parseUnits, parseEther } = ethers.utils;
 
+const ipfsUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+
 describe("Benture Admin Token", () => {
     let zeroAddress = ethers.constants.AddressZero;
     let parseEther = ethers.utils.parseEther;
@@ -48,6 +50,7 @@ describe("Benture Admin Token", () => {
         await factory.createERC20Token(
             "Dummy",
             "DMM",
+            ipfsUrl,
             18,
             true,
             1_000_000,
@@ -295,6 +298,7 @@ describe("Benture Admin Token", () => {
             await factory.createERC20Token(
                 "Dummy",
                 "DMM",
+                ipfsUrl,
                 18,
                 true,
                 1_000_000,
@@ -336,6 +340,7 @@ describe("Benture Admin Token", () => {
             await factory.createERC20Token(
                 "Dummy",
                 "DMM",
+                ipfsUrl,
                 18,
                 true,
                 1_000_000,
@@ -602,6 +607,7 @@ describe("Benture Admin Token", () => {
             await factory.createERC20Token(
                 "Dummy",
                 "DMM",
+                ipfsUrl,
                 18,
                 true,
                 1_000_000,

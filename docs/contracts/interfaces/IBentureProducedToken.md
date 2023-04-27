@@ -150,6 +150,23 @@ Returns the array of addresses of all token holders
 |---|---|---|
 | _0 | address[] | The array of addresses of all token holders |
 
+### ipfsUrl
+
+```solidity
+function ipfsUrl() external view returns (string)
+```
+
+Returns IPFS URL with project metadata
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | string | IPFS URL with project metadata |
+
 ### isHolder
 
 ```solidity

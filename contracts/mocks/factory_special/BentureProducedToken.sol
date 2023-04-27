@@ -3,27 +3,31 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "../../interfaces/IBentureProducedToken.sol";
 import "../../interfaces/IBentureAdmin.sol";
-import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /// @title An ERC20 project token
-/// @dev This is NOT upgradeable contract. The only difference with `contract/BentureProducedToken`
-/// is that this one has an `agent` function
 contract BentureProducedToken is ERC20, IBentureProducedToken {
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    string internal _tokenName;
-    string internal _tokenSymbol;
-    uint8 internal _decimals;
-    bool internal _mintable;
+    /// @dev The name of the token
+    string private _tokenName;
+    /// @dev The symbol of the token
+    string private _tokenSymbol;
+    /// @dev The number of decimals of the token
+    uint8 private _decimals;
+    /// @dev IPFS URL with project metadata
+    string private _ipfsUrl;
+    /// @dev Mintability of the token
+    bool private _mintable;
     /// @dev The address of the admin token has to be provided in order
     ///      to verify user's ownership of that token
-    address internal _adminToken;
+    address private _adminToken;
     /// @dev The maximum number of tokens to be minted
-    uint256 internal _maxTotalSupply;
+    uint256 private _maxTotalSupply;
     /// @dev A list of addresses of tokens holders
-    EnumerableSet.AddressSet internal _holders;
+    EnumerableSet.AddressSet private _holders;
 
     /// @dev Checks if mintability is activated
     modifier WhenMintable() {
@@ -58,6 +62,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
     constructor(
         string memory name_,
         string memory symbol_,
+        string memory ipfsUrl_,
         uint8 decimals_,
         bool mintable_,
         uint256 maxTotalSupply_,
@@ -91,78 +96,39 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         }
         _tokenName = name_;
         _tokenSymbol = symbol_;
+        _ipfsUrl = ipfsUrl_;
         _decimals = decimals_;
         _mintable = mintable_;
         _maxTotalSupply = maxTotalSupply_;
         _adminToken = adminToken_;
     }
 
-    function agent() public pure returns (uint256) {
+    function agent() external pure returns (uint256) {
         return 47;
     }
 
-    /// @notice Returns the name of the token
-    /// @return The name of the token
-    function name()
-        public
-        view
-        override(ERC20, IBentureProducedToken)
-        returns (string memory)
-    {
-        return _tokenName;
-    }
-
-    /// @notice Returns the symbol of the token
-    /// @return The symbol of the token
-    function symbol()
-        public
-        view
-        override(ERC20, IBentureProducedToken)
-        returns (string memory)
-    {
-        return _tokenSymbol;
-    }
-
-    /// @notice Returns number of decimals of the token
-    /// @return The number of decimals of the token
-    function decimals()
-        public
-        view
-        override(ERC20, IBentureProducedToken)
-        returns (uint8)
-    {
-        return _decimals;
-    }
-
-    /// @notice Indicates whether the token is mintable or not
-    /// @return True if the token is mintable. False - if it is not
+    /// @notice See {IBentureProducedToken-mintable}
     function mintable() external view override returns (bool) {
         return _mintable;
     }
 
-    /// @notice Returns the array of addresses of all token holders
-    /// @return The array of addresses of all token holders
+    /// @notice See {IBentureProducedToken-holders}
     function holders() external view returns (address[] memory) {
         return _holders.values();
     }
 
-    /// @notice Returns the max total supply of the token
-    /// @return The max total supply of the token
+    /// @notice See {IBentureProducedTokne-ipfsUrl}
+    function ipfsUrl() external view returns (string memory) {
+        return _ipfsUrl;
+    }
+
+    /// @notice See {IBentureProducedToken-maxTotalSupply}
     function maxTotalSupply() external view returns (uint256) {
         return _maxTotalSupply;
     }
 
-    /// @notice Checks if the address is a holder
-    /// @param account The address to check
-    /// @return True if address is a holder. False if it is not
-    function isHolder(address account) public view returns (bool) {
-        return _holders.contains(account);
-    }
-
-    /// @notice Checks if user is an admin of this token
-    /// @param account The address to check
-    /// @return True if user has admin token. Otherwise - false.
-    function checkAdmin(address account) public view returns (bool) {
+    /// @notice See {IBentureProducedToken-checkAdmin}
+    function checkAdmin(address account) external view returns (bool) {
         // This reverts. Does not return boolean.
         return
             IBentureAdmin(_adminToken).checkAdminOfProject(
@@ -171,11 +137,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
             );
     }
 
-    /// @notice Creates tokens and assigns them to account, increasing the total supply.
-    /// @param to The receiver of tokens
-    /// @param amount The amount of tokens to mint
-    /// @dev Can only be called by the owner of the admin NFT
-    /// @dev Can only be called when token is mintable
+    /// @notice See {IBentureProducedToken-mint}
     function mint(
         address to,
         uint256 amount
@@ -193,8 +155,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         _mint(to, amount);
     }
 
-    /// @notice Burns user's tokens
-    /// @param amount The amount of tokens to burn
+    /// @notice See {IBentureProducedToken-burn}
     function burn(uint256 amount) external override {
         address caller = msg.sender;
         if (amount == 0) {
@@ -212,6 +173,41 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
                 revert DeletingHolderFailed();
             }
         }
+    }
+
+    /// @notice See {IBentureProducedToken-name}
+    function name()
+        public
+        view
+        override(ERC20, IBentureProducedToken)
+        returns (string memory)
+    {
+        return _tokenName;
+    }
+
+    /// @notice See {IBentureProducedToken-symbol}
+    function symbol()
+        public
+        view
+        override(ERC20, IBentureProducedToken)
+        returns (string memory)
+    {
+        return _tokenSymbol;
+    }
+
+    /// @notice See {IBentureProducedToken-decimals}
+    function decimals()
+        public
+        view
+        override(ERC20, IBentureProducedToken)
+        returns (uint8)
+    {
+        return _decimals;
+    }
+
+    /// @notice See {IBentureProducedToken-isHolder}
+    function isHolder(address account) public view returns (bool) {
+        return _holders.contains(account);
     }
 
     /// @notice Moves tokens from one account to another account

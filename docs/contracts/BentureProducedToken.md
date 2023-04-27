@@ -196,6 +196,23 @@ function increaseAllowance(address spender, uint256 addedValue) external nonpaya
 |---|---|---|
 | _0 | bool | undefined |
 
+### ipfsUrl
+
+```solidity
+function ipfsUrl() external view returns (string)
+```
+
+See {IBentureProducedTokne-ipfsUrl}
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | string | undefined |
+
 ### isHolder
 
 ```solidity

@@ -2,7 +2,9 @@ const { ethers } = require("hardhat");
 const { expect } = require("chai");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
-let zeroAddress = ethers.constants.AddressZero;
+const zeroAddress = ethers.constants.AddressZero;
+
+const ipfsUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
 describe("Salary", () => {
     const increaseTime = async (time) => {
@@ -61,6 +63,7 @@ describe("Salary", () => {
         await factory.connect(adminAcc1).createERC20Token(
             "Dummy",
             "DMM",
+            ipfsUrl,
             18,
             true,
             1_000_000_000,
@@ -81,6 +84,7 @@ describe("Salary", () => {
             .createERC20Token(
                 "Slummy",
                 "SMM",
+                ipfsUrl,
                 18,
                 true,
                 1_000_000_000,
@@ -129,6 +133,7 @@ describe("Salary", () => {
             .createERC20Token(
                 "Brummy",
                 "BRM",
+                ipfsUrl,
                 18,
                 true,
                 1_000_000_000,

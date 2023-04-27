@@ -13,7 +13,7 @@
 ### createERC20Token
 
 ```solidity
-function createERC20Token(string name, string symbol, uint8 decimals, bool mintable, uint256 maxTotalSupply, address adminToken_) external nonpayable
+function createERC20Token(string name, string symbol, string ipfsUrl, uint8 decimals, bool mintable, uint256 maxTotalSupply, address adminToken_) external nonpayable
 ```
 
 Creates a new ERC20 token and mints an admin token proving ownership
@@ -26,6 +26,7 @@ Creates a new ERC20 token and mints an admin token proving ownership
 |---|---|---|
 | name | string | The name of the token |
 | symbol | string | The symbol of the token |
+| ipfsUrl | string | The URL to IPFS with project metadata |
 | decimals | uint8 | Number of decimals of the token |
 | mintable | bool | Token may be either mintable or not. Can be changed later. |
 | maxTotalSupply | uint256 | Maximum amount of tokens to be minted |
@@ -55,7 +56,7 @@ Returns the address of the produced ERC20 token
 ### CreateERC20Token
 
 ```solidity
-event CreateERC20Token(string name, string symbol, address tokenAddress, uint8 decimals, bool mintable)
+event CreateERC20Token(string name, string symbol, string ipfsUrl, address tokenAddress, uint8 decimals, bool mintable)
 ```
 
 
@@ -68,6 +69,7 @@ event CreateERC20Token(string name, string symbol, address tokenAddress, uint8 d
 |---|---|---|
 | name  | string | undefined |
 | symbol  | string | undefined |
+| ipfsUrl  | string | undefined |
 | tokenAddress  | address | undefined |
 | decimals  | uint8 | undefined |
 | mintable  | bool | undefined |
