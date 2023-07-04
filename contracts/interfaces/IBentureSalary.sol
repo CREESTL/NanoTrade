@@ -18,6 +18,7 @@ interface IBentureSalary is IBentureSalaryErrors {
         uint256 salaryStartTime;
         address employer;
         address employee;
+        address projectToken;
     }
 
     /// @notice Returns the name of employee.
@@ -125,6 +126,14 @@ interface IBentureSalary is IBentureSalaryErrors {
         address employeeAddress,
         address adminAddress
     ) external view returns (uint256[] memory salaries);
+
+    /// @notice Returns array of salaries on project of employee.
+    /// @param employeeAddress Address of employee.
+    /// @return projectTokenAddress The address of the project token.
+    function getSalariesIdByEmployeeAndProjectToken(
+        address employeeAddress,
+        address projectTokenAddress
+    ) external view returns (uint256[] memory ids);
 
     /// @notice Returns salary by ID.
     /// @param salaryId Id of SalaryInfo.
