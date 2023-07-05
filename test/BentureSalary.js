@@ -148,6 +148,7 @@ describe("Salary", () => {
         return {
             benture,
             origToken,
+            distToken,
             adminToken,
             factory,
             salary,
@@ -233,10 +234,16 @@ describe("Salary", () => {
                     adminAcc1.address
                 )
             ).to.be.true;
-            await salary.removeEmployeeFromProject(
+            await expect(salary.removeEmployeeFromProject(
                 clientAcc1.address,
                 origToken.address
-            );
+            ))
+                .to.be.emit(salary, "EmployeeRemoved")
+                .withArgs(
+                    clientAcc1.address,
+                    origToken.address,
+                    adminAcc1.address
+                );
             expect(
                 await salary.checkIfUserIsEmployeeOfAdmin(
                     adminAcc1.address,
@@ -350,9 +357,13 @@ describe("Salary", () => {
             let tokensAmountPerPeriod = [
                 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
             ];
+
+            let expectedSalaryId = 1;
+
             await expect(
                 salary.addSalaryToEmployee(
                     clientAcc1.address,
+                    origToken.address,
                     periodDuration,
                     amountOfPeriods,
                     tokenAddress,
@@ -360,7 +371,11 @@ describe("Salary", () => {
                 )
             )
                 .to.emit(salary, "EmployeeSalaryAdded")
-                .withArgs(anyValue, anyValue, anyValue);
+                .withArgs(
+                    expectedSalaryId,
+                    clientAcc1.address,
+                    adminAcc1.address
+                );
 
             let admins = await salary.getAdminsByEmployee(clientAcc1.address);
             let id = [];
@@ -373,9 +388,24 @@ describe("Salary", () => {
                 );
             }
             expect(id.length).to.be.equal(1);
+            expect(id[0].length).to.be.equal(1);
+            expect(id[0][0]).to.be.equal(ethers.BigNumber.from(expectedSalaryId));
 
-            salaryInfo = await salary.getSalaryById("1");
-            expect(salaryInfo.id).to.be.equal("1");
+            id = [];
+            for (i = 0; i < admins.length; i++) {
+                id.push(
+                    await salary.getSalariesIdByEmployeeAndProjectToken(
+                        clientAcc1.address,
+                        origToken.address
+                    )
+                );
+            }
+            expect(id.length).to.be.equal(1);
+            expect(id[0].length).to.be.equal(1);
+            expect(id[0][0]).to.be.equal(ethers.BigNumber.from(expectedSalaryId));
+
+            salaryInfo = await salary.getSalaryById(expectedSalaryId);
+            expect(salaryInfo.id).to.be.equal(expectedSalaryId);
             expect(salaryInfo.periodDuration).to.be.equal(periodDuration);
             expect(salaryInfo.amountOfPeriods).to.be.equal(amountOfPeriods);
             expect(salaryInfo.tokenAddress).to.be.equal(tokenAddress);
@@ -386,6 +416,7 @@ describe("Salary", () => {
 
             expect(salaryInfo.employer).to.be.equal(adminAcc1.address);
             expect(salaryInfo.employee).to.be.equal(clientAcc1.address);
+            expect(salaryInfo.projectToken).to.be.equal(origToken.address);
         });
 
         it("Should remove salary from Employee", async () => {
@@ -416,6 +447,7 @@ describe("Salary", () => {
 
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -459,9 +491,20 @@ describe("Salary", () => {
             }
             expect(id.toString()).to.be.equal("");
 
+            id = [];
+            for (i = 0; i < admins.length; i++) {
+                id.push(
+                    await salary.getSalariesIdByEmployeeAndProjectToken(
+                        clientAcc1.address,
+                        origToken.address
+                    )
+                );
+            }
+            expect(id.toString()).to.be.equal("");
+
             salaryInfo = await salary.getSalaryById("1");
             expect(salaryInfo.toString()).to.be.equal(
-                "0,0,0,0,0,0x0000000000000000000000000000000000000000,,0,0,0x0000000000000000000000000000000000000000,0x0000000000000000000000000000000000000000"
+                "0,0,0,0,0,0x0000000000000000000000000000000000000000,,0,0,0x0000000000000000000000000000000000000000,0x0000000000000000000000000000000000000000,0x0000000000000000000000000000000000000000"
             );
         });
 
@@ -490,6 +533,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -530,6 +574,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -570,6 +615,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -610,6 +656,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -655,6 +702,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -725,6 +773,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -733,6 +782,7 @@ describe("Salary", () => {
 
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -743,6 +793,7 @@ describe("Salary", () => {
                 .connect(adminAcc2)
                 .addSalaryToEmployee(
                     clientAcc1.address,
+                    bummyToken.address,
                     periodDuration,
                     amountOfPeriods,
                     tokenAddress,
@@ -780,6 +831,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -838,6 +890,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -865,6 +918,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -913,6 +967,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -963,6 +1018,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -1022,6 +1078,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -1068,6 +1125,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -1110,6 +1168,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -1149,6 +1208,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -1193,6 +1253,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -1209,6 +1270,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -1231,7 +1293,7 @@ describe("Salary", () => {
 
             salaryInfo = await salary.getSalaryById("1");
             expect(salaryInfo.toString()).to.be.equal(
-                "0,0,0,0,0,0x0000000000000000000000000000000000000000,,0,0,0x0000000000000000000000000000000000000000,0x0000000000000000000000000000000000000000"
+                "0,0,0,0,0,0x0000000000000000000000000000000000000000,,0,0,0x0000000000000000000000000000000000000000,0x0000000000000000000000000000000000000000,0x0000000000000000000000000000000000000000"
             );
 
             salaryInfo = await salary.getSalaryById("2");
@@ -1273,6 +1335,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -1309,6 +1372,7 @@ describe("Salary", () => {
                 .connect(adminAcc2)
                 .addSalaryToEmployee(
                     clientAcc1.address,
+                    bummyToken.address,
                     periodDuration,
                     amountOfPeriods,
                     tokenAddress,
@@ -1367,6 +1431,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -1389,6 +1454,7 @@ describe("Salary", () => {
                 .connect(adminAcc2)
                 .addSalaryToEmployee(
                     clientAcc1.address,
+                    bummyToken.address,
                     periodDuration,
                     amountOfPeriods,
                     tokenAddress,
@@ -1429,6 +1495,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -1467,6 +1534,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -1507,6 +1575,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -1567,6 +1636,7 @@ describe("Salary", () => {
 
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -1612,7 +1682,7 @@ describe("Salary", () => {
 
             salaryInfo = await salary.getSalaryById("1");
             expect(salaryInfo.toString()).to.be.equal(
-                "0,0,0,0,0,0x0000000000000000000000000000000000000000,,0,0,0x0000000000000000000000000000000000000000,0x0000000000000000000000000000000000000000"
+                "0,0,0,0,0,0x0000000000000000000000000000000000000000,,0,0,0x0000000000000000000000000000000000000000,0x0000000000000000000000000000000000000000,0x0000000000000000000000000000000000000000"
             );
         });
 
@@ -1642,6 +1712,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -1664,9 +1735,9 @@ describe("Salary", () => {
             expect(salaryInfo.amountOfWithdrawals).to.be.equal(1);
 
             let expectedBalance =
-                (tokensAmountPerPeriod[0] *
+                ethers.BigNumber.from((tokensAmountPerPeriod[0] *
                     (timeAfterWithdrawal - timeBeforeWithdrawal)) /
-                periodDuration;
+                periodDuration);
             expect(await mockERC20.balanceOf(clientAcc1.address)).to.be.equal(
                 expectedBalance
             );
@@ -1701,6 +1772,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -1722,9 +1794,9 @@ describe("Salary", () => {
             );
 
             let expectedBalance =
-                (tokensAmountPerPeriod[0] *
+                ethers.BigNumber.from((tokensAmountPerPeriod[0] *
                     (timeAfterWithdrawal - timeBeforeWithdrawal)) /
-                periodDuration;
+                periodDuration);
             expect(await mockERC20.balanceOf(clientAcc1.address)).to.be.equal(
                 expectedBalance
             );
@@ -1759,6 +1831,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -1805,6 +1878,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -1859,6 +1933,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -1906,6 +1981,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -1926,6 +2002,7 @@ describe("Salary", () => {
                 .connect(adminAcc2)
                 .addSalaryToEmployee(
                     clientAcc1.address,
+                    bummyToken.address,
                     periodDuration,
                     amountOfPeriods,
                     tokenAddress,
@@ -1967,6 +2044,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -2010,6 +2088,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -2057,6 +2136,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -2103,6 +2183,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -2153,6 +2234,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -2194,6 +2276,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -2235,6 +2318,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -2540,6 +2624,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -2607,12 +2692,91 @@ describe("Salary", () => {
             await expect(
                 salary.addSalaryToEmployee(
                     clientAcc1.address,
+                    origToken.address,
                     periodDuration,
                     amountOfPeriods,
                     tokenAddress,
                     tokensAmountPerPeriod
                 )
             ).to.be.revertedWithCustomError(salary, "NotEnoughTokensAllowed");
+        });
+
+        it("Should revert addSalaryToEmployee with NotAdminOfProject", async () => {
+            let {
+                benture,
+                origToken,
+                adminToken,
+                factory,
+                salary,
+                rummy,
+                bummyToken,
+                mockERC20,
+            } = await loadFixture(deploys);
+            await mockERC20.mint(adminAcc1.address, 600);
+            await mockERC20.approve(salary.address, 100);
+            await salary
+                .connect(adminAcc1)
+                .addEmployeeToProject(clientAcc1.address, origToken.address);
+            await mockERC20.mint(adminAcc2.address, 600);
+            await mockERC20.approve(salary.address, 100);
+            await salary
+                .connect(adminAcc2)
+                .addEmployeeToProject(clientAcc1.address, bummyToken.address);
+
+            let periodDuration = 60;
+            let amountOfPeriods = 10;
+            let tokenAddress = mockERC20.address;
+            let totalTokenAmount = 600;
+            let tokensAmountPerPeriod = [
+                60, 60, 60, 60, 60, 60, 60, 60, 60, 60,
+            ];
+            await expect(
+                salary.connect(adminAcc2).addSalaryToEmployee(
+                    clientAcc1.address,
+                    origToken.address,
+                    periodDuration,
+                    amountOfPeriods,
+                    tokenAddress,
+                    tokensAmountPerPeriod
+                )
+            ).to.be.revertedWithCustomError(salary, "NotAdminOfProject");
+        });
+
+        it("Should revert addSalaryToEmployee with EmployeeNotInProject", async () => {
+            let {
+                benture,
+                origToken,
+                distToken,
+                adminToken,
+                factory,
+                salary,
+                rummy,
+                bummyToken,
+                mockERC20,
+            } = await loadFixture(deploys);
+            await mockERC20.mint(adminAcc1.address, 600);
+            await mockERC20.approve(salary.address, 100);
+            await salary
+                .connect(adminAcc1)
+                .addEmployeeToProject(clientAcc1.address, origToken.address);
+
+            let periodDuration = 60;
+            let amountOfPeriods = 10;
+            let tokenAddress = mockERC20.address;
+            let totalTokenAmount = 600;
+            let tokensAmountPerPeriod = [
+                60, 60, 60, 60, 60, 60, 60, 60, 60, 60,
+            ];
+            await expect(
+                salary.connect(adminAcc1).addSalaryToEmployee(
+                    clientAcc1.address,
+                    distToken.address,
+                    periodDuration,
+                    amountOfPeriods,
+                    tokenAddress,
+                    tokensAmountPerPeriod
+                )
+            ).to.be.revertedWithCustomError(salary, "EmployeeNotInProject");
         });
 
         it("Should revert withdrawSalary with NotEmployeeForThisSalary", async () => {
@@ -2641,6 +2805,7 @@ describe("Salary", () => {
 
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -2680,6 +2845,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -2720,6 +2886,7 @@ describe("Salary", () => {
                     .connect(adminAcc2)
                     .addSalaryToEmployee(
                         clientAcc1.address,
+                        origToken.address,
                         periodDuration,
                         amountOfPeriods,
                         tokenAddress,
@@ -2755,6 +2922,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -2777,6 +2945,7 @@ describe("Salary", () => {
                 .connect(adminAcc2)
                 .addSalaryToEmployee(
                     clientAcc1.address,
+                    bummyToken.address,
                     periodDuration,
                     amountOfPeriods,
                     tokenAddress,
@@ -2832,6 +3001,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -2872,6 +3042,7 @@ describe("Salary", () => {
             ];
             await salary.addSalaryToEmployee(
                 clientAcc1.address,
+                origToken.address,
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
@@ -2911,6 +3082,7 @@ describe("Salary", () => {
             await expect(
                 salary.addSalaryToEmployee(
                     clientAcc1.address,
+                    origToken.address,
                     periodDuration,
                     amountOfPeriods,
                     tokenAddress,
