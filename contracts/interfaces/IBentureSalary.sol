@@ -129,11 +129,12 @@ interface IBentureSalary is IBentureSalaryErrors {
 
     /// @notice Returns array of salaries on project of employee.
     /// @param employeeAddress Address of employee.
-    /// @return projectTokenAddress The address of the project token.
+    /// @param projectTokenAddress The address of the project token.
+    /// @return salaries Array of salaries of employee.
     function getSalariesIdByEmployeeAndProjectToken(
         address employeeAddress,
         address projectTokenAddress
-    ) external view returns (uint256[] memory ids);
+    ) external view returns (uint256[] memory salaries);
 
     /// @notice Returns salary by ID.
     /// @param salaryId Id of SalaryInfo.
@@ -162,12 +163,14 @@ interface IBentureSalary is IBentureSalaryErrors {
 
     /// @notice Adds salary to employee.
     /// @param employeeAddress Address of employee.
+    /// @param projectTokenAddress The address of the project token to which the salary is added
     /// @param periodDuration Duration of one period.
     /// @param amountOfPeriods Amount of periods.
     /// @param tokensAmountPerPeriod Amount of tokens per period.
     /// @dev Only admin can call this method.
     function addSalaryToEmployee(
         address employeeAddress,
+        address projectTokenAddress,
         uint256 periodDuration,
         uint256 amountOfPeriods,
         address tokenAddress,
