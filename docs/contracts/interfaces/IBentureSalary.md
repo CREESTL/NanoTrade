@@ -47,7 +47,7 @@ Adds periods to salary
 ### addSalaryToEmployee
 
 ```solidity
-function addSalaryToEmployee(address employeeAddress, uint256 periodDuration, uint256 amountOfPeriods, address tokenAddress, uint256[] tokensAmountPerPeriod) external nonpayable
+function addSalaryToEmployee(address employeeAddress, address projectTokenAddress, uint256 periodDuration, uint256 amountOfPeriods, address tokenAddress, uint256[] tokensAmountPerPeriod) external nonpayable
 ```
 
 Adds salary to employee.
@@ -59,6 +59,7 @@ Adds salary to employee.
 | Name | Type | Description |
 |---|---|---|
 | employeeAddress | address | Address of employee. |
+| projectTokenAddress | address | The address of the project token to which the salary is added |
 | periodDuration | uint256 | Duration of one period. |
 | amountOfPeriods | uint256 | Amount of periods. |
 | tokenAddress | address | undefined |
@@ -238,6 +239,29 @@ Returns array of salaries of employee.
 |---|---|---|
 | employeeAddress | address | Address of employee. |
 | adminAddress | address | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| salaries | uint256[] | Array of salaries of employee. |
+
+### getSalariesIdByEmployeeAndProjectToken
+
+```solidity
+function getSalariesIdByEmployeeAndProjectToken(address employeeAddress, address projectTokenAddress) external view returns (uint256[] salaries)
+```
+
+Returns array of salaries on project of employee.
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| employeeAddress | address | Address of employee. |
+| projectTokenAddress | address | The address of the project token. |
 
 #### Returns
 

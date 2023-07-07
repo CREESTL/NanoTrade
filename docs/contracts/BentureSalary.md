@@ -63,7 +63,7 @@ See {IBentureSalary-addPeriodsToSalary}
 ### addSalaryToEmployee
 
 ```solidity
-function addSalaryToEmployee(address employeeAddress, uint256 periodDuration, uint256 amountOfPeriods, address tokenAddress, uint256[] tokensAmountPerPeriod) external nonpayable
+function addSalaryToEmployee(address employeeAddress, address projectTokenAddress, uint256 periodDuration, uint256 amountOfPeriods, address tokenAddress, uint256[] tokensAmountPerPeriod) external nonpayable
 ```
 
 See {IBentureSalary-addSalaryToEmployee}
@@ -75,6 +75,7 @@ See {IBentureSalary-addSalaryToEmployee}
 | Name | Type | Description |
 |---|---|---|
 | employeeAddress | address | undefined |
+| projectTokenAddress | address | undefined |
 | periodDuration | uint256 | undefined |
 | amountOfPeriods | uint256 | undefined |
 | tokenAddress | address | undefined |
@@ -261,6 +262,29 @@ See {IBentureSalary-getSalariesIdByEmployeeAndAdmin}
 |---|---|---|
 | ids | uint256[] | undefined |
 
+### getSalariesIdByEmployeeAndProjectToken
+
+```solidity
+function getSalariesIdByEmployeeAndProjectToken(address employeeAddress, address projectTokenAddress) external view returns (uint256[] ids)
+```
+
+See {IBentureSalary-getSalariesIdByEmployeeAndProjectToken}
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| employeeAddress | address | undefined |
+| projectTokenAddress | address | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| ids | uint256[] | undefined |
+
 ### getSalaryAmount
 
 ```solidity
@@ -429,7 +453,7 @@ function renounceOwnership() external nonpayable
 
 
 
-*Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.*
+*Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner.*
 
 
 ### setNameToEmployee
