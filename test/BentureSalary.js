@@ -208,6 +208,59 @@ describe("Salary", () => {
             ).to.be.true;
         });
 
+        it("Should add new Employee and set name", async () => {
+            let {
+                benture,
+                origToken,
+                adminToken,
+                factory,
+                salary,
+                rummy,
+                mockERC20,
+            } = await loadFixture(deploys);
+
+            expect(
+                await salary.checkIfAdminOfProject(
+                    adminAcc1.address,
+                    origToken.address
+                )
+            ).to.be.true;
+            await expect(
+                salary.setNameAndAddEmployeeToProject(
+                    clientAcc1.address,
+                    "Alice",
+                    origToken.address
+                )
+            )
+                .to.emit(salary, "EmployeeAdded")
+                .withArgs(
+                    clientAcc1.address,
+                    origToken.address,
+                    adminAcc1.address
+                );
+            expect(
+                await salary.getNameOfEmployee(clientAcc1.address)
+            ).to.be.equal("Alice");
+            expect(
+                await salary.checkIfUserIsEmployeeOfAdmin(
+                    adminAcc1.address,
+                    clientAcc1.address
+                )
+            ).to.be.true;
+            expect(
+                await salary.checkIfUserIsAdminOfEmployee(
+                    clientAcc1.address,
+                    adminAcc1.address
+                )
+            ).to.be.true;
+            expect(
+                await salary.checkIfUserInProject(
+                    clientAcc1.address,
+                    origToken.address
+                )
+            ).to.be.true;
+        });
+
         it("Should remove Employee", async () => {
             let {
                 benture,
@@ -330,6 +383,69 @@ describe("Salary", () => {
             expect(
                 await salary.getNameOfEmployee(clientAcc1.address)
             ).to.be.equal("");
+        });
+
+        it("Should edit employee info if address changed", async () => {
+            let {
+                benture,
+                origToken,
+                adminToken,
+                factory,
+                salary,
+                rummy,
+                mockERC20,
+            } = await loadFixture(deploys);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
+            await salary.addEmployeeToProject(
+                clientAcc2.address,
+                origToken.address
+            );
+            await salary.setNameToEmployee(clientAcc1.address, "Alice");
+            expect(
+                await salary.getNameOfEmployee(clientAcc1.address)
+            ).to.be.equal("Alice");
+            await salary.editEmployeeInfo(
+                clientAcc1.address,
+                "Bob",
+                clientAcc2.address
+            );
+            expect(
+                await salary.getNameOfEmployee(clientAcc1.address)
+            ).to.be.equal("");
+            expect(
+                await salary.getNameOfEmployee(clientAcc2.address)
+            ).to.be.equal("Bob");
+        });
+
+        it("Should edit employee info if address not changed", async () => {
+            let {
+                benture,
+                origToken,
+                adminToken,
+                factory,
+                salary,
+                rummy,
+                mockERC20,
+            } = await loadFixture(deploys);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
+            await salary.setNameToEmployee(clientAcc1.address, "Alice");
+            expect(
+                await salary.getNameOfEmployee(clientAcc1.address)
+            ).to.be.equal("Alice");
+            await salary.editEmployeeInfo(
+                clientAcc1.address,
+                "Bob",
+                clientAcc1.address
+            );
+            expect(
+                await salary.getNameOfEmployee(clientAcc1.address)
+            ).to.be.equal("Bob");
         });
 
         it("Should add new salary to Employee", async () => {
@@ -2376,6 +2492,24 @@ describe("Salary", () => {
             ).to.be.revertedWithCustomError(salary, "NotAdminOfProject");
         });
 
+        it("Should fail to add new employee and set name if caller is not admin", async () => {
+            let {
+                benture,
+                origToken,
+                adminToken,
+                factory,
+                salary,
+                rummy,
+                mockERC20,
+            } = await loadFixture(deploys);
+
+            await expect(
+                salary
+                    .connect(clientAcc1)
+                    .setNameAndAddEmployeeToProject(clientAcc1.address, "Alice", origToken.address)
+            ).to.be.revertedWithCustomError(adminToken, "UserDoesNotHaveAnAdminToken");
+        });
+
         // Reverts for removeEmployee
         it("Should fail to remove employee if caller is not admin ot project", async () => {
             let {
@@ -2529,6 +2663,31 @@ describe("Salary", () => {
                     .connect(adminAcc2)
                     .removeNameFromEmployee(clientAcc1.address)
             ).to.be.revertedWithCustomError(salary, "NotAllowedToRemoveName");
+        });
+
+        it("Should revert editEmployeeInfo with UserDoesNotHaveAnAdminToken", async () => {
+            let {
+                benture,
+                origToken,
+                adminToken,
+                factory,
+                salary,
+                rummy,
+                mockERC20,
+            } = await loadFixture(deploys);
+            await salary.addEmployeeToProject(
+                clientAcc1.address,
+                origToken.address
+            );
+            await salary.setNameToEmployee(clientAcc1.address, "Alice");
+            expect(
+                await salary.getNameOfEmployee(clientAcc1.address)
+            ).to.be.equal("Alice");
+            await expect(salary.connect(clientAcc1).editEmployeeInfo(
+                clientAcc1.address,
+                "Bob",
+                clientAcc1.address
+            )).to.be.revertedWithCustomError(adminToken, "UserDoesNotHaveAnAdminToken");
         });
 
         it("Should return false when user is not Employee", async () => {
