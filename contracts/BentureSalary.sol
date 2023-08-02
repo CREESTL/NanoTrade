@@ -30,8 +30,8 @@ contract BentureSalary is
     /// @dev Address of BentureAdmin Token
     address private bentureAdminToken;
 
-    /// @dev Mapping from user address to his name
-    mapping(address => string) private names;
+    /// @dev Mapping from user address to project token address to this user name
+    mapping(address => mapping (address => string)) private names;
 
     /// @dev Mapping from admins address to its array of employees
     mapping(address => EnumerableSetUpgradeable.AddressSet)
@@ -83,9 +83,10 @@ contract BentureSalary is
 
     /// @notice See {IBentureSalary-getNameOfEmployee}
     function getNameOfEmployee(
-        address employeeAddress
+        address employeeAddress,
+        address projectTokenAddress
     ) external view returns (string memory name) {
-        return names[employeeAddress];
+        return names[employeeAddress][projectTokenAddress];
     }
 
     /// @notice See {IBentureSalary-getAdminsByEmployee}
@@ -130,27 +131,31 @@ contract BentureSalary is
     /// @notice See {IBentureSalary-setNameToEmployee}
     function setNameToEmployee(
         address employeeAddress,
+        address projectTokenAddress,
         string memory name
     ) external onlyAdmin {
-        _setNameToEmployee(employeeAddress, name);
+        _setNameToEmployee(employeeAddress, projectTokenAddress, name);
     }
 
+    /// @notice See {IBentureSalary-editEmployeeInfo}
     function editEmployeeInfo(
         address employeeAddress,
+        address projectTokenAddress,
         string memory newEmployeeName,
         address newEmployeeAddress
     ) external onlyAdmin {
         if (employeeAddress != newEmployeeAddress) {
-            _removeNameFromEmployee(employeeAddress);
+            _removeNameFromEmployee(employeeAddress, projectTokenAddress);
         }
-        _setNameToEmployee(newEmployeeAddress, newEmployeeName);
+        _setNameToEmployee(newEmployeeAddress, projectTokenAddress, newEmployeeName);
     }
 
     /// @notice See {IBentureSalary-removeNameFromEmployee}
     function removeNameFromEmployee(
-        address employeeAddress
+        address employeeAddress,
+        address projectTokenAddress
     ) external onlyAdmin {
-        _removeNameFromEmployee(employeeAddress);
+        _removeNameFromEmployee(employeeAddress, projectTokenAddress);
     }
 
     /// @notice See {IBentureSalary-addEmployeeToProject}
@@ -167,7 +172,7 @@ contract BentureSalary is
         address projectToken
     ) external onlyAdmin {
         _addEmployeeToProject(employeeAddress, projectToken);
-        _setNameToEmployee(employeeAddress, employeeName);
+        _setNameToEmployee(employeeAddress, projectToken, employeeName);
     }
 
     /// @notice See {IBentureSalary-removeEmployeeFromProject}
@@ -505,26 +510,34 @@ contract BentureSalary is
 
     function _setNameToEmployee(
         address employeeAddress,
+        address projectTokenAddress,
         string memory name
     ) private {
-        if (!checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender)) {
+        if (
+            !checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender) ||
+            !checkIfAdminOfProject(msg.sender, projectTokenAddress)
+        ) {
             revert NotAllowedToSetName();
         }
         if (bytes(name).length == 0) {
             revert EmptyName();
         }
-        names[employeeAddress] = name;
-        emit EmployeeNameChanged(employeeAddress, name);
+        names[employeeAddress][projectTokenAddress] = name;
+        emit EmployeeNameChanged(employeeAddress, projectTokenAddress, name);
     }
 
     function _removeNameFromEmployee(
-        address employeeAddress
+        address employeeAddress,
+        address projectTokenAddress
     ) private {
-        if (!checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender)) {
+        if (
+            !checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender) ||
+            !checkIfAdminOfProject(msg.sender, projectTokenAddress)
+        ) {
             revert NotAllowedToRemoveName();
         }
-        delete names[employeeAddress];
-        emit EmployeeNameRemoved(employeeAddress);
+        delete names[employeeAddress][projectTokenAddress];
+        emit EmployeeNameRemoved(employeeAddress, projectTokenAddress);
     }
 
     function _addEmployeeToProject(

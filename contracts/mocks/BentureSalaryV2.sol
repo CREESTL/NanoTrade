@@ -31,7 +31,7 @@ contract BentureSalaryV2 is
     address private bentureAdminToken;
 
     /// @dev Mapping from user address to his name
-    mapping(address => string) private names;
+    mapping(address => mapping(address => string)) private names;
 
     /// @dev Mapping from admins address to its array of employees
     mapping(address => EnumerableSetUpgradeable.AddressSet)
@@ -87,9 +87,10 @@ contract BentureSalaryV2 is
 
     /// @notice See {IBentureSalary-getNameOfEmployee}
     function getNameOfEmployee(
-        address employeeAddress
+        address employeeAddress,
+        address projectTokenAddress
     ) external view returns (string memory name) {
-        return names[employeeAddress];
+        return names[employeeAddress][projectTokenAddress];
     }
 
     /// @notice See {IBentureSalary-getAdminsByEmployee}
@@ -134,27 +135,31 @@ contract BentureSalaryV2 is
     /// @notice See {IBentureSalary-setNameToEmployee}
     function setNameToEmployee(
         address employeeAddress,
+        address projectTokenAddress,
         string memory name
     ) external onlyAdmin {
-        if (!checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender)) {
-            revert NotAllowedToSetName();
+        _setNameToEmployee(employeeAddress, projectTokenAddress, name);
+    }
+
+    /// @notice See {IBentureSalary-editEmployeeInfo}
+    function editEmployeeInfo(
+        address employeeAddress,
+        address projectTokenAddress,
+        string memory newEmployeeName,
+        address newEmployeeAddress
+    ) external onlyAdmin {
+        if (employeeAddress != newEmployeeAddress) {
+            _removeNameFromEmployee(employeeAddress, projectTokenAddress);
         }
-        if (bytes(name).length == 0) {
-            revert EmptyName();
-        }
-        names[employeeAddress] = name;
-        emit EmployeeNameChanged(employeeAddress, name);
+        _setNameToEmployee(newEmployeeAddress, projectTokenAddress, newEmployeeName);
     }
 
     /// @notice See {IBentureSalary-removeNameFromEmployee}
     function removeNameFromEmployee(
-        address employeeAddress
+        address employeeAddress,
+        address projectTokenAddress
     ) external onlyAdmin {
-        if (!checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender)) {
-            revert NotAllowedToRemoveName();
-        }
-        delete names[employeeAddress];
-        emit EmployeeNameRemoved(employeeAddress);
+        _removeNameFromEmployee(employeeAddress, projectTokenAddress);
     }
 
     /// @notice See {IBentureSalary-addEmployeeToProject}
@@ -506,6 +511,38 @@ contract BentureSalaryV2 is
             _salary.employee,
             amountToPay
         );
+    }
+
+    function _setNameToEmployee(
+        address employeeAddress,
+        address projectTokenAddress,
+        string memory name
+    ) private {
+        if (
+            !checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender) ||
+            !checkIfAdminOfProject(msg.sender, projectTokenAddress)
+        ) {
+            revert NotAllowedToSetName();
+        }
+        if (bytes(name).length == 0) {
+            revert EmptyName();
+        }
+        names[employeeAddress][projectTokenAddress] = name;
+        emit EmployeeNameChanged(employeeAddress, projectTokenAddress, name);
+    }
+
+    function _removeNameFromEmployee(
+        address employeeAddress,
+        address projectTokenAddress
+    ) private {
+        if (
+            !checkIfUserIsAdminOfEmployee(employeeAddress, msg.sender) ||
+            !checkIfAdminOfProject(msg.sender, projectTokenAddress)
+        ) {
+            revert NotAllowedToRemoveName();
+        }
+        delete names[employeeAddress][projectTokenAddress];
+        emit EmployeeNameRemoved(employeeAddress, projectTokenAddress);
     }
 
     function _withdrawSalary(uint256 salaryId) public {
