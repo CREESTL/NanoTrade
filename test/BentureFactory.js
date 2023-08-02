@@ -80,6 +80,7 @@ describe("Benture Factory", () => {
                     18,
                     true,
                     1_000_000,
+                    0,
                     adminToken.address
                 )
             )
@@ -96,6 +97,48 @@ describe("Benture Factory", () => {
             expect(await adminToken.balanceOf(ownerAcc.address)).to.equal(1);
         });
 
+        it("Should create a new ERC20 token when mintable is false and connect it to ERC721 token", async () => {
+            let {
+                ownerAcc,
+                clientAcc1,
+                clientAcc2,
+                benture,
+                factory,
+                adminToken,
+            } = await loadFixture(deploys);
+            expect(await adminToken.balanceOf(ownerAcc.address)).to.equal(0);
+            expect(await factory.lastProducedToken()).to.equal(zeroAddress);
+            await expect(
+                factory.createERC20Token(
+                    "Dummy",
+                    "DMM",
+                    ipfsUrl,
+                    18,
+                    false,
+                    0,
+                    1000,
+                    adminToken.address
+                )
+            )
+                .to.emit(factory, "CreateERC20Token")
+                .withArgs(
+                    "Dummy",
+                    "DMM",
+                    ipfsUrl,
+                    await factory.lastProducedToken(),
+                    18,
+                    false
+                );
+            expect(await factory.lastProducedToken()).to.not.equal(zeroAddress);
+            expect(await adminToken.balanceOf(ownerAcc.address)).to.equal(1);
+
+            let token = await ethers.getContractAt(
+                "contracts/BentureProducedToken.sol:BentureProducedToken",
+                await factory.lastProducedToken()
+            );
+            expect(await token.balanceOf(ownerAcc.address)).to.be.equal(1000);
+        });
+
         it("Should create a new ERC20 token with correct parameters", async () => {
             let {
                 ownerAcc,
@@ -110,6 +153,7 @@ describe("Benture Factory", () => {
             let decimals = 18;
             let mintable = true;
             let maxTotalSupply = 1_000_000;
+            let mintAmount = 0;
             let adminTokenAddress = adminToken.address;
             await factory.createERC20Token(
                 name,
@@ -118,6 +162,7 @@ describe("Benture Factory", () => {
                 decimals,
                 mintable,
                 maxTotalSupply,
+                mintAmount,
                 adminTokenAddress
             );
             let tokenAddress = await factory.lastProducedToken();

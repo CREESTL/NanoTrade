@@ -67,6 +67,7 @@ describe("Salary", () => {
             18,
             true,
             1_000_000_000,
+            0,
             // Provide the address of the previously deployed ERC721
             adminToken.address
         );
@@ -88,6 +89,7 @@ describe("Salary", () => {
                 18,
                 true,
                 1_000_000_000,
+                0,
                 adminToken.address
             );
 
@@ -137,6 +139,7 @@ describe("Salary", () => {
                 18,
                 true,
                 1_000_000_000,
+                0,
                 adminToken.address
             );
         let bummyAddress = await factory.lastProducedToken();
@@ -239,7 +242,7 @@ describe("Salary", () => {
                     adminAcc1.address
                 );
             expect(
-                await salary.getNameOfEmployee(clientAcc1.address)
+                await salary.getNameOfEmployee(clientAcc1.address, origToken.address)
             ).to.be.equal("Alice");
             expect(
                 await salary.checkIfUserIsEmployeeOfAdmin(
@@ -331,9 +334,9 @@ describe("Salary", () => {
                 clientAcc1.address,
                 origToken.address
             );
-            await salary.setNameToEmployee(clientAcc1.address, "Alice");
+            await salary.setNameToEmployee(clientAcc1.address, origToken.address, "Alice");
             expect(
-                await salary.getNameOfEmployee(clientAcc1.address)
+                await salary.getNameOfEmployee(clientAcc1.address, origToken.address)
             ).to.be.equal("Alice");
         });
 
@@ -351,13 +354,13 @@ describe("Salary", () => {
                 clientAcc1.address,
                 origToken.address
             );
-            await salary.setNameToEmployee(clientAcc1.address, "Alice");
+            await salary.setNameToEmployee(clientAcc1.address, origToken.address, "Alice");
             expect(
-                await salary.getNameOfEmployee(clientAcc1.address)
+                await salary.getNameOfEmployee(clientAcc1.address, origToken.address)
             ).to.be.equal("Alice");
-            await salary.setNameToEmployee(clientAcc1.address, "Bob");
+            await salary.setNameToEmployee(clientAcc1.address, origToken.address, "Bob");
             expect(
-                await salary.getNameOfEmployee(clientAcc1.address)
+                await salary.getNameOfEmployee(clientAcc1.address, origToken.address)
             ).to.be.equal("Bob");
         });
 
@@ -375,13 +378,13 @@ describe("Salary", () => {
                 clientAcc1.address,
                 origToken.address
             );
-            await salary.setNameToEmployee(clientAcc1.address, "Alice");
+            await salary.setNameToEmployee(clientAcc1.address, origToken.address, "Alice");
             expect(
-                await salary.getNameOfEmployee(clientAcc1.address)
+                await salary.getNameOfEmployee(clientAcc1.address, origToken.address)
             ).to.be.equal("Alice");
-            await salary.removeNameFromEmployee(clientAcc1.address);
+            await salary.removeNameFromEmployee(clientAcc1.address, origToken.address);
             expect(
-                await salary.getNameOfEmployee(clientAcc1.address)
+                await salary.getNameOfEmployee(clientAcc1.address, origToken.address)
             ).to.be.equal("");
         });
 
@@ -403,20 +406,21 @@ describe("Salary", () => {
                 clientAcc2.address,
                 origToken.address
             );
-            await salary.setNameToEmployee(clientAcc1.address, "Alice");
+            await salary.setNameToEmployee(clientAcc1.address, origToken.address, "Alice");
             expect(
-                await salary.getNameOfEmployee(clientAcc1.address)
+                await salary.getNameOfEmployee(clientAcc1.address, origToken.address)
             ).to.be.equal("Alice");
             await salary.editEmployeeInfo(
                 clientAcc1.address,
+                origToken.address,
                 "Bob",
                 clientAcc2.address
             );
             expect(
-                await salary.getNameOfEmployee(clientAcc1.address)
+                await salary.getNameOfEmployee(clientAcc1.address, origToken.address)
             ).to.be.equal("");
             expect(
-                await salary.getNameOfEmployee(clientAcc2.address)
+                await salary.getNameOfEmployee(clientAcc2.address, origToken.address)
             ).to.be.equal("Bob");
         });
 
@@ -434,17 +438,18 @@ describe("Salary", () => {
                 clientAcc1.address,
                 origToken.address
             );
-            await salary.setNameToEmployee(clientAcc1.address, "Alice");
+            await salary.setNameToEmployee(clientAcc1.address, origToken.address, "Alice");
             expect(
-                await salary.getNameOfEmployee(clientAcc1.address)
+                await salary.getNameOfEmployee(clientAcc1.address, origToken.address)
             ).to.be.equal("Alice");
             await salary.editEmployeeInfo(
                 clientAcc1.address,
+                origToken.address,
                 "Bob",
                 clientAcc1.address
             );
             expect(
-                await salary.getNameOfEmployee(clientAcc1.address)
+                await salary.getNameOfEmployee(clientAcc1.address, origToken.address)
             ).to.be.equal("Bob");
         });
 
@@ -2573,7 +2578,7 @@ describe("Salary", () => {
             await expect(
                 salary
                     .connect(clientAcc1)
-                    .setNameToEmployee(clientAcc1.address, "Alice")
+                    .setNameToEmployee(clientAcc1.address, origToken.address, "Alice")
             ).to.be.revertedWithCustomError(
                 adminToken,
                 "UserDoesNotHaveAnAdminToken"
@@ -2595,7 +2600,7 @@ describe("Salary", () => {
                 origToken.address
             );
             await expect(
-                salary.setNameToEmployee(clientAcc1.address, "")
+                salary.setNameToEmployee(clientAcc1.address, origToken.address, "")
             ).to.be.revertedWithCustomError(salary, "EmptyName");
         });
 
@@ -2616,7 +2621,7 @@ describe("Salary", () => {
             await expect(
                 salary
                     .connect(adminAcc2)
-                    .setNameToEmployee(clientAcc1.address, "Alice")
+                    .setNameToEmployee(clientAcc1.address, origToken.address, "Alice")
             ).to.be.revertedWithCustomError(salary, "NotAllowedToSetName");
         });
 
@@ -2637,7 +2642,7 @@ describe("Salary", () => {
             await expect(
                 salary
                     .connect(clientAcc1)
-                    .removeNameFromEmployee(clientAcc1.address)
+                    .removeNameFromEmployee(clientAcc1.address, origToken.address)
             ).to.be.revertedWithCustomError(
                 adminToken,
                 "UserDoesNotHaveAnAdminToken"
@@ -2661,7 +2666,7 @@ describe("Salary", () => {
             await expect(
                 salary
                     .connect(adminAcc2)
-                    .removeNameFromEmployee(clientAcc1.address)
+                    .removeNameFromEmployee(clientAcc1.address, origToken.address)
             ).to.be.revertedWithCustomError(salary, "NotAllowedToRemoveName");
         });
 
@@ -2679,12 +2684,13 @@ describe("Salary", () => {
                 clientAcc1.address,
                 origToken.address
             );
-            await salary.setNameToEmployee(clientAcc1.address, "Alice");
+            await salary.setNameToEmployee(clientAcc1.address, origToken.address, "Alice");
             expect(
-                await salary.getNameOfEmployee(clientAcc1.address)
+                await salary.getNameOfEmployee(clientAcc1.address, origToken.address)
             ).to.be.equal("Alice");
             await expect(salary.connect(clientAcc1).editEmployeeInfo(
                 clientAcc1.address,
+                origToken.address,
                 "Bob",
                 clientAcc1.address
             )).to.be.revertedWithCustomError(adminToken, "UserDoesNotHaveAnAdminToken");

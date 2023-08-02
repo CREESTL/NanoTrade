@@ -57,6 +57,7 @@ describe("Benture Dividend Distributing Contract", () => {
             18,
             true,
             parseUnits("1000000000", 18),
+            0,
             // Provide the address of the previously deployed ERC721
             adminToken.address
         );
@@ -76,6 +77,7 @@ describe("Benture Dividend Distributing Contract", () => {
             18,
             true,
             parseUnits("1000000000", 18),
+            0,
             adminToken.address
         );
         // The address of `lastProducedToken` of factory gets changed here
@@ -118,6 +120,7 @@ describe("Benture Dividend Distributing Contract", () => {
                     18,
                     true,
                     parseUnits("1000000000", 18),
+                    0,
                     adminToken.address
                 )
             ).to.emit(benture, "PoolCreated");

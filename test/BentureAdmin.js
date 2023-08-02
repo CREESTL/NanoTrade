@@ -54,6 +54,7 @@ describe("Benture Admin Token", () => {
             18,
             true,
             1_000_000,
+            0,
             // Provide the address of the previously deployed ERC721
             adminToken.address
         );
@@ -302,6 +303,7 @@ describe("Benture Admin Token", () => {
                 18,
                 true,
                 1_000_000,
+                0,
                 adminToken.address
             );
             tokenIds = await adminToken.getAdminTokenIds(ownerAcc.address);
@@ -344,6 +346,7 @@ describe("Benture Admin Token", () => {
                 18,
                 true,
                 1_000_000,
+                0,
                 adminToken.address
             );
 
@@ -611,6 +614,7 @@ describe("Benture Admin Token", () => {
                 18,
                 true,
                 1_000_000,
+                0,
                 adminToken.address
             );
             // Now owner has 2 admin tokens

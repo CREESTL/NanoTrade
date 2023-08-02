@@ -53,6 +53,7 @@ describe("Benture Produced Token", () => {
             18,
             true,
             1_000_000,
+            0,
             // Provide the address of the previously deployed ERC721
             adminToken.address
         );
@@ -134,6 +135,7 @@ describe("Benture Produced Token", () => {
                 18,
                 true,
                 // Zero for "infinite" max total supply
+                0,
                 0,
                 adminToken.address
             );
@@ -255,6 +257,7 @@ describe("Benture Produced Token", () => {
                 18,
                 false,
                 0,
+                1000,
                 adminToken.address
             );
 
@@ -493,6 +496,7 @@ describe("Benture Produced Token", () => {
                     18,
                     true,
                     1_000_000,
+                    0,
                     adminToken.address
                 )
             ).to.be.revertedWithCustomError(token, "EmptyTokenName");
@@ -510,6 +514,7 @@ describe("Benture Produced Token", () => {
                     18,
                     true,
                     1_000_000,
+                    0,
                     adminToken.address
                 )
             ).to.be.revertedWithCustomError(token, "EmptyTokenSymbol");
@@ -527,6 +532,7 @@ describe("Benture Produced Token", () => {
                     0,
                     true,
                     1_000_000,
+                    0,
                     adminToken.address
                 )
             ).to.be.revertedWithCustomError(token, "EmptyTokenDecimals");
@@ -544,6 +550,7 @@ describe("Benture Produced Token", () => {
                     18,
                     true,
                     1_000_000,
+                    0,
                     zeroAddress
                 )
             ).to.be.revertedWithCustomError(token, "InvalidAdminTokenAddress");
@@ -561,9 +568,46 @@ describe("Benture Produced Token", () => {
                     18,
                     false,
                     1_000_000,
+                    0,
                     adminToken.address
                 )
             ).to.be.revertedWithCustomError(token, "NotZeroMaxTotalSupply");
+        });
+
+        it("Should fail to initialize with zero mint amount if non-mintable", async () => {
+            let { token, adminToken, factory, benture } = await loadFixture(
+                deploys
+            );
+            await expect(
+                factory.createERC20Token(
+                    "Dummy",
+                    "DMM",
+                    ipfsUrl,
+                    18,
+                    false,
+                    0,
+                    0,
+                    adminToken.address
+                )
+            ).to.be.revertedWithCustomError(token, "ZeroMintAmount");
+        });
+
+        it("Should fail to initialize with mint amount bigger then total supply if non-mintable", async () => {
+            let { token, adminToken, factory, benture } = await loadFixture(
+                deploys
+            );
+            await expect(
+                factory.createERC20Token(
+                    "Dummy",
+                    "DMM",
+                    ipfsUrl,
+                    18,
+                    true,
+                    1000,
+                    2000,
+                    adminToken.address
+                )
+            ).to.be.revertedWithCustomError(token, "SupplyExceedsMaximumSupply");
         });
     });
 });
