@@ -50,6 +50,7 @@ contract BentureFactory is
         uint8 decimals,
         bool mintable,
         uint256 maxTotalSupply,
+        uint256 mintAmount,
         address adminToken_
     ) external {
         BentureProducedToken newToken = new BentureProducedToken(
@@ -59,6 +60,7 @@ contract BentureFactory is
             decimals,
             mintable,
             maxTotalSupply,
+            mintAmount,
             adminToken_
         );
 

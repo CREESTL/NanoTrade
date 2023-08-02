@@ -54,7 +54,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
     /// @param name_ The name of the token
     /// @param symbol_ The symbol of the token
     /// @param decimals_ Number of decimals of the token
-    /// @param mintable_ Token may be either mintable or not. Can be changed later.
+    /// @param mintable_ Token may be either mintable or not
     /// @param maxTotalSupply_ Maximum amount of tokens to be minted
     ///        Use `0` to create a token with no maximum amount
     /// @param adminToken_ Address of the admin token for controlled token
@@ -66,6 +66,7 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         uint8 decimals_,
         bool mintable_,
         uint256 maxTotalSupply_,
+        uint256 mintAmount,
         address adminToken_
     ) ERC20(name_, symbol_) {
         if (bytes(name_).length == 0) {
@@ -90,21 +91,24 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
                 maxTotalSupply_ = type(uint256).max;
             }
         } else {
+            _maxTotalSupply = maxTotalSupply_;
             if (maxTotalSupply_ != 0) {
                 revert NotZeroMaxTotalSupply();
             }
         }
+        if (mintAmount > maxTotalSupply_) {
+            revert SupplyExceedsMaximumSupply();
+        }
+
         _tokenName = name_;
         _tokenSymbol = symbol_;
         _ipfsUrl = ipfsUrl_;
         _decimals = decimals_;
         _mintable = mintable_;
-        _maxTotalSupply = maxTotalSupply_;
         _adminToken = adminToken_;
-    }
-
-    function agent() external pure returns (uint256) {
-        return 47;
+        if (mintAmount > 0) {
+            _mint(msg.sender, mintAmount);
+        }
     }
 
     /// @notice See {IBentureProducedToken-mintable}
