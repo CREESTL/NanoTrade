@@ -128,6 +128,16 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         return _holders.values();
     }
 
+    /// @notice See {IBentureProducedToken-holders}
+    function getHolder(uint256 holderId) external view returns (address) {
+        return _holders.values()[holderId];
+    }
+
+    /// @notice See {IBentureProducedToken-holdersLength}
+    function holdersLength() external view returns (uint256) {
+        return _holders.values().length;
+    }
+
     /// @notice See {IBentureProducedTokne-ipfsUrl}
     function ipfsUrl() external view returns (string memory) {
         return _ipfsUrl;
