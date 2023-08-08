@@ -684,6 +684,55 @@ describe("Benture Dividend Distributing Contract", () => {
                     ).to.equal(parseUnits("50", 6));
                 });
 
+                it("Should distribute dividends to a list of addresses only if locked before distribute", async () => {
+                    let { benture, factory, adminToken, origToken, distToken } =
+                        await loadFixture(deploys);
+                    let mintAmount = parseUnits("1000000", 6);
+                    let lockAmount = parseUnits("1000", 6);
+                    let claimAmount = parseUnits("100", 6);
+
+                    await origToken.mint(clientAcc1.address, mintAmount);
+                    await origToken
+                        .connect(clientAcc1)
+                        .approve(benture.address, lockAmount);
+                    await benture
+                        .connect(clientAcc1)
+                        .lockTokens(origToken.address, lockAmount);
+
+                    await origToken.mint(clientAcc2.address, mintAmount);
+                    await origToken
+                        .connect(clientAcc2)
+                        .approve(benture.address, lockAmount);
+                    await benture
+                        .connect(clientAcc2)
+                        .lockTokens(origToken.address, lockAmount);
+
+                    await benture.distributeDividends(
+                        origToken.address,
+                        distToken.address,
+                        claimAmount,
+                        true
+                    );
+
+                    await origToken.mint(clientAcc3.address, mintAmount);
+                    await origToken
+                        .connect(clientAcc3)
+                        .approve(benture.address, lockAmount);
+                    await benture
+                        .connect(clientAcc3)
+                        .lockTokens(origToken.address, lockAmount);
+
+                    expect(
+                        await benture.connect(clientAcc1).getMyShare(1)
+                    ).to.equal(parseUnits("50", 6));
+                    expect(
+                        await benture.connect(clientAcc2).getMyShare(1)
+                    ).to.equal(parseUnits("50", 6));
+                    expect(
+                        await benture.connect(clientAcc3).getMyShare(1)
+                    ).to.equal(0);
+                });
+
                 it("Should distribute dividends if one holder unlocks all tokens and use getters", async () => {
                     let { benture, factory, adminToken, origToken, distToken } =
                         await loadFixture(deploys);
