@@ -113,8 +113,18 @@ describe("Benture Produced Token", () => {
             let { token, adminToken, factory, benture } = await loadFixture(
                 deploys
             );
+            expect(await token.holdersLength()).to.be.equal(0);
             let holders = await token.holders();
             expect(holders.length).to.equal(0);
+        });
+
+        it("Should get holder by id", async () => {
+            let { token, adminToken, factory, benture } = await loadFixture(
+                deploys
+            );
+            await token.mint(clientAcc1.address, 1000);
+            expect(await token.holdersLength()).to.be.equal(1);
+            expect(await token.getHolder(0)).to.be.equal(clientAcc1.address);
         });
 
         it("Should have a fixed max token supply", async () => {
@@ -189,6 +199,7 @@ describe("Benture Produced Token", () => {
             holders = await token.holders();
             let endLength = holders.length;
             expect(endLength - startLength).to.equal(2);
+            expect(await token.holdersLength()).to.be.equal(2);
         });
 
         it("Should fail to mint more than `maxTotalSupply` of tokens", async () => {
