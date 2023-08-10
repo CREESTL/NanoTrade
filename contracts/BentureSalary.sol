@@ -483,8 +483,6 @@ contract BentureSalary is
 
         uint256 amountToPay = getSalaryAmount(salaryId);
 
-        _salary.amountWithdrawn += amountToPay;
-
         employeeToAdminToSalaryId[_salary.employee][msg.sender].remove(
             salaryId
         );
@@ -597,6 +595,7 @@ contract BentureSalary is
                 periodsToPay;
 
             _salary.amountWithdrawn += toPay;
+            _salary.lastWithdrawalTime = block.timestamp;
 
             /// @dev Transfer tokens from the employer's wallet to the employee's wallet
             IERC20Upgradeable(_salary.tokenAddress).safeTransferFrom(
