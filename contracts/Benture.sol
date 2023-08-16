@@ -5,7 +5,6 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
@@ -197,7 +196,7 @@ contract Benture is
     }
 
     /// @notice See {IBenture-unlockAllTokens}
-    function unlockAllTokens(address origToken) external {
+    function unlockAllTokens(address origToken) external nonReentrant {
         // Get the last lock of the user
         uint256 wholeBalance = pools[origToken].lockedByUser[msg.sender];
         // Unlock that amount (could be 0)
@@ -457,7 +456,7 @@ contract Benture is
             }
             if (token == address(0)) {
                 // Native tokens (wei)
-                (bool success, ) = users[i].call{value: amounts[i]}("");
+                bool success = payable(users[i]).send(amounts[i]);
                 if (!success) {
                     revert NativeTokenTransferFailed();
                 }
@@ -924,7 +923,7 @@ contract Benture is
         // Send the share to the user
         if (distribution.distToken == address(0)) {
             // Send native tokens
-            (bool success, ) = msg.sender.call{value: share}("");
+            bool success = payable(msg.sender).send(share);
             if (!success) {
                 revert NativeTokenTransferFailed();
             }
