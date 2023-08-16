@@ -426,19 +426,15 @@ contract BentureSalary is
     ) public view returns (uint256 salaryAmount) {
         SalaryInfo memory _salary = salaryById[salaryId];
         if (_salary.amountOfWithdrawals != _salary.amountOfPeriods) {
-            uint256 amountToPay;
+            (
+                uint256 amountToPay,
+                uint256 periodsPassed,
+                uint256 timePassedFromLastWithdrawal
+            ) = _payingPeriodsCounter(_salary);
             uint256 amountOfRemainingPeriods = _salary.amountOfPeriods -
                 _salary.amountOfWithdrawals;
-            uint256 timePassedFromLastWithdrawal = block.timestamp -
-                (_salary.amountOfWithdrawals *
-                    _salary.periodDuration +
-                    _salary.salaryStartTime);
-            uint256 periodsPassed = timePassedFromLastWithdrawal /
-                _salary.periodDuration;
 
             if (periodsPassed < amountOfRemainingPeriods) {
-                amountToPay = _payingPeriodsCounter(_salary);
-
                 if (
                     timePassedFromLastWithdrawal -
                         (_salary.periodDuration * (periodsPassed)) >
@@ -454,18 +450,7 @@ contract BentureSalary is
                                 _salary.periodDuration)) /
                         _salary.periodDuration;
                 }
-            } else {
-                /// @dev The case when an employee withdraw salary after the end of all periods
-                for (
-                    uint256 i = _salary.amountOfWithdrawals;
-                    i < _salary.amountOfWithdrawals + amountOfRemainingPeriods;
-                    i++
-                ) {
-                    amountToPay =
-                        amountToPay +
-                        _salary.tokensAmountPerPeriod[i];
-                }
-            }
+            } 
             return amountToPay;
         }
         return 0;
@@ -565,31 +550,10 @@ contract BentureSalary is
         if (_salary.employee != msg.sender) {
             revert NotEmployeeForThisSalary();
         }
-        uint256 periodsToPay = (block.timestamp -
-            (_salary.amountOfWithdrawals *
-                _salary.periodDuration +
-                _salary.salaryStartTime)) / _salary.periodDuration;
-        if (
-            periodsToPay + _salary.amountOfWithdrawals >=
-            _salary.amountOfPeriods
-        ) {
-            /// @dev The case when an employee withdraw salary after the end of all periods
-            periodsToPay =
-                _salary.amountOfPeriods -
-                _salary.amountOfWithdrawals;
-        }
+        (uint256 toPay, uint256 periodsToPay,) = _payingPeriodsCounter(_salary);
 
         if (periodsToPay != 0) {
             /// @dev The case when there are periods for payment
-            uint256 toPay;
-            for (
-                uint256 i = _salary.amountOfWithdrawals;
-                i < _salary.amountOfWithdrawals + periodsToPay;
-                i++
-            ) {
-                toPay = toPay + _salary.tokensAmountPerPeriod[i];
-            }
-
             _salary.amountOfWithdrawals =
                 _salary.amountOfWithdrawals +
                 periodsToPay;
@@ -626,25 +590,37 @@ contract BentureSalary is
 
     function _payingPeriodsCounter(
         SalaryInfo memory _salary
-    ) private view returns (uint256 wholeAmountToPay) {
-        uint256 timePassedFromLastWithdrawal = block.timestamp -
+    ) private view returns (
+        uint256 wholeAmountToPay,
+        uint256 periodsToPay,
+        uint256 timePassedFromLastWithdrawal
+    ) {
+        timePassedFromLastWithdrawal = block.timestamp -
             (_salary.amountOfWithdrawals *
                 _salary.periodDuration +
                 _salary.salaryStartTime);
-        uint256 periodsPassed = timePassedFromLastWithdrawal /
+        periodsToPay = timePassedFromLastWithdrawal /
             _salary.periodDuration;
+
+        if (
+            periodsToPay + _salary.amountOfWithdrawals >=
+            _salary.amountOfPeriods
+        ) {
+            /// @dev The case when an employee withdraw salary after the end of all periods
+            periodsToPay =
+                _salary.amountOfPeriods -
+                _salary.amountOfWithdrawals;
+        }
 
         for (
             uint256 i = _salary.amountOfWithdrawals;
-            i < _salary.amountOfWithdrawals + periodsPassed;
+            i < _salary.amountOfWithdrawals + periodsToPay;
             i++
         ) {
             wholeAmountToPay =
                 wholeAmountToPay +
                 _salary.tokensAmountPerPeriod[i];
         }
-
-        return wholeAmountToPay;
     }
 
     function _authorizeUpgrade(
