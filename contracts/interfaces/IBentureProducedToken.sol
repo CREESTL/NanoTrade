@@ -55,6 +55,10 @@ interface IBentureProducedToken is IERC20, IBentureProducedTokenErrors {
     /// @param amount The amount of tokens to burn
     function burn(uint256 amount) external;
 
+    /// @notice Set IPFS url
+    /// @param newIpfsUrl IPFS url to be setted
+    function setIpfsUrl(string calldata newIpfsUrl) external;
+
     /// @notice Indicates that ERC20 tokens of new prokect were minted
     event ProjectTokenMinted(address account, uint256 amount);
 
@@ -63,4 +67,7 @@ interface IBentureProducedToken is IERC20, IBentureProducedTokenErrors {
 
     /// @notice Indicates that a new ERC20 was transferred
     event ProjectTokenTransferred(address from, address to, uint256 amount);
+
+    /// @notice Indicates that IPFS url changed
+    event IpfsUrlChanged(string ipfsUrl);
 }

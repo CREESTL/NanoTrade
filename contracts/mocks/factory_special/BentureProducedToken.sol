@@ -179,6 +179,15 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         }
     }
 
+    /// @notice See {IBentureProducedToken-setIpfsUrl}
+    function setIpfsUrl(
+        string calldata newIpfsUrl
+    ) external hasAdminToken {
+        _ipfsUrl = newIpfsUrl;
+
+        emit IpfsUrlChanged(newIpfsUrl);
+    }
+
     /// @notice See {IBentureProducedToken-name}
     function name()
         public

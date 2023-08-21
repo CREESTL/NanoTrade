@@ -109,6 +109,35 @@ describe("Benture Produced Token", () => {
             expect(await token.ipfsUrl()).to.equal(ipfsUrl);
         });
 
+        it("Should set new IPFS URL", async () => {
+            let { token, adminToken, factory, benture } = await loadFixture(
+                deploys
+            );
+            expect(await token.ipfsUrl()).to.equal(ipfsUrl);
+
+            let newIpfsUrl = "newIpfsUrl";
+            await expect(
+                token.setIpfsUrl(newIpfsUrl)
+            ).to.be.emit(token, "IpfsUrlChanged").withArgs(
+                newIpfsUrl
+            );
+
+            expect(await token.ipfsUrl()).to.equal(newIpfsUrl);
+        });
+
+        it("Should revert set new IPFS URL", async () => {
+            let { token } = await loadFixture(
+                deploys
+            );
+
+            let newIpfsUrl = "newIpfsUrl";
+            await expect(
+                token.connect(clientAcc1).setIpfsUrl(newIpfsUrl)
+            ).to.be.revertedWithCustomError(token, "UserDoesNotHaveAnAdminToken");
+
+            expect(await token.ipfsUrl()).to.equal(newIpfsUrl);
+        });
+
         it("Initially should have no holders", async () => {
             let { token, adminToken, factory, benture } = await loadFixture(
                 deploys
