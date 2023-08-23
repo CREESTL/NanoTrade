@@ -21,6 +21,14 @@ interface IBentureSalary is IBentureSalaryErrors {
         address projectToken;
     }
 
+    /// @notice Type of salary periods increase
+    enum TypeOfIncrease {
+        Constant,
+        Linear,
+        Cumulative,
+        Custom
+    }
+
     /// @notice Returns the name of employee.
     /// @param employeeAddress Address of employee.
     /// @param projectToken The address of the project token
@@ -176,10 +184,14 @@ interface IBentureSalary is IBentureSalaryErrors {
     /// @notice Adds periods to salary
     /// @param salaryId ID of target salary
     /// @param tokensAmountPerPeriod Array of periods to add to salary
+    /// @param typeOfIncrease Type of salary periods increased. Not saved. Only for event emit.
+    /// @param percentChange Percent of change salary periods amounts. Not saved. Only for event emit.
     /// @dev Only admin can call this method.
     function addPeriodsToSalary(
         uint256 salaryId,
-        uint256[] memory tokensAmountPerPeriod
+        uint256[] memory tokensAmountPerPeriod,
+        TypeOfIncrease typeOfIncrease,
+        uint256 percentChange
     ) external;
 
     /// @notice Adds salary to employee.
@@ -188,6 +200,8 @@ interface IBentureSalary is IBentureSalaryErrors {
     /// @param periodDuration Duration of one period.
     /// @param amountOfPeriods Amount of periods.
     /// @param tokensAmountPerPeriod Amount of tokens per period.
+    /// @param typeOfIncrease Type of salary periods increased. Not saved. Only for event emit.
+    /// @param percentChange Percent of change salary periods amounts. Not saved. Only for event emit.
     /// @dev Only admin can call this method.
     function addSalaryToEmployee(
         address employeeAddress,
@@ -195,7 +209,9 @@ interface IBentureSalary is IBentureSalaryErrors {
         uint256 periodDuration,
         uint256 amountOfPeriods,
         address tokenAddress,
-        uint256[] memory tokensAmountPerPeriod
+        uint256[] memory tokensAmountPerPeriod,
+        TypeOfIncrease typeOfIncrease,
+        uint256 percentChange
     ) external;
 
     /// @notice Returns amount of pending salary.
@@ -233,6 +249,8 @@ interface IBentureSalary is IBentureSalaryErrors {
     /// @notice Emits when salary was added to Employee
     event EmployeeSalaryAdded(
         uint256 id,
+        TypeOfIncrease typeOfIncrease,
+        uint256 percentChange,
         address employeeAddress,
         address adminAddress
     );
@@ -256,6 +274,8 @@ interface IBentureSalary is IBentureSalaryErrors {
     /// @notice Emits when Admin adds periods to salary
     event SalaryPeriodsAdded(
         uint256 id,
+        TypeOfIncrease typeOfIncrease,
+        uint256 percentChange,
         address employeeAddress,
         address adminAddress
     );

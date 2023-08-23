@@ -488,12 +488,16 @@ describe("Salary", () => {
                     periodDuration,
                     amountOfPeriods,
                     tokenAddress,
-                    tokensAmountPerPeriod
+                    tokensAmountPerPeriod,
+                    0,
+                    1
                 )
             )
                 .to.emit(salary, "EmployeeSalaryAdded")
                 .withArgs(
                     expectedSalaryId,
+                    0,
+                    1,
                     clientAcc1.address,
                     adminAcc1.address
                 );
@@ -572,7 +576,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             let admins = await salary.getAdminsByEmployee(clientAcc1.address);
@@ -658,7 +664,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             //Already spent 1 sec
@@ -699,7 +707,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             //Already spent 1 sec
@@ -740,7 +750,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             //Already spent 1 sec
@@ -781,7 +793,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             //Already spent 1 sec
@@ -827,7 +841,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             let timeBeforeWithdrawal = await getTimestump();
@@ -898,7 +914,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             await salary.addSalaryToEmployee(
@@ -907,7 +925,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             await salary
@@ -918,7 +938,9 @@ describe("Salary", () => {
                     periodDuration,
                     amountOfPeriods,
                     tokenAddress,
-                    tokensAmountPerPeriod
+                    tokensAmountPerPeriod,
+                    0,
+                    1
                 );
 
             //Already spent 1 sec
@@ -956,7 +978,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             let timeBeforeWithdrawal = await getTimestump();
@@ -1015,7 +1039,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             let admins = await salary.getAdminsByEmployee(clientAcc1.address);
@@ -1043,7 +1069,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             await increaseTime(59);
@@ -1092,7 +1120,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             //Already spent 1 sec
@@ -1143,7 +1173,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             let timeBeforeWithdrawal = await getTimestump();
@@ -1203,7 +1235,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             //Already spent 1 sec
@@ -1250,7 +1284,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             //Already spent 1 sec
@@ -1293,7 +1329,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             let admins = await salary.getAdminsByEmployee(clientAcc1.address);
@@ -1333,7 +1371,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             salaryInfo = await salary.getSalaryById(2);
@@ -1378,7 +1418,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             periodDuration = 100;
@@ -1395,7 +1437,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             await salary.removeSalaryFromEmployee("1");
@@ -1460,7 +1504,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             let admins = await salary.getAdminsByEmployee(clientAcc1.address);
@@ -1497,7 +1543,9 @@ describe("Salary", () => {
                     periodDuration,
                     amountOfPeriods,
                     tokenAddress,
-                    tokensAmountPerPeriod
+                    tokensAmountPerPeriod,
+                    0,
+                    1
                 );
 
             admins = await salary.getAdminsByEmployee(clientAcc1.address);
@@ -1556,7 +1604,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             await mockERC20.mint(adminAcc2.address, 1000);
@@ -1579,7 +1629,9 @@ describe("Salary", () => {
                     periodDuration,
                     amountOfPeriods,
                     tokenAddress,
-                    tokensAmountPerPeriod
+                    tokensAmountPerPeriod,
+                    0,
+                    1
                 );
 
             await increaseTime(59);
@@ -1620,7 +1672,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             await increaseTime(119);
@@ -1659,7 +1713,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             await increaseTime(amountOfPeriods * periodDuration * 10);
@@ -1700,7 +1756,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             let admins = await salary.getAdminsByEmployee(clientAcc1.address);
@@ -1761,7 +1819,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             let admins = await salary.getAdminsByEmployee(clientAcc1.address);
@@ -1837,7 +1897,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             let timeBeforeWithdrawal = await getTimestump();
@@ -1897,7 +1959,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             let timeBeforeWithdrawal = await getTimestump();
@@ -1956,7 +2020,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             //Already spent 1 sec
@@ -2003,7 +2069,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             //Already spent 1 sec
@@ -2058,7 +2126,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             //Already spent 1 sec
@@ -2106,7 +2176,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             await mockERC20.mint(adminAcc2.address, 2100);
@@ -2127,7 +2199,9 @@ describe("Salary", () => {
                     periodDuration,
                     amountOfPeriods,
                     tokenAddress,
-                    tokensAmountPerPeriod
+                    tokensAmountPerPeriod,
+                    0,
+                    1
                 );
 
             await increaseTime(270);
@@ -2169,16 +2243,18 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             //Already spent 1 sec
             await increaseTime(270);
             let salaryInfo = await salary.getSalaryById(1);
 
-            await expect(salary.addPeriodsToSalary(1, [110, 120, 130]))
+            await expect(salary.addPeriodsToSalary(1, [110, 120, 130], 0, 1))
                 .to.emit(salary, "SalaryPeriodsAdded")
-                .withArgs(1, clientAcc1.address, adminAcc1.address);
+                .withArgs(1, 0, 1, clientAcc1.address, adminAcc1.address);
 
             salaryInfo = await salary.getSalaryById(1);
         });
@@ -2213,7 +2289,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             //Already spent 1 sec
@@ -2224,7 +2302,7 @@ describe("Salary", () => {
 
             salaryInfo = await salary.getSalaryById(1);
 
-            await salary.addPeriodsToSalary(1, [110, 120, 130]);
+            await salary.addPeriodsToSalary(1, [110, 120, 130], 0, 1);
 
             await increaseTime(30);
             await salary.connect(clientAcc1).withdrawSalary(1);
@@ -2261,7 +2339,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             //9,5 periods passed
@@ -2308,7 +2388,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             //9,5 periods passed
@@ -2359,14 +2441,16 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             //Already spent 1 sec
             await increaseTime(270);
             await salary.connect(clientAcc1).withdrawSalary(1);
             await expect(
-                salary.addPeriodsToSalary(1, [110, 120, 130])
+                salary.addPeriodsToSalary(1, [110, 120, 130], 0, 1)
             ).to.be.revertedWithCustomError(salary, "NotEnoughTokensAllowed");
             await increaseTime(30);
         });
@@ -2401,14 +2485,16 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             //Already spent 1 sec
             await increaseTime(270);
             await salary.connect(clientAcc1).withdrawSalary(1);
             await expect(
-                salary.connect(adminAcc2).addPeriodsToSalary(1, [110, 120, 130])
+                salary.connect(adminAcc2).addPeriodsToSalary(1, [110, 120, 130], 0, 1)
             ).to.be.revertedWithCustomError(salary, "NotAdminForEmployee");
             await increaseTime(30);
         });
@@ -2443,7 +2529,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             //Already spent 1 sec
@@ -2793,7 +2881,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             let admins = await salary.getAdminsByEmployee(clientAcc1.address);
@@ -2861,7 +2951,9 @@ describe("Salary", () => {
                     periodDuration,
                     amountOfPeriods,
                     tokenAddress,
-                    tokensAmountPerPeriod
+                    tokensAmountPerPeriod,
+                    0,
+                    1
                 )
             ).to.be.revertedWithCustomError(salary, "NotEnoughTokensAllowed");
         });
@@ -2902,7 +2994,9 @@ describe("Salary", () => {
                     periodDuration,
                     amountOfPeriods,
                     tokenAddress,
-                    tokensAmountPerPeriod
+                    tokensAmountPerPeriod,
+                    0,
+                    1
                 )
             ).to.be.revertedWithCustomError(salary, "NotAdminOfProject");
         });
@@ -2939,7 +3033,9 @@ describe("Salary", () => {
                     periodDuration,
                     amountOfPeriods,
                     tokenAddress,
-                    tokensAmountPerPeriod
+                    tokensAmountPerPeriod,
+                    0,
+                    1
                 )
             ).to.be.revertedWithCustomError(salary, "EmployeeNotInProject");
         });
@@ -2974,7 +3070,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             await increaseTime(59);
@@ -3014,7 +3112,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             await expect(
@@ -3055,7 +3155,9 @@ describe("Salary", () => {
                         periodDuration,
                         amountOfPeriods,
                         tokenAddress,
-                        tokensAmountPerPeriod
+                        tokensAmountPerPeriod,
+                        0,
+                        1
                     )
             ).to.be.revertedWithCustomError(salary, "NotAdminForEmployee");
         });
@@ -3091,7 +3193,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             await mockERC20.mint(adminAcc2.address, initOwnerBalance);
@@ -3114,7 +3218,9 @@ describe("Salary", () => {
                     periodDuration,
                     amountOfPeriods,
                     tokenAddress,
-                    tokensAmountPerPeriod
+                    tokensAmountPerPeriod,
+                    0,
+                    1
                 );
 
             await expect(
@@ -3170,7 +3276,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             //Already spent 1 sec
@@ -3178,7 +3286,7 @@ describe("Salary", () => {
 
             await salary.connect(clientAcc1).withdrawSalary(1);
             await expect(
-                salary.addPeriodsToSalary(1, [110, 120, 130])
+                salary.addPeriodsToSalary(1, [110, 120, 130], 0, 1)
             ).to.be.revertedWithCustomError(salary, "SalaryEnded");
         });
 
@@ -3211,7 +3319,9 @@ describe("Salary", () => {
                 periodDuration,
                 amountOfPeriods,
                 tokenAddress,
-                tokensAmountPerPeriod
+                tokensAmountPerPeriod,
+                0,
+                1
             );
 
             //Already spent 1 sec
@@ -3251,7 +3361,9 @@ describe("Salary", () => {
                     periodDuration,
                     amountOfPeriods,
                     tokenAddress,
-                    tokensAmountPerPeriod
+                    tokensAmountPerPeriod,
+                    0,
+                    1
                 )
             ).to.be.revertedWithCustomError(salary, "InvalidAmountOfPeriods");
         });

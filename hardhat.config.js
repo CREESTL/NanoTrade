@@ -36,6 +36,7 @@ module.exports = {
         polygon_testnet: {
             url: `https://polygon-mumbai.g.alchemy.com/v2/${ALCHEMY_MUMBAI}`,
             accounts: [ACC_PRIVATE_KEY],
+            gasPrice: 74000000000,
         },
     },
     mocha: {

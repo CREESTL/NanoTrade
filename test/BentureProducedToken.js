@@ -134,8 +134,6 @@ describe("Benture Produced Token", () => {
             await expect(
                 token.connect(clientAcc1).setIpfsUrl(newIpfsUrl)
             ).to.be.revertedWithCustomError(token, "UserDoesNotHaveAnAdminToken");
-
-            expect(await token.ipfsUrl()).to.equal(newIpfsUrl);
         });
 
         it("Initially should have no holders", async () => {

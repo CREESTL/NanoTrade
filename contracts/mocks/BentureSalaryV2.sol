@@ -285,7 +285,9 @@ contract BentureSalaryV2 is
     /// @notice See {IBentureSalary-addPeriodsToSalary}
     function addPeriodsToSalary(
         uint256 salaryId,
-        uint256[] memory tokensAmountPerPeriod
+        uint256[] memory tokensAmountPerPeriod,
+        TypeOfIncrease typeOfIncrease,
+        uint256 percentChange
     ) external onlyAdmin nonReentrant {
         SalaryInfo storage _salary = salaryById[salaryId];
         if (
@@ -330,7 +332,13 @@ contract BentureSalaryV2 is
         _salary.amountOfPeriods =
             _salary.amountOfPeriods +
             tokensAmountPerPeriod.length;
-        emit SalaryPeriodsAdded(_salary.id, _salary.employee, msg.sender);
+        emit SalaryPeriodsAdded(
+            _salary.id,
+            typeOfIncrease,
+            percentChange,
+            _salary.employee,
+            msg.sender
+        );
     }
 
     /// @notice See {IBentureSalary-addSalaryToEmployee}
@@ -340,7 +348,9 @@ contract BentureSalaryV2 is
         uint256 periodDuration,
         uint256 amountOfPeriods,
         address tokenAddress,
-        uint256[] memory tokensAmountPerPeriod
+        uint256[] memory tokensAmountPerPeriod,
+        TypeOfIncrease typeOfIncrease,
+        uint256 percentChange
     ) external onlyAdmin nonReentrant {
         if (amountOfPeriods != tokensAmountPerPeriod.length) {
             revert InvalidAmountOfPeriods();
@@ -386,7 +396,13 @@ contract BentureSalaryV2 is
         employeeToAdminToSalaryId[employeeAddress][msg.sender].add(_salary.id);
         employeeToProjectTokenToSalaryId[employeeAddress][projectTokenAddress].add(_salary.id);
         salaryById[_salary.id] = _salary;
-        emit EmployeeSalaryAdded(_salary.id, employeeAddress, msg.sender);
+        emit EmployeeSalaryAdded(
+            _salary.id,
+            typeOfIncrease,
+            percentChange,
+            employeeAddress,
+            msg.sender
+        );
     }
 
     /// @notice See {IBentureSalary-checkIfUserIsEmployeeOfAdmin}
