@@ -3132,24 +3132,6 @@ describe("Benture Dividend Distributing Contract", () => {
                 )
             ).to.be.revertedWithCustomError(benture, "InvalidDividendsAmount");
         });
-
-        it("Should fail to distribute custom dividends if sender is receiver", async () => {
-            let { benture, factory, adminToken, origToken, distToken } =
-                await loadFixture(deploys);
-
-            await expect(
-                benture.connect(ownerAcc).distributeDividendsCustom(
-                    distToken.address,
-                    // Owner sends tokens to himself
-                    [ownerAcc.address, clientAcc2.address],
-                    // Use low amounts
-                    [1, 2]
-                )
-            ).to.be.revertedWithCustomError(
-                distToken,
-                "SenderCanNotBeAReceiver"
-            );
-        });
     });
 
     // #G

@@ -240,9 +240,6 @@ contract BentureProducedToken is ERC20, IBentureProducedToken {
         if (to == address(0)) {
             revert InvalidUserAddress();
         }
-        if (to == from) {
-            revert SenderCanNotBeAReceiver();
-        }
         if (!isHolder(from)) {
             revert NoTokensToTransfer();
         }

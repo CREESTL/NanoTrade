@@ -488,17 +488,6 @@ describe("Benture Produced Token", () => {
             expect(await token.isHolder(clientAcc1.address)).to.equal(true);
         });
 
-        it("Should not allow a user to transfer tokens to himself", async () => {
-            let { token, adminToken, factory, benture } = await loadFixture(
-                deploys
-            );
-            let amount = 1000;
-            await token.mint(clientAcc1.address, amount);
-            await expect(
-                token.connect(clientAcc1).transfer(clientAcc1.address, amount)
-            ).to.be.revertedWithCustomError(token, "SenderCanNotBeAReceiver");
-        });
-
         it("Should fail to transfer tokens if receiver has zero address", async () => {
             let { token, adminToken, factory, benture } = await loadFixture(
                 deploys

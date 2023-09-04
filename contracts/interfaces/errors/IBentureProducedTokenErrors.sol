@@ -16,6 +16,5 @@ interface IBentureProducedTokenErrors {
     error InvalidBurnAmount();
     error NoTokensToBurn();
     error DeletingHolderFailed();
-    error SenderCanNotBeAReceiver();
     error NoTokensToTransfer();
 }
